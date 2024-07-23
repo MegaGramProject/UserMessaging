@@ -1,0 +1,25 @@
+
+<div style="border-style:solid; border-left: none; border-top: none; border-color: #ededed; position:fixed; width:4%; height:100%;
+display: flex; flex-direction: column; align-items: center; gap:1em; padding-top:1em; overflow-y: scroll;">
+<img src="igLogo.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain; margin-bottom:3.8em;">
+
+<img src="homeIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="searchIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="exploreIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="reelsIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="messagesIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="blankHeartIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="createIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="shopIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="newsIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="gamesIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="aiIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="timeCapsuleIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="predictIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+<img src="listenIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain; margin-bottom: 0em;">
+<img (click)="toggleShowLeftSidebarPopup()" src="moreIcon.png" style="cursor: pointer; height:3em; width: 3em; object-fit: contain;">
+
+</div>
+
+
+<LeftSidebarPopup *ngIf="showLeftSidebarPopup"></LeftSidebarPopup>

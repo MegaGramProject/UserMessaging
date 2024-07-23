@@ -1,0 +1,7 @@
+body {
+    font-family: Arial;
+}
+
+.hoverableElement:hover {
+    background-color: #e8e8e8;
+}
