@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { LeftSidebarPopupComponent } from './leftSidebarPopup.component';
 
 @Component({
@@ -10,9 +10,13 @@ import { LeftSidebarPopupComponent } from './leftSidebarPopup.component';
     styleUrl: '../styles.css'
 })
 export class LeftSidebarComponent {
-    showLeftSidebarPopup:boolean = true;
+    showLeftSidebarPopup:boolean = false;
 
     toggleShowLeftSidebarPopup() {
         this.showLeftSidebarPopup = !this.showLeftSidebarPopup;
+    }
+
+    takeUserToHomeScreen() {
+        window.location.href = "http://localhost:3100/";
     }
 }

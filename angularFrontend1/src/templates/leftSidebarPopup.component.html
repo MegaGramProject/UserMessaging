@@ -1,5 +1,5 @@
-<div style="position: absolute; left: 2%; top: 66%; border-style:solid; background-color: white; width:16em; height:16em; display: flex;
-flex-direction: column; font-size:1em; border-radius: 1em;">
+<div style="position: fixed; left: 2%; top: 66%; background-color: white; width:16em; height:16em; display: flex;
+flex-direction: column; font-size:1em; border-radius: 1em; box-shadow: 1px 1px 2px #888888;">
 
     <div class="hoverableElement" style="display: flex; width: 85%; align-items: center; justify-content: start; gap: 1em; cursor: pointer; padding-left: 1em; margin-left:1em;
     border-radius:8px;">
@@ -18,7 +18,7 @@ flex-direction: column; font-size:1em; border-radius: 1em;">
     </div>
     <div style="background-color: lightgray; height: 5%; width:100%;">
     </div>
-    <div class="hoverableElement" style="display: flex; width: 85%; align-items: center; justify-content: start; gap: 1em; cursor: pointer; padding-left: 1em; margin-left:1em;
+    <div (click)="takeUserToLogin()" class="hoverableElement" style="display: flex; width: 85%; align-items: center; justify-content: start; gap: 1em; cursor: pointer; padding-left: 1em; margin-left:1em;
     border-radius:8px">
         <p>Switch Accounts</p>
     </div>

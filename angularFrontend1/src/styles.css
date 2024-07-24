@@ -5,3 +5,17 @@ body {
 .hoverableElement:hover {
     background-color: #e8e8e8;
 }
+
+.blueButton {
+    background-color: #348ceb;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6em 1em;
+    cursor:pointer;
+}
+
+.blueButton:hover {
+    opacity: 0.55;
+}

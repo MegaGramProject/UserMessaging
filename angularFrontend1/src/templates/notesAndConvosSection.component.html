@@ -1,0 +1,32 @@
+<div style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
+border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
+flex-direction: column; padding-left: 2em; padding-right: 2em;">
+
+<div style="display: flex; align-items: center; margin-top: 2em; position: relative; width: 100%;">
+<b (click)="takeUserToLogin()" style="font-size: 1.4em; cursor: pointer;">rishavry</b>
+<img (click)="takeUserToLogin()" src="dropdownV.png" style="cursor: pointer; height: 1.4em; width: 1.4em; margin-left: 0.5em; object-fit: contain;">
+<img src="sendNewMessageIcon.png" style="cursor: pointer; height: 2.4em; width: 2.4em; object-fit: contain; position: absolute;
+top: -20%; left: 90%;">
+</div>
+
+<div style="display: flex; margin-top: 1em; width: 100%; height: 14%; align-items: center; gap:1.7em;">
+<Note></Note>
+<Note [isOwnAccount]="false" [noteText]="'First note!'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Second note!'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Third note!'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Fourth note!'" [username]="'rishavry5'" [fullName]="'Rishav Ray5'"></Note>
+</div>
+
+<div style="display: flex; align-items: center; width:100%; margin-top: 3em; position: relative;">
+<b>Messages</b>
+<p style="font-size:0.9em; color: gray; cursor:pointer; position: absolute; left: 80%; top:-65%; font-weight:600">Requests</p>
+</div>
+
+<br/>
+<Message [lastMessage]="'Message #1 • 1d'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'"></Message>
+<br/>
+<Message [lastMessage]="'Message #2 • 2w'" [username]="'rishavry3'" [fullName]="'Rishav Ray2'"></Message>
+<br/>
+<Message [lastMessage]="'Message #3 • 3mo'" [username]="'rishavry4'" [fullName]="'Rishav Ray2'"></Message>
+
+</div>
