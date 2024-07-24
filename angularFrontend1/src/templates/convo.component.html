@@ -1,0 +1,14 @@
+<div (click)="selectConvo()" class="hoverableElement" style="display: flex; width:100%; gap:1em; cursor: pointer;
+border-radius: 9px; padding-left: 1em; padding-top: 0.3em; position: relative;">
+<img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
+
+<div style="display: flex; flex-direction: column; align-items: start; margin-top:-0.4em;">
+<p style="font-size:0.77em; font-weight: semibold; margin-bottom: 0em;">{{fullName}}</p>
+<p *ngIf="!hasUnreadMessage"  style="color: gray; font-size: 0.67em;">{{lastMessage}}</p>
+<p *ngIf="hasUnreadMessage"  style="color: black; font-size: 0.8em; font-weight: bold;">{{lastMessage}}
+</p>
+</div>
+<img *ngIf="hasUnreadMessage" src="unreadMessageBlueDot.png" style="object-fit: contain; height: 1em; width: 1em;
+position: absolute; left: 80%; top: 30%;">
+
+</div>

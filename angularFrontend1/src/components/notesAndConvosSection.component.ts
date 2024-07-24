@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Note } from './note.component';
-import { Message } from './message.component';
+import { Message } from './convo.component';
 
 
 @Component({
@@ -12,7 +12,13 @@ import { Message } from './message.component';
     styleUrl: '../styles.css'
 })
 export class NotesAndConvosSection {
+    @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
+
     takeUserToLogin() {
         window.location.href = "http://localhost:8000/login";
+    }
+
+    showCreateNewNote() {
+        this.notifyParentToCreateNewNote.emit('Show createNewNote');
     }
 }

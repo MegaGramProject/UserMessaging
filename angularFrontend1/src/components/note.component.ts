@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 
 @Component({
@@ -15,4 +15,9 @@ export class Note {
     @Input() noteText: string = "Note...";
     @Input() username: string = "rishavry";
     @Input() fullName: string = "R R";
+    @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
+
+    showCreateNewNote() {
+        this.notifyParentToCreateNewNote.emit('Show createNewNote');
+    }
 }

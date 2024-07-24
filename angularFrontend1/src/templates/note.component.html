@@ -1,7 +1,7 @@
 
 <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
 <img src="profileIcon.png" style="height: 4.3em; width: 4.3em;">
-<p style="position:absolute; background-color: white; border-radius: 7px; top:-40%; left: -5%;
+<p (click)="showCreateNewNote()" style="position:absolute; background-color: white; color: #6b6b6b; border-radius: 7px; top:-40%; left: -5%;
 box-shadow: 1px 1px 2px #888888; padding:0.65em 0.65em; font-size: 0.68em; max-width: 5em; word-wrap: break-word;
 white-space: normal; overflow-wrap: break-word; cursor:pointer;">{{noteText}}</p>
 <p *ngIf="!isOwnAccount" style="position: absolute; top: 100%; font-size:0.8em; text-align: center;">{{fullName}}</p>

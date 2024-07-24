@@ -1,5 +1,7 @@
 <LeftSidebar></LeftSidebar>
 
-<NotesAndConvosSection></NotesAndConvosSection>
+<NotesAndConvosSection (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()"></NotesAndConvosSection>
 
-<MessagesOfAChat></MessagesOfAChat>.
+<MessagesOfAChat *ngIf="showMessagesOfAChat"></MessagesOfAChat>
+
+<CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
