@@ -5,29 +5,35 @@ import { CreateNewNote } from '../components/createNewNote.component';
 import { LeftSidebarComponent } from '../components/leftSidebar.component';
 import { MessagesOfAChat } from '../components/messagesOfAChat.component';
 import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
+import { NoteSection } from '../components/noteSection.component';
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, LeftSidebarComponent, CommonModule, NotesAndConvosSection,
-  MessagesOfAChat, CreateNewNote],
+  MessagesOfAChat, CreateNewNote, NoteSection],
   templateUrl: './app.component.html',
   styleUrl: '../styles.css'
 })
 export class AppComponent {
-  title:string = 'Angular app';
   showMessagesOfAChat:boolean = true;
   showCreateNewNote:boolean = false;
+  showNoteSection:boolean = false;
+  noteSectionUsername:string = "";
+  noteSectionIsOwnAccount:boolean = false;
+  authenticatedUsername:string = "rishavry"; //change later
 
   enterCreateNewNote() {
     this.showCreateNewNote = true;
     this.showMessagesOfAChat = false;
+    this.showNoteSection = false;
   }
 
   exitOutOfCreateNewNote() {
     this.showCreateNewNote = false;
     this.showMessagesOfAChat = true;
+    this.showNoteSection = false;
   }
 
   handleExitCreateNewNoteNotification(){
@@ -36,6 +42,23 @@ export class AppComponent {
 
   handleShowCreateNewNoteNotification() {
     this.enterCreateNewNote();
+  }
+
+  handleShowNoteSectionNotification(username: string) {
+    this.noteSectionUsername = username;
+    this.noteSectionIsOwnAccount = username===this.authenticatedUsername;
+    this.enterNoteSection();
+  }
+
+  enterNoteSection() {
+    this.showNoteSection = true;
+    this.showCreateNewNote = false;
+    this.showMessagesOfAChat = false;
+  }
+
+  exitNoteSection() {
+    this.showMessagesOfAChat = true;
+    this.showNoteSection = false;
   }
 
   

@@ -13,6 +13,7 @@ import { Message } from './convo.component';
 })
 export class NotesAndConvosSection {
     @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
 
     takeUserToLogin() {
         window.location.href = "http://localhost:8000/login";
@@ -20,5 +21,9 @@ export class NotesAndConvosSection {
 
     showCreateNewNote() {
         this.notifyParentToCreateNewNote.emit('Show createNewNote');
+    }
+
+    handleShowNoteSectionNotfication(username: string) {
+        this.notifyParentToShowNoteSection.emit(username);
     }
 }

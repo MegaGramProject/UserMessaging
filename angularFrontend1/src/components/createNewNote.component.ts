@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
     selector: 'CreateNewNote',
     standalone: true,
     imports: [CommonModule, FormsModule],
-    templateUrl: '../templates/CreateNewNote.component.html',
+    templateUrl: '../templates/createNewNote.component.html',
     styleUrl: '../styles.css'
 })
 
@@ -17,6 +17,7 @@ export class CreateNewNote {
     showWhoCanSeeNote: boolean = false;
     isChecked1: boolean = true;
     isChecked2: boolean = false;
+    newNoteText: string = "";
 
 
     exitCreateNewNote() {
@@ -24,8 +25,18 @@ export class CreateNewNote {
     }
 
     onShareAThoughtInputChange(event: Event) {
-        const input = event.target as HTMLTextAreaElement;
-        this.newThoughtIsLongEnough = input.value.length > 0;
+        this.newThoughtIsLongEnough = this.newNoteText.length > 0;
+    }
+
+    getCharacterCountDisplay() {
+        if(this.newNoteText.length>=275) {
+            return {
+                'display': 'inline-block'
+            };
+        }
+        return {
+            'display': 'none'
+        };
     }
     
     getShareTextStyle() {

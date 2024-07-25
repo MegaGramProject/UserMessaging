@@ -1,0 +1,21 @@
+<div *ngIf="!isDeleted" style="position: relative;">
+<div *ngIf="!inEditMode" style="width:60em; word-wrap: break-word;
+white-space: normal; overflow-wrap: break-word; margin-bottom:2em;">
+{{noteText}}
+</div>
+<textarea [(ngModel)]="noteText" *ngIf="inEditMode" style="width:60em; margin-bottom:2em; font-family: Arial; font-size:1em;">
+{{noteText}}
+</textarea>
+<div style="display: flex; align-items: center;">
+    <p style="font-size:0.85em; color: gray;">{{formatDate(noteCreatedAt)}}</p>
+    <img *ngIf="noteIsOwn" (click)="toggleEditMode()" src="editIcon.png" style="height:1.2em; width: 1.2em; margin-left: 2em; object-fit: contain;
+    cursor: pointer">
+    <img *ngIf="noteIsOwn" (click)="askToConfirmDelete()" src="redTrashIcon.png" style="height:1.2em; width: 1.2em; object-fit: contain; cursor: pointer">
+</div>
+
+<div style="position: absolute; background-color: white; width: 100%; height: 100%; text-align: center; top: 0%;"
+[ngStyle]="showDeleteConfirmationQ()">
+<p>Are you sure you would like to delete this note?</p>
+<p><span (click)="deleteNote()" style="cursor:pointer; color: red;">Yes</span> / <span (click)="cancelDelete()" style="cursor:pointer;">No</span></p>
+</div>
+</div>

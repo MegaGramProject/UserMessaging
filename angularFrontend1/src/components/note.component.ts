@@ -16,8 +16,32 @@ export class Note {
     @Input() username: string = "rishavry";
     @Input() fullName: string = "R R";
     @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
+    isHoveringOnNoteProfileIcon:boolean = false;
 
     showCreateNewNote() {
         this.notifyParentToCreateNewNote.emit('Show createNewNote');
+    }
+
+    showNoteSection() {
+        this.notifyParentToShowNoteSection.emit(this.username);
+    }
+
+    onNoteProfileIconMouseEnter() {
+        this.isHoveringOnNoteProfileIcon = true;
+    }
+
+    onNoteProfileIconMouseLeave() {
+        this.isHoveringOnNoteProfileIcon = false;
+    }
+
+    showSeeNotesText() {
+        return this.isHoveringOnNoteProfileIcon ?
+        {
+            'display': 'inline-block'
+        } :
+        {
+            'display': 'none'
+        }
     }
 }

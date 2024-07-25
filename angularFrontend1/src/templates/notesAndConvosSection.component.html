@@ -10,11 +10,11 @@ top: -20%; left: 90%;">
 </div>
 
 <div style="display: flex; margin-top: 1em; width: 100%; height: 14%; align-items: center; gap:1.7em;">
-<Note></Note>
-<Note [isOwnAccount]="false" [noteText]="'First note!'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" (notifyParentToCreateNewNote)="showCreateNewNote()"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Second note!'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'" (notifyParentToCreateNewNote)="showCreateNewNote()"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Third note!'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'" (notifyParentToCreateNewNote)="showCreateNewNote()"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Fourth note!'" [username]="'rishavry5'" [fullName]="'Rishav Ray5'" (notifyParentToCreateNewNote)="showCreateNewNote()"></Note>
+<Note (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
+<Note [isOwnAccount]="false" [noteText]="'First note!'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Second note!'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Third note!'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
+<Note [isOwnAccount]="false" [noteText]="'Fourth note!'" [username]="'rishavry5'" [fullName]="'Rishav Ray5'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
 </div>
 
 <div style="display: flex; align-items: center; width:100%; margin-top: 3em; position: relative;">
