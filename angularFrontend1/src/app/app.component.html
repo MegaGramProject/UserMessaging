@@ -1,9 +1,14 @@
 <LeftSidebar></LeftSidebar>
 
-<NotesAndConvosSection (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"></NotesAndConvosSection>
+<NotesAndConvosSection (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"
+(notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></NotesAndConvosSection>
 
-<MessagesOfAChat *ngIf="showMessagesOfAChat"></MessagesOfAChat>
+<MessagesOfAChat *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
+(notifyParentToShowMessageReactions)="showMessageReactions($event)"></MessagesOfAChat>
 
 <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
 
 <NoteSection *ngIf="showNoteSection" [username]="noteSectionUsername" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"></NoteSection>
+
+<MessageReactionsPopup *ngIf="showMessageReactionsPopup" [messageReactionsInfo]="messageReactionsInfo"
+(notifyParentToExitMessageReactionsPopup)="closeMessageReactionsPopup()" [authenticatedUsername]="authenticatedUsername"></MessageReactionsPopup>

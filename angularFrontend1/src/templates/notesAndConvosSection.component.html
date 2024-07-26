@@ -23,10 +23,10 @@ top: -20%; left: 90%;">
 </div>
 
 <br/>
-<Message [lastMessage]="'Message #1 • 1d'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" [hasUnreadMessage]="true"></Message>
+<Convo [lastMessage]="'Message #1 • 1d'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" [hasUnreadMessage]="true" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
 <br/>
-<Message [lastMessage]="'Message #2 • 2w'" [username]="'rishavry3'" [fullName]="'Rishav Ray2'" [hasUnreadMessage]="false"></Message>
+<Convo [lastMessage]="'Message #2 • 2w'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'" [hasUnreadMessage]="false" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
 <br/>
-<Message [lastMessage]="'Message #3 • 3mo'" [username]="'rishavry4'" [fullName]="'Rishav Ray2'" [hasUnreadMessage]="false"></Message>
+<Convo [lastMessage]="'Message #3 • 3mo'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'" [hasUnreadMessage]="false" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
 
 </div>

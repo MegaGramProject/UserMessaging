@@ -1,20 +1,27 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
-    selector: 'Message',
+    selector: 'Convo',
     standalone: true,
     imports: [CommonModule],
     templateUrl: '../templates/convo.component.html',
     styleUrl: '../styles.css'
 })
-export class Message {
-    @Input() lastMessage: string = "Gotcha • 29w";
-    @Input() username: string = "rishavry";
-    @Input() fullName: string = "Rishav Ray";
-    @Input() hasUnreadMessage: boolean = true;
+export class Convo {
+    @Input() lastMessage!: string;
+    @Input() username!: string;
+    @Input() fullName!: string;
+    @Input() hasUnreadMessage!: boolean;
+    @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
 
     selectConvo() {
         this.hasUnreadMessage = false;
+        this.showMessagesOfThisConvo();
     }
+    
+    showMessagesOfThisConvo() {
+        this.notifyParentToShowMessagesOfThisConvo.emit([this.username, this.fullName]);
+    }
+
 }

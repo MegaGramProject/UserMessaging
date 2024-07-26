@@ -6,13 +6,14 @@ import { LeftSidebarComponent } from '../components/leftSidebar.component';
 import { MessagesOfAChat } from '../components/messagesOfAChat.component';
 import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
 import { NoteSection } from '../components/noteSection.component';
+import { MessageReactionsPopup } from '../components/messageReactionsPopup.component';
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, LeftSidebarComponent, CommonModule, NotesAndConvosSection,
-  MessagesOfAChat, CreateNewNote, NoteSection],
+  MessagesOfAChat, CreateNewNote, NoteSection, MessageReactionsPopup],
   templateUrl: './app.component.html',
   styleUrl: '../styles.css'
 })
@@ -22,7 +23,11 @@ export class AppComponent {
   showNoteSection:boolean = false;
   noteSectionUsername:string = "";
   noteSectionIsOwnAccount:boolean = false;
-  authenticatedUsername:string = "rishavry"; //change later
+  authenticatedUsername:string = "rishavry";
+  messageRecipientInfo:Array<string> = ["rishavry2", "Rishav Ray2"];
+  showMessageReactionsPopup:boolean = false;
+  messageReactionsInfo:string[][] = [];
+
 
   enterCreateNewNote() {
     this.showCreateNewNote = true;
@@ -59,6 +64,21 @@ export class AppComponent {
   exitNoteSection() {
     this.showMessagesOfAChat = true;
     this.showNoteSection = false;
+  }
+
+  showMessagesOfConvo(messageRecipientInfo: Array<string>) {
+      this.messageRecipientInfo = messageRecipientInfo;
+      this.showMessagesOfAChat = true;
+  }
+
+  showMessageReactions(messageReactionsInfo: Array<Array<string>>) {
+    this.showMessageReactionsPopup = true;
+    this.messageReactionsInfo = messageReactionsInfo;
+  }
+
+  closeMessageReactionsPopup() {
+    this.showMessageReactionsPopup = false;
+    this.messageReactionsInfo = [];
   }
 
   
