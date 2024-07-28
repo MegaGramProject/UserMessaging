@@ -1,14 +1,15 @@
-<div *ngIf="messageRecipientInfo.length==0" style="position: absolute; left:27.3%; top:0%; width: 72.6%; height: 100%; display: flex; flex-direction: column;
-justify-content: center; align-items: center;">
+<div *ngIf="messageRecipientInfo.length==0" style="position: absolute; top:0%; height: 100%; display: flex; flex-direction: column;
+justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalStartOfSection()">
 
 <img src="yourMessagesIcon.png" style="height: 8em; width: 8em; pointer-events: none; object-fit: contain; margin-bottom: -1em;">
 <p style="font-size:1.3em; font-weight: semibold; margin-bottom:0em;">Your Messages</p>
 <p style="color: gray">Send a message to start a chat.</p>
-<button type="button" class="blueButton">Send message</button>
+<button (click)="showNewMessagePopup()" type="button" class="blueButton">Send message</button>
 
 </div>
 
-<div *ngIf="messageRecipientInfo.length>0" style="position: absolute; left:27.3%; top:0%; width: 70.6%; height: 100%;">
+<div *ngIf="messageRecipientInfo.length>0" style="position: absolute; top:0%; height: 100%;"
+[ngStyle]="getWidthAndHorizontalStartOfSection()">
 
 <div style="position: relative; height:100%; width:100%; top: 0%; left: 0%;">
 
@@ -23,7 +24,8 @@ justify-content: center; align-items: center;">
         <div style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
             <img src="audioCallIcon.png" style="height:2.5em; width:2.5em; object-fit: contain;">
             <img src="videoCallIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
-            <img src="infoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+            <img (click)="toggleConvoDetailsPanel()" *ngIf="!convoDetailsPanelIsExpanded" src="infoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+            <img (click)="toggleConvoDetailsPanel()" *ngIf="convoDetailsPanelIsExpanded" src="solidBlackInfoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
         </div>
 
     </div>
@@ -48,7 +50,55 @@ justify-content: center; align-items: center;">
             <p style="background-color:#f0f0f0; border-radius: 2em; padding: 0.5em 1em;">{{ messages[replies[i]][1] }}</p>
         </div>
 
+        <div *ngIf="fileReplies[i][0]!==-1 && fileReplies[i][1]!==-1" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+        border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
+        [ngStyle]="{
+            'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
+            'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
+            'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
+        }">
+            <p *ngIf="message[0]===authenticatedUsername">You replied to {{messages[fileReplies[i][0]][0]}}</p>
+            <p *ngIf="message[0]!==authenticatedUsername">{{messageRecipientInfo[0]}} replied to {{messages[fileReplies[i][0]][0]}}</p>
+            <img [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain;">
+        </div>
 
+        <div style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
+        border-width: 3px; padding-left: 1em; padding-right: 1em;"
+        [ngStyle]="{
+            'justify-content': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
+            'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
+            'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
+        }">
+            <p *ngIf="message[3]!=='' && message[0]===authenticatedUsername" style="font-size:0.88em; color: gray;">
+                You forwarded a message from a conversation with {{message[3]}}</p>
+        
+            <p *ngIf="message[3]!=='' && message[0]!==authenticatedUsername" style="font-size:0.88em; color: gray;">
+                {{message[0]}} forwarded a message from a conversation with {{messages[i][3]}}</p>
+        </div>
+
+
+        <div *ngIf="messageFileImages[i].length>0" style="display: flex; flex-direction: column; gap: 0.3em;"
+            [ngStyle]="{'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
+            <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
+
+                <div (mouseenter)="onFileImageMouseEnter(i, j)" (mouseleave)="onFileImageMouseLeave()" style="display: flex; align-items: center; gap: 0.3em;">
+                    <img *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                    <img (click)="replyToFile(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                    <img *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 2.3em;">
+                    
+                    <img *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain;">
+                    <img *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain;">
+                    
+                    <img *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; margin-left: 2.3em; object-fit: contain; cursor: pointer;">
+                    <img (click)="replyToFile(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                    <img *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                
+                </div>
+
+            </div>
+        </div>
+
+        
         <div (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; align-items: center;
         width: 100%; margin-bottom: 1em; gap:0.6em;"
         [ngStyle]="{'justify-content': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
@@ -63,13 +113,13 @@ justify-content: center; align-items: center;">
                 'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                 'color': message[0] === authenticatedUsername ? 'white' : 'black',
                 'border-radius': '2em',
-                'padding': '0.5em 1em'
-            }">
+                'padding': '0.5em 1em',
+            }" style="max-width: 25em;">
             {{ message[1] }}
         </p>
         <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]===authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
         cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
-        <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 13em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+        <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
         z-index: 10;">
             <p style="color:gray">Most Popular</p>
             <p style="letter-spacing: 1em; font-size:1.4em">
@@ -101,7 +151,7 @@ justify-content: center; align-items: center;">
                 <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
             </div>
 
-            <div class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+            <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
             align-items: center; justify-content: space-between;">
                 <p style="font-size: 0.9em;">Forward</p>
                 <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
@@ -131,13 +181,13 @@ justify-content: center; align-items: center;">
                 'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                 'color': message[0] === authenticatedUsername ? 'white' : 'black',
                 'border-radius': '2em',
-                'padding': '0.5em 1em'
-            }">
+                'padding': '0.5em 1em',
+            }" style="max-width: 25em;">
             {{ message[1] }}
         </p>
         <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]!==authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
         cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
-        <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 13em; border-style:solid; border-color: lightgray; position: absolute;
+        <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute;
         left:50%; top:120%; background-color: white; z-index: 10;">
             <p style="color:gray">Most Popular</p>
             <p style="letter-spacing: 1em; font-size:1.4em">
@@ -168,7 +218,7 @@ justify-content: center; align-items: center;">
                 <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
             </div>
 
-            <div class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+            <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
             align-items: center; justify-content: space-between;">
                 <p style="font-size: 0.9em;">Forward</p>
                 <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
@@ -192,12 +242,37 @@ justify-content: center; align-items: center;">
     </div>
 
     <div style="position: absolute;  top:92%; left:1.5%; width: 100%;">
+        <input type="file" #fileInput (change) ="handleFileChange($event)" style="display: none;">
         <div style="position: relative; height: 100%; width: 100%; top: 0%; left: 0%;">
+
+            
+            <div *ngIf="filesToSend.length>0" style="position: absolute; width: 70%; height: 4em; background-color: white;
+            top:-110%; left:10%; border-radius: 8px; display: flex; align-items: center; justify-content: start;
+            padding-top:0.2em; padding-left: 1em; gap: 0.35em;">
+                <div *ngFor="let fileImage of fileImages; let i = index;">
+                    <div (mouseenter)="setCurrentlyHoveredFileImage(i)" (mouseleave)="resetCurrentlyHoveredFileImage()" style="position: relative;">
+                        <img *ngIf="fileImages[i]!=='default file image'" [src]="fileImages[i]" style="height: 4em; width:4em; object-fit: contain;">
+                        <img *ngIf="fileImages[i]==='default file image'" src="fileImage.png" style="height: 4em; width:4em; object-fit: contain;">
+                        <img (click)="removeFileToSend(i)" src="refinedXIcon.png" style="position: absolute; height: 1em; width: 1em; object-fit: contain; cursor: pointer;
+                        top: -25%; left:100%; z-index: 10;">
+                        <p *ngIf="currentlyHoveredFileImage==i" style="font-size: 0.65em; position: absolute; top: -100%; left: -50%; background-color: black; color: white">
+                        {{filesToSend[i].name}}  ({{filesToSend[i].type}}) </p>
+                    
+                    </div>
+                </div>
+            </div>
+
             <textarea [(ngModel)]="messageToSend" placeholder={{textareaPlaceholder}} style="font-family: Arial; width:96%;
             border-radius:2em; font-size: 1em; border-color:lightgray; padding-left:1em; padding-top:1em;"></textarea>
-            <img src="microphoneIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img (click)="toggleAudio()" *ngIf="audioContext!==null && !isPaused" src="pauseIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            cursor:pointer;">
+            <img (click)="toggleAudio()" *ngIf="audioContext!==null && isPaused" src="playIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            cursor:pointer;">
+            <img (click)="stopRecordingAudioMessage()" *ngIf="audioContext!==null" src="stopRecordingIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            cursor:pointer;">
+            <img (click)="startRecordingAudioMessage()" *ngIf="audioContext==null" src="microphoneIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">
-            <img src="sendFileIcon.png" style="position: absolute; left: 89%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img *ngIf="filesToSend.length<10" (click)="triggerFileInput()" src="sendFileIcon.png" style="position: absolute; left: 89%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">
             <img (click)="sendHeart()" src="blankHeartIcon.png" style="position: absolute; left: 93%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">

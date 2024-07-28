@@ -9,10 +9,11 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     styleUrl: '../styles.css'
 })
 export class Convo {
-    @Input() lastMessage!: string;
-    @Input() username!: string;
-    @Input() fullName!: string;
-    @Input() hasUnreadMessage!: boolean;
+    @Input() lastMessage!: any;
+    @Input() username!: any;
+    @Input() fullName!: any;
+    @Input() hasUnreadMessage!: any;
+    @Input() isMuted!:any;
     @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
 
     selectConvo() {

@@ -1,11 +1,11 @@
-<div style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
+<div *ngIf="isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
 border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
 flex-direction: column; padding-left: 2em; padding-right: 2em;">
 
 <div style="display: flex; align-items: center; margin-top: 2em; position: relative; width: 100%;">
 <b (click)="takeUserToLogin()" style="font-size: 1.4em; cursor: pointer;">rishavry</b>
-<img (click)="takeUserToLogin()" src="dropdownV.png" style="cursor: pointer; height: 1.4em; width: 1.4em; margin-left: 0.5em; object-fit: contain;">
-<img src="sendNewMessageIcon.png" style="cursor: pointer; height: 2.4em; width: 2.4em; object-fit: contain; position: absolute;
+<img (click)="toggleExpansion()" src="dropdownV.png" style="cursor: pointer; height: 1.4em; width: 1.4em; margin-left: 0.5em; object-fit: contain;">
+<img (click)="showNewMessagePopup()" src="sendNewMessageIcon.png" style="cursor: pointer; height: 2.4em; width: 2.4em; object-fit: contain; position: absolute;
 top: -20%; left: 90%;">
 </div>
 
@@ -23,10 +23,22 @@ top: -20%; left: 90%;">
 </div>
 
 <br/>
-<Convo [lastMessage]="'Message #1 • 1d'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" [hasUnreadMessage]="true" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
-<br/>
-<Convo [lastMessage]="'Message #2 • 2w'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'" [hasUnreadMessage]="false" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
-<br/>
-<Convo [lastMessage]="'Message #3 • 3mo'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'" [hasUnreadMessage]="false" (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)"></Convo>
 
+<div *ngFor="let convo of listOfConvos;">
+    <Convo [lastMessage]="convo[0]"
+        [username]="convo[1]"
+        [fullName]="convo[2]"
+        [hasUnreadMessage]="convo[3]"
+        [isMuted]="convo[4]"
+        (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)">
+    </Convo>
+    <br/>
+</div>
+
+</div>
+
+<div *ngIf="!isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:1em; height: 100%;
+border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
+justify-content: center; padding-top:1em;">
+    <img *ngIf="!isExpanded" (click)="toggleExpansion()" src="upArrow.webp" style="cursor: pointer; height: 1.4em; width: 1.4em; object-fit: contain;">
 </div>

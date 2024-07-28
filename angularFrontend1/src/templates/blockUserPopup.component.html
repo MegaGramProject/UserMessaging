@@ -1,0 +1,19 @@
+<div style= "position: absolute; border-style:solid; border-color: lightgray; left: 30%; top: 25%; background-color:white; height: 15.8em; width:30em; border-radius:1.3em;
+padding-bottom:2em; padding-top:0.5em;">
+
+<div style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.7em;
+text-align: center; padding-bottom: 0.7em; font-size:1.2em;">
+    <p>Block {{ messageRecipientInfo[0] }}?</p>
+    <p style="color: gray; font-size:0.88em; max-width: 20em; margin-left: 4.5em;">They won't be able to find your profile, posts or story on Megagram. Megagram won't let them know you blocked them.</p>
+</div>
+
+<div (click)="blockUser()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; color: red; cursor: pointer">
+    <p>Block</p>
+</div>
+
+<div (click)="cancelBlock()" style="padding-top: 0.4em; text-align: center; padding-bottom: 0.4em; cursor: pointer">
+    <p>Cancel</p>
+</div>
+
+</div>
