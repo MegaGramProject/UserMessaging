@@ -1,5 +1,5 @@
 <div (click)="selectConvo()" class="hoverableElement" style="display: flex; width:100%; gap:1em; cursor: pointer;
-border-radius: 9px; padding-left: 1em; padding-top: 0.3em; position: relative;">
+border-radius: 9px; padding-left: 1em; padding-top: 0.3em; position: relative;" [ngStyle]="getBackgroundColorBasedOnSelection()">
 <img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
 
 <div style="display: flex; flex-direction: column; align-items: start; margin-top:-0.4em; overflow-x: scroll;">

@@ -19,17 +19,20 @@ top: -20%; left: 90%;">
 
 <div style="display: flex; align-items: center; width:100%; margin-top: 3em; position: relative;">
 <b>Messages</b>
-<p style="font-size:0.9em; color: gray; cursor:pointer; position: absolute; left: 80%; top:-65%; font-weight:600">Requests</p>
+<p (click)="showListOfMessageRequestsSection()" style="font-size:0.9em; color: gray; cursor:pointer; position: absolute; left: 80%; top:-65%; font-weight:600">Requests</p>
 </div>
 
 <br/>
 
-<div *ngFor="let convo of listOfConvos;">
+<div *ngFor="let convo of listOfConvos; let i = index;">
     <Convo [lastMessage]="convo[0]"
         [username]="convo[1]"
         [fullName]="convo[2]"
         [hasUnreadMessage]="convo[3]"
         [isMuted]="convo[4]"
+        [convoIndex]="i"
+        [isSelected]="i==selectedConvo"
+        (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
         (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)">
     </Convo>
     <br/>

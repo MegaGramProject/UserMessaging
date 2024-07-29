@@ -527,4 +527,56 @@ export class MessagesOfAChat {
     
     }
 
+    startAudioCall() {
+        //code for starting audio call
+        let currentDateTime = new Date();
+        this.messages.push([this.authenticatedUsername, "Audio-Call Started", currentDateTime]);
+        this.replies.push(-1);
+        this.fileReplies.push([-1, -1]);
+        this.reactions.push([]);
+        this.reactionUsernames.push([]);
+        this.messageFiles.push([]);
+        this.messageFileImages.push([]);
+        this.messageFileReactions.push([]);
+        this.messageFileReactionUsernames.push([]);
+
+        let newDateTime = new Date();
+        newDateTime.setHours(currentDateTime.getHours() + 2);
+        this.messages.push([this.authenticatedUsername, "Audio-Call Ended", newDateTime]);
+        this.replies.push(-1);
+        this.fileReplies.push([-1, -1]);
+        this.reactions.push([]);
+        this.reactionUsernames.push([]);
+        this.messageFiles.push([]);
+        this.messageFileImages.push([]);
+        this.messageFileReactions.push([]);
+        this.messageFileReactionUsernames.push([]);
+    }
+
+    startVideoCall() {
+         //code for starting video call
+        let currentDateTime = new Date();
+        this.messages.push([this.authenticatedUsername, "Video-Chat Started", currentDateTime]);
+        this.replies.push(-1);
+        this.fileReplies.push([-1, -1]);
+        this.reactions.push([]);
+        this.reactionUsernames.push([]);
+        this.messageFiles.push([]);
+        this.messageFileImages.push([]);
+        this.messageFileReactions.push([]);
+        this.messageFileReactionUsernames.push([]);
+        
+        let newDateTime = new Date();
+        newDateTime.setHours(currentDateTime.getHours() + 2);
+        this.messages.push([this.authenticatedUsername, "Video-Chat Ended", newDateTime]);
+        this.replies.push(-1);
+        this.fileReplies.push([-1, -1]);
+        this.reactions.push([]);
+        this.reactionUsernames.push([]);
+        this.messageFiles.push([]);
+        this.messageFileImages.push([]);
+        this.messageFileReactions.push([]);
+        this.messageFileReactionUsernames.push([]);
+    }
+
 }

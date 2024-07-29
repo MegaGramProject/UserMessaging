@@ -36,3 +36,7 @@ body {
 .checkbox-round:checked {
     background-color: #348ceb;
 }
+
+.loseOpacityWhenActive:active {
+    opacity: 0.3;
+}

@@ -22,8 +22,8 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
-            <img src="audioCallIcon.png" style="height:2.5em; width:2.5em; object-fit: contain;">
-            <img src="videoCallIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+            <img (click)="startAudioCall()" src="audioCallIcon.png" style="height:2.5em; width:2.5em; object-fit: contain;">
+            <img (click)="startVideoCall()" src="videoCallIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
             <img (click)="toggleConvoDetailsPanel()" *ngIf="!convoDetailsPanelIsExpanded" src="infoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
             <img (click)="toggleConvoDetailsPanel()" *ngIf="convoDetailsPanelIsExpanded" src="solidBlackInfoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
         </div>
@@ -38,7 +38,19 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             {{ formatDate(message[2]) }}
         </div>
 
-        <div *ngIf="replies[i]!==-1" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+        <div *ngIf="message.length==3">
+            <p *ngIf="message[0]===authenticatedUsername && message[1]==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started an audio call</p>
+            <p *ngIf="message[0]!==authenticatedUsername && message[1]==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started an audio call</p>
+            <p *ngIf="message[0]===authenticatedUsername && message[1]==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended an audio-call</p>
+            <p *ngIf="message[0]!==authenticatedUsername && message[1]==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended an audio-call</p>
+
+            <p *ngIf="message[0]===authenticatedUsername && message[1]==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started a video chat</p>
+            <p *ngIf="message[0]!==authenticatedUsername && message[1]==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started a video chat</p>
+            <p *ngIf="message[0]===authenticatedUsername && message[1]==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended a video chat</p>
+            <p *ngIf="message[0]!==authenticatedUsername && message[1]==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended a video chat</p>
+        </div>
+
+        <div *ngIf="replies[i]!==-1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
         border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
         [ngStyle]="{
             'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
@@ -50,7 +62,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <p style="background-color:#f0f0f0; border-radius: 2em; padding: 0.5em 1em;">{{ messages[replies[i]][1] }}</p>
         </div>
 
-        <div *ngIf="fileReplies[i][0]!==-1 && fileReplies[i][1]!==-1" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+        <div *ngIf="fileReplies[i][0]!==-1 && fileReplies[i][1]!==-1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
         border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
         [ngStyle]="{
             'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
@@ -62,7 +74,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
         </div>
 
-        <div style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
+        <div *ngIf="message.length>3" style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
         border-width: 3px; padding-left: 1em; padding-right: 1em;"
         [ngStyle]="{
             'justify-content': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
@@ -77,7 +89,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
         </div>
 
 
-        <div *ngIf="messageFileImages[i].length>0" style="display: flex; flex-direction: column; gap: 0.3em;"
+        <div *ngIf="messageFileImages[i].length>0 && message.length>3" style="display: flex; flex-direction: column; gap: 0.3em;"
             [ngStyle]="{'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
             <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
 
@@ -193,7 +205,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
         </div>
 
         
-        <div (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; align-items: center;
+        <div *ngIf="message.length>3" (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; align-items: center;
         width: 100%; margin-bottom: 1em; gap:0.6em;"
         [ngStyle]="{'justify-content': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
         

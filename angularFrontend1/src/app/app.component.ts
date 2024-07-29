@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { BlockUserPopup } from '../components/blockUserPopup.component';
 import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
 import { CreateNewNote } from '../components/createNewNote.component';
+import { DeleteChatPopup } from '../components/deleteChatPopup.component';
 import { LeftSidebarComponent } from '../components/leftSidebar.component';
+import { ListOfMessageRequestsSection } from '../components/listOfMessageRequestsSection.component';
 import { MessageReactionsPopup } from '../components/messageReactionsPopup.component';
 import { MessagesOfAChat } from '../components/messagesOfAChat.component';
 import { NewMessagePopup } from '../components/newMessagePopup.component';
 import { NoteSection } from '../components/noteSection.component';
 import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
-import { DeleteChatPopup } from '../components/deleteChatPopup.component';
-import { BlockUserPopup } from '../components/blockUserPopup.component';
+import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
 
 
 @Component({
@@ -18,18 +20,18 @@ import { BlockUserPopup } from '../components/blockUserPopup.component';
   standalone: true,
   imports: [RouterOutlet, LeftSidebarComponent, CommonModule, NotesAndConvosSection,
   MessagesOfAChat, CreateNewNote, NoteSection, MessageReactionsPopup, NewMessagePopup, ConvoDetailsPanel,
-  DeleteChatPopup, BlockUserPopup],
+  DeleteChatPopup, BlockUserPopup, ListOfMessageRequestsSection, RequestedMessagesOfAChat],
   templateUrl: './app.component.html',
   styleUrl: '../styles.css'
 })
 export class AppComponent {
-  showMessagesOfAChat:boolean = true;
+  showMessagesOfAChat:boolean = false;
   showCreateNewNote:boolean = false;
   showNoteSection:boolean = false;
   noteSectionUsername:string = "";
   noteSectionIsOwnAccount:boolean = false;
   authenticatedUsername:string = "rishavry";
-  messageRecipientInfo:Array<string> = ["rishavry2", "Rishav Ray2"];
+  messageRecipientInfo:Array<string> = [];
   showMessageReactionsPopup:boolean = false;
   messageReactionsInfo:string[][] = [];
   showNewMessagePopup:boolean = false;
@@ -42,6 +44,11 @@ export class AppComponent {
   messageToForward!:string;
   messageData!:any[][];
   fileToForward:any[] = [];
+  displayListOfMessageRequestsSection:boolean = true;
+  requestedMessagesOfAChatIsExpanded:boolean = false;
+  convoIsRequested:boolean = false;
+  listOfRequestedConvos!: any[][];
+
 
 
   enterCreateNewNote() {
@@ -134,6 +141,10 @@ export class AppComponent {
     this.listOfConvos = listOfConvos;
   }
 
+  receiveListOfRequestedConvos(listOfRequestedConvos: any[][]) {
+    this.listOfRequestedConvos = listOfRequestedConvos;
+  }
+
   receiveMessageData(messageData: any[][]) {
     this.messageData = messageData;
   }
@@ -162,6 +173,12 @@ export class AppComponent {
   }
 
   toggleConvoDetails() {
+    this.convoIsRequested = false;
+    this.showConvoDetailsPanel = !this.showConvoDetailsPanel;
+  }
+
+  toggleRequestedConvoDetails() {
+    this.convoIsRequested = true;
     this.showConvoDetailsPanel = !this.showConvoDetailsPanel;
   }
 
@@ -178,15 +195,29 @@ export class AppComponent {
   }
 
   deleteChat() {
-    for(let i=0; i<this.listOfConvos.length; i++) {
-      if(this.listOfConvos[i][1]===this.messageRecipientInfo[0]) {
-        this.listOfConvos.splice(i,1);
-        this.messageRecipientInfo = [];
-        this.displayDeleteChatPopup = false;
-        this.showConvoDetailsPanel = false;
-        return;
+    if(this.listOfConvos) {
+      for(let i=0; i<this.listOfConvos.length; i++) {
+        if(this.listOfConvos[i][1]===this.messageRecipientInfo[0]) {
+          this.listOfConvos.splice(i,1);
+          this.messageRecipientInfo = [];
+          this.displayDeleteChatPopup = false;
+          this.showConvoDetailsPanel = false;
+          return;
+        }
       }
     }
+    if(this.listOfRequestedConvos) {
+      for(let i=0; i<this.listOfRequestedConvos.length; i++) {
+        if(this.listOfRequestedConvos[i][1]===this.messageRecipientInfo[0]) {
+          this.listOfRequestedConvos.splice(i,1);
+          this.messageRecipientInfo = [];
+          this.displayDeleteChatPopup = false;
+          this.showConvoDetailsPanel = false;
+          return;
+        }
+      }
+    }
+
   }
 
   cancelBlockUser() {
@@ -195,14 +226,26 @@ export class AppComponent {
 
   blockUser() {
     // code for blocking user
-    for(let i=0; i<this.listOfConvos.length; i++) {
-      if(this.listOfConvos[i][1]===this.messageRecipientInfo[0]) {
-        this.listOfConvos.splice(i,1);
-        this.messageRecipientInfo = [];
-        console.log(this.messageRecipientInfo[0] + " has been blocked.");
-        this.displayBlockUserPopup = false;
-        this.showConvoDetailsPanel = false;
-        return;
+    if(this.listOfConvos) {
+      for(let i=0; i<this.listOfConvos.length; i++) {
+        if(this.listOfConvos[i][1]===this.messageRecipientInfo[0]) {
+          this.listOfConvos.splice(i,1);
+          this.messageRecipientInfo = [];
+          this.displayBlockUserPopup = false;
+          this.showConvoDetailsPanel = false;
+          return;
+        }
+      }
+    }
+    if(this.listOfRequestedConvos) {
+      for(let i=0; i<this.listOfRequestedConvos.length; i++) {
+        if(this.listOfRequestedConvos[i][1]===this.messageRecipientInfo[0]) {
+          this.listOfRequestedConvos.splice(i,1);
+          this.messageRecipientInfo = [];
+          this.displayBlockUserPopup = false;
+          this.showConvoDetailsPanel = false;
+          return;
+        }
       }
     }
   }
@@ -260,6 +303,39 @@ export class AppComponent {
     }
 
   }
+
+  showListOfMessageRequestsSection() {
+    this.messageRecipientInfo = [];
+    this.displayListOfMessageRequestsSection = true;
+    this.showMessagesOfAChat = false;
+  }
+  
+
+  updateExpansionOfRequestedMessagesOfAChat(notesAndConvosSectionIsExpanded: boolean) {
+    this.requestedMessagesOfAChatIsExpanded = !notesAndConvosSectionIsExpanded;
+  }
+
+  closeListOfMessageRequestsSection() {
+    this.requestedMessagesOfAChatIsExpanded = true;
+    this.displayListOfMessageRequestsSection = false;
+    this.messageRecipientInfo = []
+    this.showMessagesOfAChat = true;
+  }
+
+  showMessagesOfRequestedConvo(messageRecipientInfo: string[]) {
+    this.messageRecipientInfo = messageRecipientInfo;
+  }
+
+  deleteRequestedConvo() {
+    for(let i=0; i<this.listOfRequestedConvos.length; i++) {
+      if(this.listOfRequestedConvos[i][1]===this.messageRecipientInfo[0]) {
+        this.listOfRequestedConvos.splice(i,1);
+        this.messageRecipientInfo = [];
+        return;
+      }
+    }
+  }
+
 
 
   

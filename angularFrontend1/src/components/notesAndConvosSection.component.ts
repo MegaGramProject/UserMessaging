@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Convo } from './convo.component';
 import { Note } from './note.component';
 
@@ -28,6 +28,8 @@ export class NotesAndConvosSection {
     @Output() emitListOfConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
     @Output() notifyExpansionToParent: EventEmitter<boolean> = new EventEmitter();
     isExpanded:boolean = true;
+    @Output() notifyParentToShowListOfMessageRequestsSection: EventEmitter<string> = new EventEmitter();
+    selectedConvo:number = -1;
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -58,5 +60,13 @@ export class NotesAndConvosSection {
 
     showNewMessagePopup() {
         this.notifyParentToShowNewMessagePopup.emit("show new message popup");
+    }
+
+    showListOfMessageRequestsSection() {
+        this.notifyParentToShowListOfMessageRequestsSection.emit("show list of message requests section");
+    }
+
+    updateSelectedConvo(convoIndex: number) {
+        this.selectedConvo = convoIndex;
     }
 }

@@ -15,6 +15,7 @@ export class ConvoDetailsPanel {
     @Output() notifyParentToShowDeleteChatPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowBlockUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() toggleMutedMessageIconInConvo:  EventEmitter<any> = new EventEmitter();
+    @Input() convoIsRequested!:boolean;
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -33,6 +34,18 @@ export class ConvoDetailsPanel {
 
     showBlockUserPopup() {
         this.notifyParentToShowBlockUserPopup.emit("show block-user popup");
+    }
+
+
+
+    getHeightOfMembersListDiv() {
+        return !this.convoIsRequested ?
+        {
+            'height': '60%'
+        } :
+        {
+            'height': '69%'
+        };
     }
 
 

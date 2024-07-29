@@ -6,7 +6,7 @@ border-style: solid; border-color: lightgray; border-top: none; border-bottom: n
         <b>Details</b>
     </div>
 
-    <div style="display: flex; padding-left: 1em; padding-top: 1em; padding-bottom: 1em; border-style: solid; border-color: lightgray;
+    <div *ngIf="!convoIsRequested" style="display: flex; padding-left: 1em; padding-top: 1em; padding-bottom: 1em; border-style: solid; border-color: lightgray;
     border-top: none; border-left: none; border-right: none; align-items: center; position: relative; gap: 0.6em;">
         <img src="bellIcon.png" style="height: 1.8em; width: 1.8em; object-fit: contain;">
         <p>Mute messages</p>
@@ -15,8 +15,8 @@ border-style: solid; border-color: lightgray; border-top: none; border-bottom: n
     </div>
 
     <div style="display: flex; flex-direction: column; border-style: solid; border-color: lightgray; border-top: none;
-    border-left: none; border-right: none; height: 60%; overflow-y: scroll; padding-left: 1.5em; padding-top: 2em;
-    padding-bottom: 1em;">
+    border-left: none; border-right: none; overflow-y: scroll; padding-left: 1.5em; padding-top: 2em;
+    padding-bottom: 1em;" [ngStyle]="getHeightOfMembersListDiv()">
         <b>Members</b>
         <br/>
 
