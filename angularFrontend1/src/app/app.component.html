@@ -12,7 +12,8 @@
 (notifyParentToDeleteConvo)="deleteConvo($event)" [messagesOfAChatIsExpanded]="messagesOfAChatIsExpanded"
 (notifyParentToToggleConvoDetailsPanel)="toggleConvoDetails()"
 (notifyParentToShowForwardMessagePopup)="showForwardMessagePopup($event)"
-(emitDataToParent)="receiveMessageData($event)" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"></MessagesOfAChat>
+(emitDataToParent)="receiveMessageData($event)" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
+(notifyParentToShowForwardFilePopup)="showForwardFilePopup($event)"></MessagesOfAChat>
 
 <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
 
@@ -27,7 +28,8 @@
 (notifyParentToStartMessagingSelectedUsers)="startMessagingSelectedUsers($event)"
 [isForwarding]="isForwarding" [messageToForward]="messageToForward"
 (notifyParentToForwardMessageToSelectedUsers)="forwardMessageToSelectedUsers($event)"
-[convoMembersOfForwardedMessage]="[messageRecipientInfo]"></NewMessagePopup>
+[convoMembersOfForwardedMessage]="[messageRecipientInfo]" [fileToForward]="fileToForward"
+(notifyParentToForwardFileToSelectedUsers)="forwardFileToSelectedUsers($event)"></NewMessagePopup>
 
 <ConvoDetailsPanel *ngIf="showConvoDetailsPanel" [messageRecipientInfo]="messageRecipientInfo"
 (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"

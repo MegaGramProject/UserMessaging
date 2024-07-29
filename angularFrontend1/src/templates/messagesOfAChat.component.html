@@ -59,7 +59,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
         }">
             <p *ngIf="message[0]===authenticatedUsername">You replied to {{messages[fileReplies[i][0]][0]}}</p>
             <p *ngIf="message[0]!==authenticatedUsername">{{messageRecipientInfo[0]}} replied to {{messages[fileReplies[i][0]][0]}}</p>
-            <img [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain;">
+            <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
         </div>
 
         <div style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
@@ -81,18 +81,112 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             [ngStyle]="{'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
             <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
 
-                <div (mouseenter)="onFileImageMouseEnter(i, j)" (mouseleave)="onFileImageMouseLeave()" style="display: flex; align-items: center; gap: 0.3em;">
-                    <img *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <div (mouseenter)="onFileImageMouseEnter(i, j)" (mouseleave)="onFileImageMouseLeave()" style="display: flex; align-items: center; gap: 0.3em; position: relative;">
+                    <img (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                     <img (click)="replyToFile(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                    <img *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 2.3em;">
+                    <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 1.4em;">
                     
-                    <img *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain;">
-                    <img *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain;">
+                    <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
+                    <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
+                    <p (click)="showFileReactionsPopup(i, j)" *ngIf="messageFileReactions[i][j].length>0" style="position: absolute; left: 70%; top: 60%; border-radius: 2em; padding: 0.3em 0.6em;
+                    cursor: pointer; background-color: #ebebeb;">{{messageFileReactions[i][j][0]}}</p>
                     
-                    <img *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; margin-left: 2.3em; object-fit: contain; cursor: pointer;">
+                    <img (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; margin-left: 1.4em; object-fit: contain; cursor: pointer;">
                     <img (click)="replyToFile(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                    <img *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                
+                    <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+
+                    <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[1]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-15em; top:120%; background-color: white;
+                    z-index: 10;">
+                        <p style="color:gray">Most Popular</p>
+                        <p style="letter-spacing: 1em; font-size:1.4em">
+                            <span (click)="addFileReaction(i, j, '😀')" style="cursor:pointer;">😀</span>
+                            <span (click)="addFileReaction(i, j, '😂')" style="cursor:pointer;">😂</span>
+                            <span (click)="addFileReaction(i, j, '😁')" style="cursor:pointer;">😁</span>
+                            <span (click)="addFileReaction(i, j, '😍')" style="cursor:pointer;">😍</span>
+                            <span (click)="addFileReaction(i, j, '🤩')" style="cursor:pointer;">🤩</span>
+                            <span (click)="addFileReaction(i, j, '😡')" style="cursor:pointer;">😡</span>
+                            <span (click)="addFileReaction(i, j, '🙄')" style="cursor:pointer;">🙄</span>
+                            <span (click)="addFileReaction(i, j, '😭')" style="cursor:pointer;">😭</span>
+                            <span (click)="addFileReaction(i, j, '😱')" style="cursor:pointer;">😱</span>
+                            <span (click)="addFileReaction(i, j, '🤡')" style="cursor:pointer;">🤡</span>
+                            <span (click)="addFileReaction(i, j, '🖕')" style="cursor:pointer;">🖕</span>
+                            <span (click)="addFileReaction(i, j, '🙌')" style="cursor:pointer;">🙌</span>
+                            <span (click)="addFileReaction(i, j, '🫠')" style="cursor:pointer;">🫠</span>
+                            <span (click)="addFileReaction(i, j, '💯')" style="cursor:pointer;">💯</span>
+                            <span (click)="addFileReaction(i, j, '🌹')" style="cursor:pointer;">🌹</span>
+                            <span (click)="addFileReaction(i, j, '😏')" style="cursor:pointer;">😏</span>
+                        </p>
+                    </div>
+
+                    <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[0]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:15em; top:120%; background-color: white;
+                    z-index: 10;">
+                        <p style="color:gray">Most Popular</p>
+                        <p style="letter-spacing: 1em; font-size:1.4em">
+                            <span (click)="addFileReaction(i, j, '😀')" style="cursor:pointer;">😀</span>
+                            <span (click)="addFileReaction(i, j, '😂')" style="cursor:pointer;">😂</span>
+                            <span (click)="addFileReaction(i, j, '😁')" style="cursor:pointer;">😁</span>
+                            <span (click)="addFileReaction(i, j, '😍')" style="cursor:pointer;">😍</span>
+                            <span (click)="addFileReaction(i, j, '🤩')" style="cursor:pointer;">🤩</span>
+                            <span (click)="addFileReaction(i, j, '😡')" style="cursor:pointer;">😡</span>
+                            <span (click)="addFileReaction(i, j, '🙄')" style="cursor:pointer;">🙄</span>
+                            <span (click)="addFileReaction(i, j, '😭')" style="cursor:pointer;">😭</span>
+                            <span (click)="addFileReaction(i, j, '😱')" style="cursor:pointer;">😱</span>
+                            <span (click)="addFileReaction(i, j, '🤡')" style="cursor:pointer;">🤡</span>
+                            <span (click)="addFileReaction(i, j, '🖕')" style="cursor:pointer;">🖕</span>
+                            <span (click)="addFileReaction(i, j, '🙌')" style="cursor:pointer;">🙌</span>
+                            <span (click)="addFileReaction(i, j, '🫠')" style="cursor:pointer;">🫠</span>
+                            <span (click)="addFileReaction(i, j, '💯')" style="cursor:pointer;">💯</span>
+                            <span (click)="addFileReaction(i, j, '🌹')" style="cursor:pointer;">🌹</span>
+                            <span (click)="addFileReaction(i, j, '😏')" style="cursor:pointer;">😏</span>
+                        </p>
+                    </div>
+
+                    <div *ngIf="currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:-17em;
+                    top:105%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:8.6em; border-radius:7px;
+                    display: flex; flex-direction: column; z-index: 10;">
+
+                            <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                            border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                                <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                            </div>
+
+                            <div (click)="forwardFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                            align-items: center; justify-content: space-between;">
+                                <p style="font-size: 0.9em;">Forward</p>
+                                <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            </div>
+
+                            <div (click)="deleteFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                            align-items: center; justify-content: space-between;">
+                                <p style="font-size: 0.9em;">Unsend</p>
+                                <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            </div>
+                    </div>
+
+                    <div *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:17em;
+                    top:105%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:8.6em; border-radius:7px;
+                    display: flex; flex-direction: column; z-index: 10;">
+
+                            <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                            border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                                <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                            </div>
+
+                            <div (click)="forwardFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                            align-items: center; justify-content: space-between;">
+                                <p style="font-size: 0.9em;">Forward</p>
+                                <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            </div>
+
+                            <div (click)="deleteFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                            align-items: center; justify-content: space-between;">
+                                <p style="font-size: 0.9em;">Unsend</p>
+                                <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            </div>
+
+                    </div>
+
+
                 </div>
 
             </div>

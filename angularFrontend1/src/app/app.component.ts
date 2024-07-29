@@ -41,6 +41,7 @@ export class AppComponent {
   isForwarding:boolean = false;
   messageToForward!:string;
   messageData!:any[][];
+  fileToForward:any[] = [];
 
 
   enterCreateNewNote() {
@@ -97,6 +98,7 @@ export class AppComponent {
 
   displayNewMessagePopup() {
     this.isForwarding = false;
+    this.fileToForward = [];
     this.messageToForward = "";
     this.showNewMessagePopup = true;
   }
@@ -216,7 +218,14 @@ export class AppComponent {
 
   showForwardMessagePopup(messageToForward: string) {
     this.isForwarding = true;
+    this.fileToForward = [];
     this.messageToForward = messageToForward;
+    this.showNewMessagePopup = true;
+  }
+
+  showForwardFilePopup(fileToForward: Array<any>) {
+    this.isForwarding = true;
+    this.fileToForward = fileToForward;
     this.showNewMessagePopup = true;
   }
 
@@ -230,9 +239,28 @@ export class AppComponent {
       this.messageData[4].push([]);
       this.messageData[5].push([]);
       this.messageData[6].push([-1, -1]);
+      this.messageData[7].push([]);
+      this.messageData[8].push([]);
     }
 
   }
+
+  forwardFileToSelectedUsers(forwardMessageInfo:any[]) {
+    this.startMessagingSelectedUsers(forwardMessageInfo[1]);
+    if(forwardMessageInfo[1].length==1 && forwardMessageInfo[2].length==1) {
+      this.messageData[0].push([this.authenticatedUsername, "", new Date(), forwardMessageInfo[2][0][0]]);
+      this.messageData[1].push(-1);
+      this.messageData[2].push([]);
+      this.messageData[3].push([]);
+      this.messageData[4].push([forwardMessageInfo[0][0]]);
+      this.messageData[5].push([forwardMessageInfo[0][1]]);
+      this.messageData[6].push([-1, -1]);
+      this.messageData[7].push([[]]);
+      this.messageData[8].push([[]]);
+    }
+
+  }
+
 
   
 }

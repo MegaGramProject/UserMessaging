@@ -44,18 +44,30 @@ export class MessagesOfAChat {
         [],
         [],
         []
-    ]
+    ];
     messageFileImages: Array<Array<any>> = [
         [],
         [],
         [],
         []
-    ]
+    ];
     fileReplies: Array<Array<number>> = [
         [-1, -1],
         [-1, -1],
         [-1, -1],
         [-1, -1],
+    ];
+    messageFileReactions: Array<Array<any>> = [
+        [],
+        [],
+        [],
+        []
+    ];
+    messageFileReactionUsernames: Array<Array<any>> = [
+        [],
+        [],
+        [],
+        []
     ];
     @Input() authenticatedUsername!: string;
     @Input() messageRecipientInfo!: Array<string>;
@@ -87,9 +99,13 @@ export class MessagesOfAChat {
     @Output() notifyParentToShowForwardMessagePopup: EventEmitter<string> = new EventEmitter();
     @Output() emitDataToParent: EventEmitter<any[][]> = new EventEmitter();
     currentlyHoveredSentMessageAndFileIndices: Array<number> = [-1, -1];
+    currentlyShownReactionPanelForMessageFiles:number[] = [-1, -1];
+    currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];
+    @Output() notifyParentToShowForwardFilePopup: EventEmitter<Array<any>> = new EventEmitter();
 
     ngOnInit() {
-        this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles, this.messageFileImages, this.fileReplies]);
+        this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles,
+        this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames]);
     }
 
 
@@ -176,14 +192,18 @@ export class MessagesOfAChat {
         this.reactionUsernames.push([]);
         this.messageFiles.push(this.filesToSend);
         this.messageFileImages.push(this.fileImages);
+        this.messageFileReactions.push([]);
+        this.messageFileReactionUsernames.push([]);
+        for(let i=0; i < this.filesToSend.length; i++) {
+            this.messageFileReactions[this.messageFileReactions.length-1].push([]);
+            this.messageFileReactionUsernames[this.messageFileReactionUsernames.length-1].push([]);
+        }
         this.messageToSend = "";
         this.messageIndexToReplyTo = -1;
         this.fileIndexToReplyTo = [-1, -1];
         this.filesToSend = [];
         this.fileImages = [];
         this.textareaPlaceholder = "Message...";
-        console.log(this.messageFiles);
-        console.log(this.messageFileImages);
 
     }
 
@@ -267,6 +287,11 @@ export class MessagesOfAChat {
         this.reactionUsernames[index].push(this.authenticatedUsername);
     }
 
+    addFileReaction(messageIndex: number, fileIndex: number, reaction: string) {
+        this.messageFileReactions[messageIndex][fileIndex].push(reaction);
+        this.messageFileReactionUsernames[messageIndex][fileIndex].push(this.authenticatedUsername);
+    }
+
     showReactionPanel(index: number) {
         if(this.currentlyShownReactionPanel==index) {
             this.currentlyShownReactionPanel = -1;
@@ -348,6 +373,13 @@ export class MessagesOfAChat {
         this.reactions.splice(index, 1);
         this.reactionUsernames.splice(index, 1);
         this.currentlyShownOptionsPanel = -1;
+    }
+
+    deleteFile(messageIndex: number, fileIndex: number) {
+        this.messageFiles[messageIndex].splice(fileIndex, 1);
+        this.messageFileImages[messageIndex].splice(fileIndex, 1);
+        this.messageFileReactions[messageIndex].splice(fileIndex, 1);
+        this.messageFileReactionUsernames[messageIndex].splice(fileIndex, 1);
     }
 
     showNewMessagePopup() {
@@ -441,6 +473,11 @@ export class MessagesOfAChat {
         this.currentlyShownOptionsPanel = -1;
     }
 
+    forwardFile(messageIndex: number, fileIndex: number) {
+        this.notifyParentToShowForwardFilePopup.emit([this.messageFiles[messageIndex][fileIndex], this.messageFileImages[messageIndex][fileIndex]]);
+        this.currentlyShownOptionsPanelForMessageFiles = [-1, -1];
+    }
+
     onFileImageMouseEnter(messageIndex: number, fileImageIndex: number) {
         this.currentlyHoveredSentMessageAndFileIndices = [messageIndex, fileImageIndex];
     }
@@ -448,4 +485,46 @@ export class MessagesOfAChat {
     onFileImageMouseLeave() {
         this.currentlyHoveredSentMessageAndFileIndices = [-1, -1];
     }
+
+    downloadFile(infoOnFileToDownload: number[]) {
+        const file = this.messageFiles[infoOnFileToDownload[0]][infoOnFileToDownload[1]]
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+
+    showReactionPanelForMessageFiles(messageIndex: number, fileIndex: number) {
+        if(this.currentlyShownReactionPanelForMessageFiles[0]==messageIndex &&  this.currentlyShownReactionPanelForMessageFiles[1]==fileIndex) {
+        this.currentlyShownReactionPanelForMessageFiles = [-1, -1];
+        }
+        else {
+        this.currentlyShownReactionPanelForMessageFiles = [messageIndex, fileIndex];
+        }
+    }
+
+    onDoubleClickingFile(messageIndex: number, fileIndex: number) {
+        this.addFileReaction(messageIndex, fileIndex, "❤️");
+    }
+
+
+    showFileReactionsPopup(messageIndex: number, fileIndex: number) {
+        this.notifyParentToShowMessageReactions.emit([this.messageFileReactions[messageIndex][fileIndex], this.messageFileReactionUsernames[messageIndex][fileIndex]]);
+    }
+
+    setCurrentlyShownOptionsPanel(messageIndex: number, fileIndex: number) {
+        if(this.currentlyShownOptionsPanelForMessageFiles[0]==messageIndex && this.currentlyShownOptionsPanelForMessageFiles[1]==fileIndex) {
+            this.currentlyShownOptionsPanelForMessageFiles = [-1, -1]
+        }
+        else {
+            this.currentlyShownOptionsPanelForMessageFiles = [messageIndex, fileIndex];
+        }
+    
+    }
+
 }
