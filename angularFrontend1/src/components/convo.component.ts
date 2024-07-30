@@ -20,6 +20,7 @@ export class Convo {
     @Input() isSelected!: boolean;
     @Input() membersOfGroupChatBesidesInitator: any = [];
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any[][]> = new EventEmitter();
+    @Input() convoTitle:any = "";
 
     selectConvo() {
         this.hasUnreadMessage = false;

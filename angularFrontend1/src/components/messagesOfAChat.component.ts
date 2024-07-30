@@ -106,6 +106,10 @@ export class MessagesOfAChat {
     textareaPlaceholder:string = "";
     constructor(private cdRef: ChangeDetectorRef) {}
     @Input() groupMessageRecipientsInfo: string[][] = [];
+    @Input() convoTitle:any = "";
+    isEditingConvoTitle:boolean= false;
+    convoTitleBeforeEditing = this.convoTitle;
+    @Output() notifyParentToUpdateConvoTitle: EventEmitter<string> = new EventEmitter();
 
 
     ngOnInit() {
@@ -595,7 +599,7 @@ export class MessagesOfAChat {
     startAudioCall() {
         //code for starting audio call
         let currentDateTime = new Date();
-        this.messages.push([this.authenticatedUsername, "Audio-Call Started", currentDateTime]);
+        this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Started"], currentDateTime]);
         this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
@@ -607,7 +611,7 @@ export class MessagesOfAChat {
 
         let newDateTime = new Date();
         newDateTime.setHours(currentDateTime.getHours() + 2);
-        this.messages.push([this.authenticatedUsername, "Audio-Call Ended", newDateTime]);
+        this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Ended"], newDateTime]);
         this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
@@ -624,7 +628,7 @@ export class MessagesOfAChat {
     startVideoCall() {
          //code for starting video call
         let currentDateTime = new Date();
-        this.messages.push([this.authenticatedUsername, "Video-Chat Started", currentDateTime]);
+        this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Started"], currentDateTime]);
         this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
@@ -636,7 +640,7 @@ export class MessagesOfAChat {
         
         let newDateTime = new Date();
         newDateTime.setHours(currentDateTime.getHours() + 2);
-        this.messages.push([this.authenticatedUsername, "Video-Chat Ended", newDateTime]);
+        this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Ended"], newDateTime]);
         this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
@@ -661,6 +665,59 @@ export class MessagesOfAChat {
         fullNames += ", & " +  this.groupMessageRecipientsInfo[this.groupMessageRecipientsInfo.length-1][1];
         
         return fullNames;
+    }
+
+    getConvoTitleCursorStyle() {
+        if(this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername || (this.groupMessageRecipientsInfo.length==0 && this.messages[0][0]===this.authenticatedUsername)) {
+            return  {
+                'cursor': 'pointer'
+            }
+        }
+        return {
+            'cursor': 'auto'
+        };
+    }
+
+    toggleEditConvoTitle(buttonClickedIfAny: string) {
+        if(!this.isEditingConvoTitle && (this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername || (this.groupMessageRecipientsInfo.length==0 && this.messages[0][0]===this.authenticatedUsername))) {
+            this.convoTitleBeforeEditing = this.convoTitle;
+            this.isEditingConvoTitle = true;
+        }
+        else {
+            if(buttonClickedIfAny==="Cancel") {
+                this.convoTitle = this.convoTitleBeforeEditing;
+            }
+            if(this.convoTitleBeforeEditing!==this.convoTitle) {
+                this.notifyParentToUpdateConvoTitle.emit(this.convoTitle);
+                this.messages.push([this.authenticatedUsername, ["Convo-Title", this.convoTitleBeforeEditing + " to " + this.convoTitle], new Date()]);
+                this.replies.push(-1);
+                this.fileReplies.push([-1, -1]);
+                this.reactions.push([]);
+                this.reactionUsernames.push([]);
+                this.messageFiles.push([]);
+                this.messageFileImages.push([]);
+                this.messageFileReactions.push([]);
+                this.messageFileReactionUsernames.push([]);
+            }
+            this.isEditingConvoTitle = false;
+    
+        }
+    }
+
+    isVideoOrAudioMessage(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Video-Chat/Audio-Chat';
+    }
+
+    getVideoOrAudioMessage(messageIndex: number) {
+        return (<Array<any>>this.messages)[messageIndex][1][1];
+    }
+
+    isConvoTitle(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Convo-Title';
+    }
+
+    getConvoTitleFromAndTo(messageIndex: number) {
+        return (<Array<any>>this.messages)[messageIndex][1][1];
     }
 
 

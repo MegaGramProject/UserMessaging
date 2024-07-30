@@ -18,7 +18,8 @@
     (emitDataToParent)="receiveMessageData($event)" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
     (notifyParentToShowForwardFilePopup)="showForwardFilePopup($event)"
     [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
-    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"></MessagesOfAChat>
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
+    [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
     
@@ -31,7 +32,7 @@
     (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
     (toggleMutedMessageIconInConvo)="toggleMutedMessageIconInConvo()"
     [convoIsRequested]="convoIsRequested" [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
-    (toggleMutedMessageIconInGroupConvo)="toggleMutedMessageIconInGroupConvo()"></ConvoDetailsPanel>
+    (toggleMutedMessageIconInGroupConvo)="toggleMutedMessageIconInGroupConvo()" [authenticatedUsername]="authenticatedUsername"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"

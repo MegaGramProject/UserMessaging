@@ -53,6 +53,7 @@
     constructor(private route: ActivatedRoute) { }
     groupMessageRecipientsInfo:any[][]=[];
     selectedConvo:number = -1;
+    selectedConvoTitle:any = "";
 
     ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
@@ -475,6 +476,21 @@
 
     updateSelectedConvo(convoIndex:number) {
         this.selectedConvo = convoIndex;
+        if(!this.displayListOfMessageRequestsSection) {
+            this.selectedConvoTitle = this.listOfConvos[convoIndex][6];
+        }
+        else {
+            this.selectedConvoTitle = this.listOfRequestedConvos[convoIndex][6];
+        }
+    }
+
+    updateConvoTitle(newConvoTitle: string) {
+        if(!this.displayListOfMessageRequestsSection) {
+            this.listOfConvos[this.selectedConvo][6] = newConvoTitle;
+        }
+        else {
+            this.listOfRequestedConvos[this.selectedConvo][6] = newConvoTitle;
+        }
     }
 
 

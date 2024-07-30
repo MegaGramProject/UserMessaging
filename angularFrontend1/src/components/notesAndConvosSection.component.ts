@@ -23,7 +23,7 @@ export class NotesAndConvosSection {
 
     //first boolean is true if there is an unread message; second boolean is true if convo is muted
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", true , false, [["rishavry3", "Rishav Ray3"], ["rishavry7", "Rishav Ray7"]]],
+        ["Message #1 • 1d", "rishavry", "Rishav Ray", true , false, [["rishavry3", "Rishav Ray3"], ["rishavry7", "Rishav Ray7"]], "Terrific Convo-Title"],
        // ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false, []],
        // ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false, [["rishavry6", "Rishav Ray6"]]],
     ];

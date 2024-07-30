@@ -19,6 +19,7 @@ export class ConvoDetailsPanel {
     @Input() convoIsRequested!:boolean;
     @Input() groupMessageRecipientsInfo:string[][]=[];
     @Output() notifyParentToShowLeaveChatPopup: EventEmitter<any> = new EventEmitter();
+    @Input() authenticatedUsername!:string;
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -61,6 +62,10 @@ export class ConvoDetailsPanel {
 
     showLeaveGroupPopup() {
         this.notifyParentToShowLeaveChatPopup.emit("show leave-chat popup");
+    }
+
+    showUserSettingsPopup(groupMessageMember: string[]){
+        console.log(groupMessageMember);
     }
 
 
