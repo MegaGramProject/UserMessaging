@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 export class MessagesOfAChat {
 
 
+
     messages: Array<Array<Object>> = [
         ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
         ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
@@ -69,12 +70,12 @@ export class MessagesOfAChat {
         [],
         []
     ];
+
     @Input() authenticatedUsername!: string;
-    @Input() messageRecipientInfo!: Array<string>;
+    @Input() messageRecipientInfo: Array<string> = [];
     messageToSend: string = "";
     @ViewChild('scrollMe') myScrollContainer!: ElementRef;
     hoveredIndex: number | null = null;
-    textareaPlaceholder:string = "Message..."
     messageIndexToReplyTo:number = -1;
     fileIndexToReplyTo:number[] = [-1, -1];
     currentlyShownReactionPanel:number = -1;
@@ -102,6 +103,8 @@ export class MessagesOfAChat {
     currentlyShownReactionPanelForMessageFiles:number[] = [-1, -1];
     currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];
     @Output() notifyParentToShowForwardFilePopup: EventEmitter<Array<any>> = new EventEmitter();
+    @Input() isRequestingConvoWithRecipient:boolean = true;
+    textareaPlaceholder:string = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -171,7 +174,7 @@ export class MessagesOfAChat {
         if (changes['messageRecipientInfo']) {
             this.scrollToBottom();
             this.messageIndexToReplyTo = -1;
-            this.textareaPlaceholder = "Message...";
+            this.textareaPlaceholder = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
         }
     }
 
@@ -203,7 +206,7 @@ export class MessagesOfAChat {
         this.fileIndexToReplyTo = [-1, -1];
         this.filesToSend = [];
         this.fileImages = [];
-        this.textareaPlaceholder = "Message...";
+        this.textareaPlaceholder = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
 
     }
 
@@ -221,7 +224,7 @@ export class MessagesOfAChat {
         this.fileIndexToReplyTo = [-1, -1];
         this.filesToSend = [];
         this.fileImages = [];
-        this.textareaPlaceholder = "Message...";
+        this.textareaPlaceholder = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
 
     }
 
@@ -261,7 +264,7 @@ export class MessagesOfAChat {
     replyToMessage(index: number) {
         if(this.messageIndexToReplyTo==index) {
             this.messageIndexToReplyTo = -1;
-            this.textareaPlaceholder = "Message...";
+            this.textareaPlaceholder = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
             return;
         }
         this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + this.messages[index][1]
@@ -271,7 +274,7 @@ export class MessagesOfAChat {
     replyToFile(messageIndex: number, fileImageIndex: number) {
         if(this.fileIndexToReplyTo[0]==messageIndex && this.fileIndexToReplyTo[1]==fileImageIndex) {
             this.fileIndexToReplyTo = [-1, -1];
-            this.textareaPlaceholder = "Message...";
+            this.textareaPlaceholder = this.messageRecipientInfo.length>0 && !this.isRequestingConvoWithRecipient ? "Message..." : "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
             return;
         }
         this.textareaPlaceholder = "Replying to " + this.messages[messageIndex][0] + ": (File)";
@@ -372,7 +375,15 @@ export class MessagesOfAChat {
         this.replies.splice(index, 1);
         this.reactions.splice(index, 1);
         this.reactionUsernames.splice(index, 1);
+        this.messageFiles.slice(index, 1);
+        this.messageFileImages.slice(index, 1);
+        this.fileReplies.slice(index, 1);
+        this.messageFileReactions.splice(index, 1);
+        this.messageFileReactionUsernames.splice(index, 1);
         this.currentlyShownOptionsPanel = -1;
+        if(this.isRequestingConvoWithRecipient) {
+            this.textareaPlaceholder = "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
+        }
     }
 
     deleteFile(messageIndex: number, fileIndex: number) {

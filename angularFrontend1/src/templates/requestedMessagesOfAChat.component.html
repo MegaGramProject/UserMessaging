@@ -24,16 +24,54 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <img (click)="toggleConvoDetailsPanel()" *ngIf="convoDetailsPanelIsExpanded" src="solidBlackInfoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
         </div>
     </div>
+    <p>a</p>
 
     <div style="display: flex; flex-direction: column; align-items: center; position: absolute; width: 100%;
     top: 15%; gap: 0.5em;">
         <img src="profileIcon.png" style="height:6.5em; width:6.5em; object-fit: contain;">
         <b>{{messageRecipientInfo[1]}}</b>
-        <p style="color:gray; font-size: 0.85em;">{{messageRecipientInfo[0]}} · Megagram</p>
+        <p style="color:gray; font-size: 0.85em;">{{messageRecipientInfo[0]}} <b style="font-size:1.2em;">·</b> Megagram</p>
     </div>
 
-    <div style="display: flex; flex-direction: column; position: absolute;width: 100%; height: 50%; top: 35%;">
-    
+    <div style="display: flex; flex-direction: column; position: absolute; width: 100%; height: 50%; top: 35%; padding-left: 1.4em; overflow-y: scroll;">
+        <div *ngFor="let message of messages; let i = index">
+            <div *ngIf="i==0 || (i>0 && isMoreThan60MinutesLater(message[1], messages[i-1][1]))" style="display: flex;
+            justify-content: center; text-align: center; color: gray; font-size: 0.8em;">
+                {{ formatDate(message[1]) }}
+            </div>
+
+            <div *ngIf="replies[i]!==-1" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+                border-top: none; border-bottom: none; border-right: none; padding-right: 1em; padding-left: 1em; border-width:3px;">
+                    <p *ngIf="message[0]!==authenticatedUsername">{{messageRecipientInfo[0]}} replied to {{messageRecipientInfo[0]}}</p>
+                    <p style="background-color:#f0f0f0; border-radius: 1em; padding: 0.5em 1em; max-width: 15em; word-break: break-word;">
+                    {{messages[replies[i]][0]}}</p>
+            </div>
+
+            <div *ngIf="fileReplies[i][0]!==-1 && fileReplies[i][1]!==-1" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+                border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;">
+                    <p *ngIf="message[0]!==authenticatedUsername">{{messageRecipientInfo[0]}} replied to {{messageRecipientInfo[0]}}</p>
+                    <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
+            </div>
+
+            <div *ngIf="message[2]!==''" style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
+                border-width: 3px; padding-left: 1em; padding-right: 1em;">
+                    <p style="font-size:0.88em; color: gray;">
+                    {{messageRecipientInfo[0]}} forwarded a message from a conversation with {{message[2]}}</p>
+            </div>
+
+            <div *ngIf="messageFileImages[i].length>0" style="display: flex; flex-direction: column; gap: 0.3em;">
+                <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
+                    <img (click)="downloadFile([i, j])" *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
+                    <img (click)="downloadFile([i, j])" *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1em;">
+                <img src="profileIcon.png" style="height: 1.6em; width: 1.6em; object-fit: contain;">
+                <p style="border-radius: 1em; background-color: #f0f0f0; padding: 0.5em 1em; max-width: 30em; word-break: break-word;
+                overflow-wrap: break-word;">{{message[0]}}</p>
+            </div>
+        </div>
     </div>
     
     <div style="display: flex; flex-direction: column; position: absolute;width: 100%; height: 9%; top: 85%; border-style: solid;

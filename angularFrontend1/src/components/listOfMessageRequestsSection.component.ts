@@ -15,9 +15,9 @@ export class ListOfMessageRequestsSection {
     @Output() notifyParentToCloseSection: EventEmitter<string> = new EventEmitter();
     whoCanMessageTextHovered:boolean = false;
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", false , false],
-        ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false],
-        ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false],
+        ["Message #1 • 1d", "rishavry5", "Rishav Ray5", false , false],
+        ["Message #2 • 2w", "rishavry6", "Rishav Ray6", false, false],
+        ["Message #3 • 3mo", "rishavry7", "Rishav Ray7", false, false],
     ];
     selectedConvo:number = -1;
     @Output() notifyParentToShowMessagesOfThisRequestedConvo: EventEmitter<string[]> = new EventEmitter();
@@ -62,6 +62,7 @@ export class ListOfMessageRequestsSection {
 
     deleteAllRequestedConvos() {
         this.listOfConvos = [];
+        this.selectedConvo = -1;
     }
 
     updateSelectedConvo(convoIndex: number) {
