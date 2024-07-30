@@ -6,7 +6,8 @@
     (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
     (emitListOfConvosToParent)="receiveListOfConvos($event)" (notifyExpansionToParent)="updateExpansionOfMessagesOfAChat($event)"
     (notifyParentToShowListOfMessageRequestsSection)="showListOfMessageRequestsSection()"
-    [ngStyle]="messagesDynamicStyle()"></NotesAndConvosSection>
+    [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
+    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"></NotesAndConvosSection>
     
     <MessagesOfAChat *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
@@ -16,7 +17,8 @@
     (notifyParentToShowForwardMessagePopup)="showForwardMessagePopup($event)"
     (emitDataToParent)="receiveMessageData($event)" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
     (notifyParentToShowForwardFilePopup)="showForwardFilePopup($event)"
-    [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"></MessagesOfAChat>
+    [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
     
@@ -28,14 +30,15 @@
     <ConvoDetailsPanel *ngIf="showConvoDetailsPanel" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
     (toggleMutedMessageIconInConvo)="toggleMutedMessageIconInConvo()"
-    [convoIsRequested]="convoIsRequested"></ConvoDetailsPanel>
+    [convoIsRequested]="convoIsRequested" [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
+    (toggleMutedMessageIconInGroupConvo)="toggleMutedMessageIconInGroupConvo()"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
     (notifyParentToCloseSection)="closeListOfMessageRequestsSection()"
     (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"
     (emitListOfRequestedConvosToParent)="receiveListOfRequestedConvos($event)"
-    [ngStyle]="messageRequestsDynamicStyle()"></ListOfMessageRequestsSection>
+    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToUpdateSelectedConvo)="updateSelectedConvo($event)"></ListOfMessageRequestsSection>
     
     <RequestedMessagesOfAChat [messageRecipientInfo]="messageRecipientInfo"
     [isExpanded]="requestedMessagesOfAChatIsExpanded" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"

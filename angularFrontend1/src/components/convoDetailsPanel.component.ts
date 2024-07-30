@@ -15,16 +15,29 @@ export class ConvoDetailsPanel {
     @Output() notifyParentToShowDeleteChatPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowBlockUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() toggleMutedMessageIconInConvo:  EventEmitter<any> = new EventEmitter();
+    @Output() toggleMutedMessageIconInGroupConvo:  EventEmitter<any> = new EventEmitter();
     @Input() convoIsRequested!:boolean;
+    @Input() groupMessageRecipientsInfo:string[][]=[];
+    @Output() notifyParentToShowLeaveChatPopup: EventEmitter<any> = new EventEmitter();
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
             this.messagesAreMuted = false;
-            this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
+            if(this.messageRecipientInfo.length>0) {
+                this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
+            }
+            else {
+                this.toggleMutedMessageIconInGroupConvo.emit("toggle muted message icon in group-convo");
+            }
         }
         else {
             this.messagesAreMuted = true;
-            this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
+            if(this.messageRecipientInfo.length>0) {
+                this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
+            }
+            else {
+                this.toggleMutedMessageIconInGroupConvo.emit("toggle muted message icon in group-convo");
+            }
         }
     }
 
@@ -36,8 +49,6 @@ export class ConvoDetailsPanel {
         this.notifyParentToShowBlockUserPopup.emit("show block-user popup");
     }
 
-
-
     getHeightOfMembersListDiv() {
         return !this.convoIsRequested ?
         {
@@ -46,6 +57,10 @@ export class ConvoDetailsPanel {
         {
             'height': '69%'
         };
+    }
+
+    showLeaveGroupPopup() {
+        this.notifyParentToShowLeaveChatPopup.emit("show leave-chat popup");
     }
 
 

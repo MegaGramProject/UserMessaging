@@ -19,7 +19,7 @@ export class RequestedMessagesOfAChat {
     messages:Array<Array<Object>> = [
         ["Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
         ["It's your old friend", new Date(2024, 4, 15, 10, 30, 30), ""],
-        ["Oh come on, just accept me already! i am just a frustrated hackeasmdsajdnsajdnjasndajsdnsajdajsndjasdasdjsandjasndjasddasjdnjasdnajsdasjdnasjdnajsdas akdxmnasdxas", new Date(2024, 4, 16, 12, 30, 30), "sareenav"],
+        ["Oh come on, just accept me already! i am just a frustrated hackeasmdsajdnsajdnjasndajsdnsajdajsndjasdasdjsandjasndjasddasjdnjasdnajsdasjdnasjdnajsdas akdxmnasdxas", new Date(2024, 4, 16, 12, 30, 30), "santaclaus"],
     ];
     currentlyHoveredSentMessageAndFileIndices: Array<number> = [-1, -1];
     currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];

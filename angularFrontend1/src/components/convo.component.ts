@@ -18,6 +18,8 @@ export class Convo {
     @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
     @Input() convoIndex!:number;
     @Input() isSelected!: boolean;
+    @Input() membersOfGroupChatBesidesInitator: any = [];
+    @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any[][]> = new EventEmitter();
 
     selectConvo() {
         this.hasUnreadMessage = false;
@@ -35,7 +37,30 @@ export class Convo {
     }
     
     showMessagesOfThisConvo() {
-        this.notifyParentToShowMessagesOfThisConvo.emit([this.username, this.fullName]);
+        if(this.membersOfGroupChatBesidesInitator.length==0) {
+            this.notifyParentToShowMessagesOfThisConvo.emit([this.username, this.fullName]);
+        }
+        else {
+            let groupChatMemberData = [[this.username, this.fullName]];
+            for(let member of this.membersOfGroupChatBesidesInitator) {
+                groupChatMemberData.push(member)
+            }
+            this.notifyParentToShowMessagesOfThisGroupConvo.emit(groupChatMemberData);
+        }
+    }
+
+    getFullNamesOfAllConvoMembers() {
+        let fullNames = this.fullName;
+        if(this.membersOfGroupChatBesidesInitator.length==1) {
+            return fullNames + " & " + this.membersOfGroupChatBesidesInitator[0][1];
+        }
+        for(let i=0; i<this.membersOfGroupChatBesidesInitator.length-1; i++) {
+            fullNames += ", " + this.membersOfGroupChatBesidesInitator[i][1];
+        }
+        if(this.membersOfGroupChatBesidesInitator.length>0) {
+            fullNames += ", & " +  this.membersOfGroupChatBesidesInitator[this.membersOfGroupChatBesidesInitator.length-1][1];
+        }
+        return fullNames;
     }
 
 

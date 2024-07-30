@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { Convo } from './convo.component';
 import { Note } from './note.component';
+import { group } from 'console';
+
 
 
 @Component({
@@ -16,13 +18,14 @@ export class NotesAndConvosSection {
     @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
+    @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any> = new EventEmitter();
 
 
     //first boolean is true if there is an unread message; second boolean is true if convo is muted
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", true , false],
-        ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false],
-        ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false],
+        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", true , false, [["rishavry3", "Rishav Ray3"], ["rishavry7", "Rishav Ray7"]]],
+       // ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false, []],
+       // ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false, [["rishavry6", "Rishav Ray6"]]],
     ];
 
     @Output() emitListOfConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
@@ -30,6 +33,7 @@ export class NotesAndConvosSection {
     isExpanded:boolean = true;
     @Output() notifyParentToShowListOfMessageRequestsSection: EventEmitter<string> = new EventEmitter();
     selectedConvo:number = -1;
+    @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -58,6 +62,11 @@ export class NotesAndConvosSection {
         this.notifyParentToShowMessagesOfThisConvo.emit(messageRecipientInfo);
     }
 
+
+    showMessagesOfThisGroupConvo(groupConvoMembers:any[][]) {
+        this.notifyParentToShowMessagesOfThisGroupConvo.emit(groupConvoMembers);
+    }
+
     showNewMessagePopup() {
         this.notifyParentToShowNewMessagePopup.emit("show new message popup");
     }
@@ -68,5 +77,6 @@ export class NotesAndConvosSection {
 
     updateSelectedConvo(convoIndex: number) {
         this.selectedConvo = convoIndex;
+        this.notifyParentOfSelectedConvo.emit(convoIndex);
     }
 }
