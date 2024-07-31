@@ -21,9 +21,10 @@ export class NotesAndConvosSection {
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any> = new EventEmitter();
 
 
-    //first boolean is true if there is an unread message; second boolean is true if convo is muted
+    //first boolean is true if there is an unread message; second boolean is true if convo is muted. then it is the list of the group-members besides the initiator.
+    //then it is the convo-title if any, and finally it is the list of promoted usernames.
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry", "Rishav Ray", true , false, [["rishavry3", "Rishav Ray3"], ["rishavry7", "Rishav Ray7"]], "Terrific Convo-Title"],
+        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", true , false, [], "Terrific Convo-Title", []],
        // ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false, []],
        // ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false, [["rishavry6", "Rishav Ray6"]]],
     ];

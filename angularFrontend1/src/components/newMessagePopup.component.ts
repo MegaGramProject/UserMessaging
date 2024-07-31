@@ -24,6 +24,8 @@ export class NewMessagePopup {
     @Output() notifyParentToForwardMessageToSelectedUsers: EventEmitter<any[]> = new EventEmitter();
     @Output() notifyParentToForwardFileToSelectedUsers: EventEmitter<any[]> = new EventEmitter();
     @Input() fileToForward!:any[];
+    @Input() isAddingNewMembers!:boolean;
+    @Output() notifyParentToAddNewMemberToConvo: EventEmitter<any[]> = new EventEmitter();
 
     getChatButtonStyle() {
         return this.usersSelected.length == 0 ?
@@ -66,10 +68,10 @@ export class NewMessagePopup {
     }
 
     chatButtonOnClick() {
-        if(!this.isForwarding) {
+        if(!this.isForwarding && !this.isAddingNewMembers) {
             this.notifyParentToStartMessagingSelectedUsers.emit(this.usersSelected);
         }
-        else {
+        else if(this.isForwarding) {
             if(this.fileToForward.length==0) {
                 this.notifyParentToForwardMessageToSelectedUsers.emit([this.messageToForward, this.usersSelected, this.convoMembersOfForwardedMessage]);
             }
@@ -77,6 +79,9 @@ export class NewMessagePopup {
                 this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected, this.convoMembersOfForwardedMessage]);
             }
         
+        }
+        else {
+            this.notifyParentToAddNewMemberToConvo.emit(this.usersSelected);
         }
     }
 }

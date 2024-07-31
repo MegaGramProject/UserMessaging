@@ -9,13 +9,13 @@ padding-bottom:2em; padding-top:0.5em; overflow-y: scroll;">
     </div>
     <div style="display: flex; flex-direction: column; margin-top: 1.5em; margin-left:1em;">
         <div *ngFor="let reaction of messageReactionsInfo[0]; let i = index">
-            <div (click)="removeReaction(i)" class="hoverableElement" style="display:flex; align-items: center; width:96%; gap:1em; position: relative; cursor:pointer;
+            <div *ngIf="!blockedUsernames.includes(messageReactionsInfo[1][i])" (click)="removeReaction(i)" class="hoverableElement" style="display:flex; align-items: center; width:96%; gap:1em; position: relative; cursor:pointer;
             border-radius:7px; padding-left: 0.4em;">
                 <img src="profileIcon.png" style="height: 2.6em; width: 2.6em; object-fit: contain;">
                 <div style="display: flex; flex-direction: column; align-items: start;">
                     <p style="margin-bottom:-0.4em;">{{messageReactionsInfo[1][i]}}</p>
                     <p *ngIf="messageReactionsInfo[1][i]===authenticatedUsername" style="color:gray;">Select to remove</p>
-                    <p *ngIf="messageReactionsInfo[1][i]!==authenticatedUsername" style="color:gray;"></p>
+                    <p *ngIf="messageReactionsInfo[1][i]!==authenticatedUsername"></p>
                 </div>
                 <p style="position:absolute; left:90%;">{{reaction}}</p>
             </div>

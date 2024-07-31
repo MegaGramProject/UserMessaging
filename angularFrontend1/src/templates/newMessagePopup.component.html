@@ -3,8 +3,9 @@ width: 35em; height: 37em; border-radius: 12px;">
 
     <div style="border-style:solid; border-color: lightgray; border-top: none; border-left: none; border-right: none;
     padding-top:0.6em; text-align: center; padding-bottom: 0.6em; position: relative;">
-        <b *ngIf="!isForwarding">New message</b>
+        <b *ngIf="!isForwarding && !isAddingNewMembers">New message</b>
         <b *ngIf="isForwarding">Forward</b>
+        <b *ngIf="isAddingNewMembers">Add members</b>
         <img (click)="closePopup()" src="exitIcon.png" style="height: 1.7em; width: 1.7em; object-fit: contain; cursor: pointer; position: absolute;
         left: 90%; top:15%;">
     </div>

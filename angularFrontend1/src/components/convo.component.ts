@@ -22,6 +22,7 @@ export class Convo {
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any[][]> = new EventEmitter();
     @Input() convoTitle:any = "";
 
+
     selectConvo() {
         this.hasUnreadMessage = false;
         this.showMessagesOfThisConvo();

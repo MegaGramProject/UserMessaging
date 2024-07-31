@@ -14,9 +14,9 @@ export class MessagesOfAChat {
 
 
     messages: Array<Array<Object>> = [
-        ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
+        ["rishavry2", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
         ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
-        ["rishavry4", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
+        ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
         ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0), ""],
     ];
 
@@ -110,11 +110,12 @@ export class MessagesOfAChat {
     isEditingConvoTitle:boolean= false;
     convoTitleBeforeEditing = this.convoTitle;
     @Output() notifyParentToUpdateConvoTitle: EventEmitter<string> = new EventEmitter();
-
+    @Input() blockedUsernames!:string[];
+    @Input() promotedUsernames!:string[];
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles,
-        this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames]);
+        this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames, [this.myScrollContainer, this.cdRef]]);
         if(!this.isRequestingConvoWithRecipient) {
             this.textareaPlaceholder = "Message...";
         }
@@ -667,8 +668,22 @@ export class MessagesOfAChat {
         return fullNames;
     }
 
+    doesUserHaveConvoPerksInNonGroup() {
+        if(this.groupMessageRecipientsInfo.length==0) {
+            for(let message of this.messages) {
+                if(message[0]===this.authenticatedUsername) {
+                    return true;
+                }
+                else if(message[0]===this.messageRecipientInfo[0]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     getConvoTitleCursorStyle() {
-        if(this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername || (this.groupMessageRecipientsInfo.length==0 && this.messages[0][0]===this.authenticatedUsername)) {
+        if((this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername)) || (this.doesUserHaveConvoPerksInNonGroup())) {
             return  {
                 'cursor': 'pointer'
             }
@@ -679,11 +694,11 @@ export class MessagesOfAChat {
     }
 
     toggleEditConvoTitle(buttonClickedIfAny: string) {
-        if(!this.isEditingConvoTitle && (this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername || (this.groupMessageRecipientsInfo.length==0 && this.messages[0][0]===this.authenticatedUsername))) {
+        if(!this.isEditingConvoTitle && ((this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername)) || (this.doesUserHaveConvoPerksInNonGroup()))) {
             this.convoTitleBeforeEditing = this.convoTitle;
             this.isEditingConvoTitle = true;
         }
-        else {
+        else if(this.isEditingConvoTitle && ((this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername)) || (this.doesUserHaveConvoPerksInNonGroup()))) {
             if(buttonClickedIfAny==="Cancel") {
                 this.convoTitle = this.convoTitleBeforeEditing;
             }
@@ -700,7 +715,6 @@ export class MessagesOfAChat {
                 this.messageFileReactionUsernames.push([]);
             }
             this.isEditingConvoTitle = false;
-    
         }
     }
 
@@ -717,8 +731,27 @@ export class MessagesOfAChat {
     }
 
     getConvoTitleFromAndTo(messageIndex: number) {
-        return (<Array<any>>this.messages)[messageIndex][1][1];
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
     }
 
+    isThisMessageFromABlockedUser(messageIndex: number) {
+        return this.blockedUsernames.includes(<string>this.messages[messageIndex][0]);
+    }
+
+    isMemberAdditionOrRemoval(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Add-Member/Remove-Member';
+    }
+
+    getMemberAdditionOrRemoval(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
+    isMemberPromotionOrDemotion(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Member-Promotion/Member-Demotion';
+    }
+
+    getMemberPromotionOrDemotion(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
 
 }

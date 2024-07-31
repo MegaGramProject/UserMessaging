@@ -18,8 +18,15 @@ export class ConvoDetailsPanel {
     @Output() toggleMutedMessageIconInGroupConvo:  EventEmitter<any> = new EventEmitter();
     @Input() convoIsRequested!:boolean;
     @Input() groupMessageRecipientsInfo:string[][]=[];
-    @Output() notifyParentToShowLeaveChatPopup: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToShowLeaveGroupPopup: EventEmitter<any> = new EventEmitter();
     @Input() authenticatedUsername!:string;
+    @Input() messages!:Array<Array<Object>>;
+    @Output() notifyParentToShowUserSettingsPopup: EventEmitter<string[]> = new EventEmitter();
+    @Output() notifyParentToShowAddMemberPopup: EventEmitter<string> = new EventEmitter();
+    @Input() blockedUsernames:string[] = [];
+    @Input() promotedUsernames!:string[];
+    @Output() notifyParentToShowPromoteUserPopup: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToDemoteUser: EventEmitter<any> = new EventEmitter();
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -61,12 +68,56 @@ export class ConvoDetailsPanel {
     }
 
     showLeaveGroupPopup() {
-        this.notifyParentToShowLeaveChatPopup.emit("show leave-chat popup");
+        this.notifyParentToShowLeaveGroupPopup.emit("show leave-chat popup");
     }
 
     showUserSettingsPopup(groupMessageMember: string[]){
-        console.log(groupMessageMember);
+        if(this.doesUserHaveConvoPerks()) {
+            this.notifyParentToShowUserSettingsPopup.emit(groupMessageMember);
+        }
+        else {
+            window.location.href = "https://instagram.com/"+groupMessageMember[0];
+        }
     }
 
+    doesUserHaveConvoPerks() {
+        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername))
+        || (this.doesUserHaveConvoPerksInNonGroup());
+    }
+
+    doesUserHaveConvoPerksInNonGroup() {
+        if(this.groupMessageRecipientsInfo.length==0) {
+            for(let message of this.messages) {
+                if(message[0]===this.authenticatedUsername) {
+                    return true;
+                }
+                else if(message[0]===this.messageRecipientInfo[0]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    showAddMembersPopup() {
+        this.notifyParentToShowAddMemberPopup.emit("show add members popup");
+    }
+
+    thisUserIsPromoted(username: string) {
+        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) || 
+        !(this.doesUserHaveConvoPerksInNonGroup());
+    }
+
+    takeUserToThisUsersPage(username: string) {
+        window.location.href = "https://instagram.com/"+username;
+    }
+
+    showPromoteUserPopup() {
+        this.notifyParentToShowPromoteUserPopup.emit("show promote-user popup");
+    }
+
+    demoteUser()  {
+        this.notifyParentToDemoteUser.emit("demote this user");
+    }
 
 }

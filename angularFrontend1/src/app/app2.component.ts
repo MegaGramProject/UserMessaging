@@ -1,18 +1,21 @@
     import { CommonModule } from '@angular/common';
-    import { Component } from '@angular/core';
-    import { ActivatedRoute, RouterOutlet } from '@angular/router';
-    import { BlockUserPopup } from '../components/blockUserPopup.component';
-    import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
-    import { CreateNewNote } from '../components/createNewNote.component';
-    import { DeleteChatPopup } from '../components/deleteChatPopup.component';
-    import { LeftSidebarComponent } from '../components/leftSidebar.component';
-    import { ListOfMessageRequestsSection } from '../components/listOfMessageRequestsSection.component';
-    import { MessageReactionsPopup } from '../components/messageReactionsPopup.component';
-    import { MessagesOfAChat } from '../components/messagesOfAChat.component';
-    import { NewMessagePopup } from '../components/newMessagePopup.component';
-    import { NoteSection } from '../components/noteSection.component';
-    import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
-    import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
+import { Component } from '@angular/core';
+import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { BlockUserPopup } from '../components/blockUserPopup.component';
+import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
+import { CreateNewNote } from '../components/createNewNote.component';
+import { DeleteChatPopup } from '../components/deleteChatPopup.component';
+import { LeaveGroupPopup } from '../components/leaveGroupPopup.component';
+import { LeftSidebarComponent } from '../components/leftSidebar.component';
+import { ListOfMessageRequestsSection } from '../components/listOfMessageRequestsSection.component';
+import { MessageReactionsPopup } from '../components/messageReactionsPopup.component';
+import { MessagesOfAChat } from '../components/messagesOfAChat.component';
+import { NewMessagePopup } from '../components/newMessagePopup.component';
+import { NoteSection } from '../components/noteSection.component';
+import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
+import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
+import { UserSettingsPopup } from '../components/userSettingsPopup.component';
+import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 
 
     @Component({
@@ -20,7 +23,8 @@
     standalone: true,
     imports: [RouterOutlet, LeftSidebarComponent, CommonModule, NotesAndConvosSection,
     MessagesOfAChat, CreateNewNote, NoteSection, MessageReactionsPopup, NewMessagePopup, ConvoDetailsPanel,
-    DeleteChatPopup, BlockUserPopup, ListOfMessageRequestsSection, RequestedMessagesOfAChat],
+    DeleteChatPopup, BlockUserPopup, ListOfMessageRequestsSection, RequestedMessagesOfAChat, LeaveGroupPopup,
+    UserSettingsPopup, PromoteUserPopup],
     templateUrl: './app2.component.html',
     styleUrl: '../styles.css'
     })
@@ -54,6 +58,14 @@
     groupMessageRecipientsInfo:any[][]=[];
     selectedConvo:number = -1;
     selectedConvoTitle:any = "";
+    displayLeaveGroupPopup:boolean = false;
+    displayAddMembersPopup:boolean = false;
+    isAddingNewMembers:boolean = false;
+    displayUserSettingsPopup:boolean = false;
+    userSettingsPopupGroupMessageMember!:string[];
+    blockedUsernames:string[]=[];
+    selectedConvoPromotedUsernames:string[] = [];
+    displayPromoteUserPopup:boolean = false;
 
     ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
@@ -213,10 +225,12 @@
     this.fileToForward = [];
     this.messageToForward = "";
     this.showNewMessagePopup = true;
+    this.isAddingNewMembers = false;
     }
 
     getStyleBasedOnPopups() {
-    return this.showNewMessagePopup || this.displayDeleteChatPopup || this.displayBlockUserPopup ?
+    return this.showNewMessagePopup || this.displayDeleteChatPopup || this.displayBlockUserPopup || this.displayLeaveGroupPopup
+    || this.displayUserSettingsPopup || this.showMessageReactionsPopup || this.displayPromoteUserPopup ?
     {
         'opacity': '0.15',
         'pointer-events': 'none'
@@ -350,6 +364,7 @@
 
     showForwardMessagePopup(messageToForward: string) {
     this.isForwarding = true;
+    this.isAddingNewMembers = false;
     this.fileToForward = [];
     this.messageToForward = messageToForward;
     this.showNewMessagePopup = true;
@@ -357,6 +372,7 @@
 
     showForwardFilePopup(fileToForward: Array<any>) {
     this.isForwarding = true;
+    this.isAddingNewMembers = false;
     this.fileToForward = fileToForward;
     this.showNewMessagePopup = true;
     }
@@ -478,9 +494,11 @@
         this.selectedConvo = convoIndex;
         if(!this.displayListOfMessageRequestsSection) {
             this.selectedConvoTitle = this.listOfConvos[convoIndex][6];
+            this.selectedConvoPromotedUsernames = this.listOfConvos[convoIndex][7];
         }
         else {
             this.selectedConvoTitle = this.listOfRequestedConvos[convoIndex][6];
+            this.selectedConvoPromotedUsernames = this.listOfConvos[convoIndex][7];
         }
     }
 
@@ -493,8 +511,280 @@
         }
     }
 
+    showLeaveGroupPopup() {
+        this.displayLeaveGroupPopup = true;
+    }
+
+    leaveGroup() {
+        this.listOfConvos.splice(this.selectedConvo, 1);
+        this.groupMessageRecipientsInfo = [];
+        this.displayLeaveGroupPopup = false;
+        this.showConvoDetailsPanel = false;
+    }
+
+    cancelLeaveGroup() {
+        this.displayLeaveGroupPopup = false;
+    }
+
+    showAddMembersPopup() {
+        this.isAddingNewMembers = true;
+        this.showNewMessagePopup = true;
+    }
+
+    addNewMemberToConvo(selectedUsers: any[]) {
+        this.showNewMessagePopup = false;
+        if(this.groupMessageRecipientsInfo.length>0) {
+            for(let user of selectedUsers) {
+                if(!this.userIsAlreadyInGroup(user)) {
+                    this.listOfConvos[this.selectedConvo][5].push(user);
+                    this.groupMessageRecipientsInfo.push(user);
+                    this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0]], new Date()]);
+                    this.messageData[1].push(-1);
+                    this.messageData[2].push([-1, -1]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([]);
+                    this.messageData[7].push([]);
+                    this.messageData[8].push([]);
+                }
+            }
+        }
+        else {
+            let isNewUserAdded = false;
+            for(let user of selectedUsers) {
+                if(!this.userIsAlreadyInGroup(user)) {
+                    this.listOfConvos[this.selectedConvo][5].push(user);
+                    this.groupMessageRecipientsInfo.push(user);
+                    this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0]], new Date()]);
+                    this.messageData[1].push(-1);
+                    this.messageData[2].push([-1, -1]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([]);
+                    this.messageData[7].push([]);
+                    this.messageData[8].push([]);
+                    if(!isNewUserAdded) {
+                        isNewUserAdded = true;
+                        for(let message of this.messageData[0]) {
+                            if (message[0]===this.authenticatedUsername) {
+                                this.listOfConvos[this.selectedConvo][1] = message[0];
+                                this.listOfConvos[this.selectedConvo][2] = "Rishav Ray";
+                                this.groupMessageRecipientsInfo.unshift(this.messageRecipientInfo);
+                                this.groupMessageRecipientsInfo.unshift([message[0], "Rishav Ray"]);
+                                this.listOfConvos[this.selectedConvo][5].unshift(this.messageRecipientInfo);
+                                break;
+                            }
+                            else {
+                                this.groupMessageRecipientsInfo.unshift(this.messageRecipientInfo);
+                            }
+                        }
+                        this.messageRecipientInfo = [];
+                    }
+                }
+            }
+
+        }
 
     }
+
+
+    userIsAlreadyInGroup(user: string[]) {
+        if(this.messageRecipientInfo.length>0 && this.messageRecipientInfo[0]===user[0]) {
+            return true;
+        }
+        for(let member of this.groupMessageRecipientsInfo) {
+            if(member[0]===user[0]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    showUserSettingsPopup(groupMessageMember: string[]) {
+        this.displayUserSettingsPopup = true;
+        this.userSettingsPopupGroupMessageMember = groupMessageMember;
+    }
+
+    closeUserSettingsPopup() {
+        this.displayUserSettingsPopup = false;
+    }
+
+    isMemberInSelectedConvoAndNotTheMemberToBeRemoved(member: string) : any {
+        if (member===this.userSettingsPopupGroupMessageMember[0]) {
+            return false;
+        }
+        if(member===this.authenticatedUsername) {
+            return "Rishav Ray";
+        }
+        for(let m=0; m<this.listOfConvos[this.selectedConvo][5].length; m++) {
+            if (this.listOfConvos[this.selectedConvo][5][m][0]===member) {
+                let username = this.listOfConvos[this.selectedConvo][5][m][1];
+                this.listOfConvos[this.selectedConvo][5].splice(m, 1);
+                return username;
+            }
+        }
+        return false;
+    }
+
+    updateGroupMessageRecipientsInfo(newConvoInitiator:string[]) {
+        for(let i=0; i < this.groupMessageRecipientsInfo.length; i++) {
+            if(this.groupMessageRecipientsInfo[i][0]===newConvoInitiator[0]) {
+                this.groupMessageRecipientsInfo.splice(i,1);
+                this.groupMessageRecipientsInfo[0] = newConvoInitiator;
+            }
+        }
+    }
+
+    removeMemberFromConvo() {
+        this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "removed " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+
+        for(let j=0; j<this.listOfConvos[this.selectedConvo][7]; j++) {
+            if(this.listOfConvos[this.selectedConvo][7][j]===this.userSettingsPopupGroupMessageMember[0]) {
+                this.listOfConvos[this.selectedConvo][7].splice(j,1);
+                this.selectedConvoPromotedUsernames = this.listOfConvos[this.selectedConvo][7];
+                break;
+            }
+        }
+
+        for(let i=0; i < this.groupMessageRecipientsInfo.length; i++) {
+            if(this.groupMessageRecipientsInfo[i][0]===this.userSettingsPopupGroupMessageMember[0]) {
+                if(this.groupMessageRecipientsInfo.length==3) {
+                    for(let groupMessageRecipient of this.groupMessageRecipientsInfo) {
+                        if(groupMessageRecipient[0]!==this.authenticatedUsername && groupMessageRecipient[0]!==this.userSettingsPopupGroupMessageMember[0]) {
+                            this.messageRecipientInfo = groupMessageRecipient;
+                            this.groupMessageRecipientsInfo = [];
+                            this.listOfConvos[this.selectedConvo][1] = this.messageRecipientInfo[0];
+                            this.listOfConvos[this.selectedConvo][2] = this.messageRecipientInfo[1];
+                            this.listOfConvos[this.selectedConvo][5] = [];
+                            this.displayUserSettingsPopup = false;
+                            break;
+                        }
+                    }
+                }
+                else if(i==0) {
+                    for(let message of this.messageData[0]) {
+                        let x = this.isMemberInSelectedConvoAndNotTheMemberToBeRemoved(message[0]);
+                        if (x!==false) {
+                            this.listOfConvos[this.selectedConvo][1] = message[0];
+                            this.listOfConvos[this.selectedConvo][2] = x;
+                            this.updateGroupMessageRecipientsInfo([message[0], x]);
+                            break;
+                        }
+                    }
+                }
+                else {
+                    this.groupMessageRecipientsInfo.splice(i, 1);
+                    this.listOfConvos[this.selectedConvo][5].splice(i-1, 1);
+                }
+                this.displayUserSettingsPopup = false;
+                return;
+            }
+        }
+    }
+
+    blockUserFromUserSettingsPopup() {
+        this.blockedUsernames.push(this.userSettingsPopupGroupMessageMember[0]);
+        this.displayUserSettingsPopup = false;
+    }
+
+    unblockUserFromUserSettingsPopup() {
+        this.blockedUsernames.splice(this.blockedUsernames.indexOf(this.userSettingsPopupGroupMessageMember[0]),1);
+        this.displayUserSettingsPopup = false;
+    }
+
+    promoteUserFromSettingsPopup() {
+        this.listOfConvos[this.selectedConvo][7].push(this.userSettingsPopupGroupMessageMember[0]);
+        this.displayUserSettingsPopup = false;
+        this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+    }
+
+    demoteUserFromSettingsPopup() {
+        if(this.listOfConvos[this.selectedConvo][1]===this.userSettingsPopupGroupMessageMember[0]) {
+            this.displayUserSettingsPopup = false;
+            return;
+        }
+        else {
+            this.listOfConvos[this.selectedConvo][7].splice(
+                this.listOfConvos[this.selectedConvo][7].indexOf(this.userSettingsPopupGroupMessageMember[0]),
+                1);
+        }
+        this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+        this.displayUserSettingsPopup = false;
+    }
+
+    showPromoteUserPopup() {
+        this.displayPromoteUserPopup = true;
+    }
+
+    closePromoteUserPopup() {
+        this.displayPromoteUserPopup = false;
+    }
+
+    promoteUserFromPromoteUserPopup() {
+        this.listOfConvos[this.selectedConvo][7].push(this.messageRecipientInfo[0]);
+        this.selectedConvoPromotedUsernames =  this.listOfConvos[this.selectedConvo][7];
+        this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.messageRecipientInfo[0]], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+        this.displayPromoteUserPopup = false;
+    }
+
+    demoteNonGroupConvoUserFromConvoDetails() {
+        for(let i=0; i < this.listOfConvos[this.selectedConvo][7].length; i++) {
+            if(this.listOfConvos[this.selectedConvo][7][i]===this.messageRecipientInfo[0]) {
+                this.listOfConvos[this.selectedConvo][7] = [];
+                break;
+            }
+        }
+        if(this.listOfConvos[this.selectedConvo][7].length!==0) {
+            return;
+        }
+        this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.messageRecipientInfo[0]], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+        this.selectedConvoPromotedUsernames = [];
+    }
+
+
+}
 
 
 

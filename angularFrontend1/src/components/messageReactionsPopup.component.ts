@@ -12,6 +12,7 @@ export class MessageReactionsPopup {
     @Input() messageReactionsInfo!:string[][];
     @Input() authenticatedUsername!:string;
     @Output() notifyParentToExitMessageReactionsPopup: EventEmitter<any> = new EventEmitter();
+    @Input() blockedUsernames!:string[];
 
     closePopup() {
         this.notifyParentToExitMessageReactionsPopup.emit("exit popup");
