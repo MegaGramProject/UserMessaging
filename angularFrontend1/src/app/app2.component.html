@@ -22,9 +22,11 @@
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"></MessagesOfAChat>
     
-    <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"></CreateNewNote>
+    <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
+    [listOfNotes1]="listOfNotes1"></CreateNewNote>
     
-    <NoteSection *ngIf="showNoteSection" [username]="noteSectionUsername" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"></NoteSection>
+    <NoteSection  [ngStyle]="noteSectionDynamicStyle()" [username]="noteSectionUsername" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"
+    (emitDataToParent)="receiveListOfNotes1($event)"></NoteSection>
     
     <ConvoDetailsPanel *ngIf="showConvoDetailsPanel" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
@@ -35,20 +37,22 @@
     (notifyParentToShowAddMemberPopup)="showAddMembersPopup()" (notifyParentToShowUserSettingsPopup)="showUserSettingsPopup($event)"
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
-    (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()"></ConvoDetailsPanel>
+    (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
     (notifyParentToCloseSection)="closeListOfMessageRequestsSection()"
     (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"
     (emitListOfRequestedConvosToParent)="receiveListOfRequestedConvos($event)"
-    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToUpdateSelectedConvo)="updateSelectedConvo($event)"></ListOfMessageRequestsSection>
+    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToUpdateSelectedConvo)="updateSelectedConvo($event)"
+    (notifyParentToShowMessagesOfThisRequestedGroupConvo)="showMessagesOfRequestedGroupConvo($event)"></ListOfMessageRequestsSection>
     
     <RequestedMessagesOfAChat [messageRecipientInfo]="messageRecipientInfo"
     [isExpanded]="requestedMessagesOfAChatIsExpanded" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
     (notifyParentToToggleConvoDetailsPanel)="toggleRequestedConvoDetails()"
     (notifyParentToDeleteRequestedConvo)="deleteRequestedConvo()" [authenticatedUsername]="authenticatedUsername"
-    (notifyParentToAcceptRequestedConvo)="acceptRequestedConvo()" [ngStyle]="messageRequestsDynamicStyle()"></RequestedMessagesOfAChat>
+    (notifyParentToAcceptRequestedConvo)="acceptRequestedConvo()" [ngStyle]="messageRequestsDynamicStyle()"
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo" [convoTitle]="selectedConvoTitle"></RequestedMessagesOfAChat>
     
 </div>
     

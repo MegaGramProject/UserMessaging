@@ -28,7 +28,11 @@ flex-direction: column; padding-left: 2em; padding-right: 2em;">
             [convoIndex]="i"
             [isSelected]="i==selectedConvo"
             (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
-            (notifyParentToShowMessagesOfThisConvo)="showMessagesOfRequestedConvo($event)">
+            (notifyParentToShowMessagesOfThisConvo)="showMessagesOfRequestedConvo($event)"
+            [membersOfGroupChatBesidesInitator]="convo[5]"
+            (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisRequestedGroupConvo($event)"
+            [convoTitle]="convo[6]"
+            >
         </Convo>
         <br/>
     </div>

@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Note } from '../note.model';
+
 
 
 @Component({
@@ -13,19 +15,21 @@ import { FormsModule } from '@angular/forms';
 
 export class CreateNewNote {
     @Output() notifyParentOfExit: EventEmitter<any> = new EventEmitter();
-    newThoughtIsLongEnough: boolean = false;
     showWhoCanSeeNote: boolean = false;
     isChecked1: boolean = true;
     isChecked2: boolean = false;
     newNoteText: string = "";
+    @Input() listOfNotes1!:Note[];
 
 
     exitCreateNewNote() {
         this.notifyParentOfExit.emit('Exit createNewNote');
     }
 
-    onShareAThoughtInputChange(event: Event) {
-        this.newThoughtIsLongEnough = this.newNoteText.length > 0;
+
+    onShareClick() {
+        this.listOfNotes1.push({text: this.newNoteText, createdAt: new Date()});
+        this.newNoteText = "";
     }
 
     getCharacterCountDisplay() {
@@ -41,7 +45,8 @@ export class CreateNewNote {
     
     getShareTextStyle() {
         return {
-            'opacity': this.newThoughtIsLongEnough ? 1 : 0.35
+            'opacity': this.newNoteText.length>0 ? 1 : 0.35,
+            'cursor': this.newNoteText.length>0 ? 'pointer' : 'auto'
         };
     }
 

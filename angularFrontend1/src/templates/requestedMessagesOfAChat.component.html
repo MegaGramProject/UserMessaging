@@ -1,4 +1,4 @@
-<div *ngIf="messageRecipientInfo.length==0" style="position: absolute; top:0%; height: 100%; display: flex; flex-direction: column;
+<div *ngIf="messageRecipientInfo.length==0 && groupMessageRecipientsInfo.length==0" style="position: absolute; top:0%; height: 100%; display: flex; flex-direction: column;
 justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalStartOfSection()">
 
 <img src="requestedMessagesIcon.png" style="height: 8em; width: 8em; pointer-events: none; object-fit: contain; margin-bottom: -1em;">
@@ -8,7 +8,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 </div>
 
 
-<div *ngIf="messageRecipientInfo.length>0" style="position: absolute; top:0%; height: 100%;"
+<div *ngIf="messageRecipientInfo.length>0 || groupMessageRecipientsInfo.length>0" style="position: absolute; top:0%; height: 100%;"
     [ngStyle]="getWidthAndHorizontalStartOfSection()">
     
     <div style="position:absolute; top:0%; height: 8%; display: flex; border-style: solid; border-color: lightgray; border-top: none;
@@ -16,7 +16,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     padding-left: 1.5em; z-index: 10; background-color: white;">
         <div style="display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
         <img src="profileIcon.png" style="height:2.5em; width:2.6em; object-fit: contain;">
-        <b>{{messageRecipientInfo[1]}}</b>
+        <b *ngIf="convoTitle.length>0">{{convoTitle}}</b>
+        <b *ngIf="messageRecipientInfo.length>0 && convoTitle.length==0">{{messageRecipientInfo[1]}}</b>
+        <b *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle.length==0">{{getFullNamesOfAllConvoMembers()}}</b>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
@@ -30,7 +32,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     top: 15%; gap: 0.5em;">
         <img src="profileIcon.png" style="height:6.5em; width:6.5em; object-fit: contain;">
         <b>{{messageRecipientInfo[1]}}</b>
-        <p style="color:gray; font-size: 0.85em;">{{messageRecipientInfo[0]}} <b style="font-size:1.2em;">·</b> Megagram</p>
+        <p *ngIf="messageRecipientInfo.length>0" style="color:gray; font-size: 0.85em;">{{messageRecipientInfo[0]}} <b style="font-size:1.2em;">·</b> Megagram</p>
     </div>
 
     <div style="display: flex; flex-direction: column; position: absolute; width: 100%; height: 50%; top: 35%; padding-left: 1.4em; overflow-y: scroll;">
@@ -53,7 +55,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
             </div>
 
-            <div *ngIf="message[2]!==''" style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
+            <div *ngIf="message[2]!==''" style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none; border-right: none;
                 border-width: 3px; padding-left: 1em; padding-right: 1em;">
                     <p style="font-size:0.88em; color: gray;">
                     {{messageRecipientInfo[0]}} forwarded a message from a conversation with {{message[2]}}</p>
@@ -76,7 +78,8 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     
     <div style="display: flex; flex-direction: column; position: absolute;width: 100%; height: 9%; top: 85%; border-style: solid;
     border-color: lightgray; border-width: 0.1em; border-left: none; border-right: none; text-align: center;">
-        <p style="font-size: 0.9em; margin-bottom: -0.2em;">Accept message request from <b>{{messageRecipientInfo[1]}} ({{messageRecipientInfo[0]}})</b>?</p>
+        <p *ngIf="messageRecipientInfo.length>0" style="font-size: 0.9em; margin-bottom: -0.2em;">Accept message request from <b>{{messageRecipientInfo[1]}} ({{messageRecipientInfo[0]}})</b>?</p>
+        <p *ngIf="groupMessageRecipientsInfo.length>0" style="font-size: 0.9em; margin-bottom: -0.2em;">Accept message request from <b>this group</b>?</p>
         <p style="color: gray; font-size: 0.86em;">If you accept, they will also be able to call you and see info such as your activity status and when you've read messages.</p>
     </div>
 

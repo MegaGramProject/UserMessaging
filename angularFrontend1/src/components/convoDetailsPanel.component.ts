@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
     selector: 'ConvoDetailsPanel',
@@ -10,7 +10,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 export class ConvoDetailsPanel {
 
-    @Input() messageRecipientInfo!: string[];
+    @Input() messageRecipientInfo: string[] = [];
     messagesAreMuted: boolean = false;
     @Output() notifyParentToShowDeleteChatPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowBlockUserPopup: EventEmitter<any> = new EventEmitter();
@@ -27,6 +27,7 @@ export class ConvoDetailsPanel {
     @Input() promotedUsernames!:string[];
     @Output() notifyParentToShowPromoteUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToDemoteUser: EventEmitter<any> = new EventEmitter();
+    @Input() isRequestedConvosSectionDisplayed!: boolean;
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -96,7 +97,7 @@ export class ConvoDetailsPanel {
                 }
             }
         }
-        return true;
+        return false;
     }
 
     showAddMembersPopup() {
@@ -104,8 +105,8 @@ export class ConvoDetailsPanel {
     }
 
     thisUserIsPromoted(username: string) {
-        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) || 
-        !(this.doesUserHaveConvoPerksInNonGroup());
+        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) ||
+        (this.doesUserHaveConvoPerksInNonGroup());
     }
 
     takeUserToThisUsersPage(username: string) {

@@ -14,7 +14,7 @@ export class MessagesOfAChat {
 
 
     messages: Array<Array<Object>> = [
-        ["rishavry2", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
+        ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
         ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
         ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
         ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0), ""],
@@ -679,7 +679,7 @@ export class MessagesOfAChat {
                 }
             }
         }
-        return true;
+        return false;
     }
 
     getConvoTitleCursorStyle() {

@@ -67,6 +67,8 @@ export class RequestedMessagesOfAChat {
         [-1, -1],
         [-1, -1]
     ];
+    @Input() groupMessageRecipientsInfo: string[][] = [];
+    @Input() convoTitle:string = "";
     
 
     getWidthAndHorizontalStartOfSection() {
@@ -150,6 +152,19 @@ export class RequestedMessagesOfAChat {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    getFullNamesOfAllConvoMembers() {
+        let fullNames = this.groupMessageRecipientsInfo[0][1];
+        if(this.groupMessageRecipientsInfo.length==2) {
+            return fullNames + " & " + this.groupMessageRecipientsInfo[1][1];
+        }
+        for(let i=1; i<this.groupMessageRecipientsInfo.length-1; i++) {
+            fullNames += ", " + this.groupMessageRecipientsInfo[i][1];
+        }
+        fullNames += ", & " +  this.groupMessageRecipientsInfo[this.groupMessageRecipientsInfo.length-1][1];
+        
+        return fullNames;
     }
 
 }

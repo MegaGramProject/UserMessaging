@@ -12,9 +12,9 @@ import { FormsModule } from '@angular/forms';
     styleUrl: '../styles.css'
 })
 export class NoteSectionNote {
-    @Input() noteText: string = "This is the first note. It is quite impressive, aint it? Quite long one too. skdmaskjdmsaas das das askdmaskd as d sad sad asd asd asd as das daskdmkasmdkasmdkasd as dsakdmaskdmkas  askdmkasmdkasmdkasmdk  asdas";
-    @Input() noteCreatedAt: Date = new Date();
-    @Input() noteIsOwn: boolean = false;
+    @Input() noteText!: string;
+    @Input() noteCreatedAt!: Date;
+    @Input() noteIsOwn!: boolean;
     inEditMode:boolean = false;
     isDeleted: boolean = false;
     showDeleteConfirmationQuestion: boolean = false;

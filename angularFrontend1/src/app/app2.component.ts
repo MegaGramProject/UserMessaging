@@ -16,6 +16,7 @@ import { NotesAndConvosSection } from '../components/notesAndConvosSection.compo
 import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
 import { UserSettingsPopup } from '../components/userSettingsPopup.component';
 import { PromoteUserPopup } from '../components/promoteUserPopup.component';
+import { Note } from '../note.model';
 
 
     @Component({
@@ -66,6 +67,7 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
     blockedUsernames:string[]=[];
     selectedConvoPromotedUsernames:string[] = [];
     displayPromoteUserPopup:boolean = false;
+    listOfNotes1!:Note[];
 
     ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
@@ -245,15 +247,61 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
     this.showNewMessagePopup = false;
     }
 
-    startMessagingSelectedUsers(selectedUsers: string[][]) {
-    this.showNewMessagePopup = false;
-    if(selectedUsers.length==1) {
-        this.showMessagesOfAChat = true;
-        this.messageRecipientInfo = selectedUsers[0];
-        if(this.listOfConvos.filter(x=>x[1]===selectedUsers[0][0]).length==0) {
-            this.listOfConvos.push(["Message #4 • 5w", selectedUsers[0][0], selectedUsers[0][1], false, false]);
-        }
+    flattenAndSort(arr: string[][]) {
+        return arr.reduce((acc, val) => acc.concat(val), []).sort();
     }
+
+    groupConvoIsNew(groupMessageMembers: string[][]) {
+        const flattenedAndSortedMembers = this.flattenAndSort(groupMessageMembers);
+        let twoConvosAreEqual;
+        let convoInListOfConvos;
+        for(let convo of this.listOfConvos) {
+            twoConvosAreEqual = true;
+            if(convo[1]!==this.authenticatedUsername) {
+                convoInListOfConvos = this.flattenAndSort([convo[1], convo[2], convo[5]]);
+            }
+            else {
+                convoInListOfConvos = this.flattenAndSort(convo[5]);
+            }
+            if(convoInListOfConvos.length!==flattenedAndSortedMembers.length) {
+                twoConvosAreEqual = false;
+            }
+            else {
+                for(let i=0; i< flattenedAndSortedMembers.length; i++) {
+                    if(flattenedAndSortedMembers[i]!==convoInListOfConvos[i]) {
+                        twoConvosAreEqual = false;
+                        break;
+                    }
+                }
+            }
+            if(twoConvosAreEqual) {
+                return false;
+            }
+            
+        }
+        return true;
+    }
+
+    startMessagingSelectedUsers(selectedUsers: string[][]) {
+        this.showNewMessagePopup = false;
+        if(selectedUsers.length==1) {
+            if(this.listOfConvos.filter(x=>x[1]===selectedUsers[0][0]).length==0) {
+                this.listOfConvos.push(["Message #4 • 5w", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", []]);
+            }
+            else {
+                this.showMessagesOfConvo(selectedUsers[0]);
+    ;        }
+        }
+        else {
+            selectedUsers = selectedUsers.filter(x=>x[0]!==this.authenticatedUsername);
+            if (this.groupConvoIsNew(selectedUsers)) {
+                this.listOfConvos.push(["Message #4 • 5w", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", []]);
+            }
+            else {
+                this.showMessagesOfThisGroupConvo(selectedUsers);
+                
+            }
+        }
     }
 
     receiveListOfConvos(listOfConvos: any[][]) {
@@ -431,19 +479,20 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
     }
 
     showMessagesOfRequestedConvo(messageRecipientInfo: string[]) {
-    this.messageRecipientInfo = messageRecipientInfo;
-    this.groupMessageRecipientsInfo = [];
+        this.messageRecipientInfo = messageRecipientInfo;
+        this.groupMessageRecipientsInfo = [];
+    }
+
+    showMessagesOfRequestedGroupConvo(groupMessageRecipientsInfo: string[][]) {
+        this.groupMessageRecipientsInfo = groupMessageRecipientsInfo;
+        this.messageRecipientInfo = [];
     }
 
     deleteRequestedConvo() {
-    for(let i=0; i<this.listOfRequestedConvos.length; i++) {
-        if(this.listOfRequestedConvos[i][1]===this.messageRecipientInfo[0]) {
-        this.listOfRequestedConvos.splice(i,1);
+        this.listOfRequestedConvos.splice(this.selectedConvo, 1);
         this.messageRecipientInfo = [];
         this.groupMessageRecipientsInfo = [];
-        return;
-        }
-    }
+        this.selectedConvo = -1;
     }
 
     acceptRequestedConvo() {
@@ -453,6 +502,18 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
         this.groupMessageRecipientsInfo = [];
         this.selectedConvo = -1;
         return;
+    }
+
+    noteSectionDynamicStyle() {
+        return this.showNoteSection ?
+        {
+            'opacity': 1,
+            'pointer-events': 'auto'
+        } :
+        {
+            'opacity': 0,
+            'pointer-events': 'none'
+        };
     }
 
     messageRequestsDynamicStyle() {
@@ -498,7 +559,7 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
         }
         else {
             this.selectedConvoTitle = this.listOfRequestedConvos[convoIndex][6];
-            this.selectedConvoPromotedUsernames = this.listOfConvos[convoIndex][7];
+            this.selectedConvoPromotedUsernames = this.listOfRequestedConvos[convoIndex][7];
         }
     }
 
@@ -781,6 +842,10 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
         this.messageData[7].push([]);
         this.messageData[8].push([]);
         this.selectedConvoPromotedUsernames = [];
+    }
+
+    receiveListOfNotes1(listOfNotes1: Note[]) {
+        this.listOfNotes1 = listOfNotes1;
     }
 
 
