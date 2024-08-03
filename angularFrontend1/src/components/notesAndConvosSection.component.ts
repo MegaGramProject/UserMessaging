@@ -19,13 +19,14 @@ export class NotesAndConvosSection {
     @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToSendNoteReply: EventEmitter<string[]> = new EventEmitter();
 
 
     //first boolean is true if there is an unread message; second boolean is true if convo is muted. then it is the list of the group-members besides the initiator.
     //then it is the convo-title if any, and finally it is the list of promoted usernames.
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", true , false, [], "Non-Group Convo", []],
-        ["Message #2 • 2w", "rishavry", "Rishav Ray", true , false, [['rishavry4', 'Rishav Ray4'], ['rishavry6', 'Rishav Ray6'], ['rishavry7', 'Rishav Ray7']], "Group Convo", []],
+        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", false , false, [], "Non-Group Convo", []],
+        ["Message #2 • 2w", "rishavry", "Rishav Ray", false , false, [['rishavry4', 'Rishav Ray4'], ['rishavry6', 'Rishav Ray6'], ['rishavry7', 'Rishav Ray7']], "Group Convo", []],
        // ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false, []],
        // ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false, [["rishavry6", "Rishav Ray6"]]],
     ];
@@ -80,5 +81,9 @@ export class NotesAndConvosSection {
     updateSelectedConvo(convoIndex: number) {
         this.selectedConvo = convoIndex;
         this.notifyParentOfSelectedConvo.emit(convoIndex);
+    }
+
+    tellParentToSendNoteReply(noteReplyInfo: string[]) {
+        this.notifyParentToSendNoteReply.emit(noteReplyInfo);
     }
 }

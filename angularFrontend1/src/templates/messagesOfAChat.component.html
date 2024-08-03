@@ -74,6 +74,29 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <p *ngIf="message[0]!==authenticatedUsername" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberPromotionOrDemotion(i)}} in this convo</p>
             </div>
 
+            <div *ngIf="isNoteReply(i)" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+            border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
+            [ngStyle]="{
+                'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
+                'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
+                'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
+            }">
+
+            <p *ngIf="message[0]===authenticatedUsername">You replied to {{getNoteReplyOriginalUsername(i)}}'s note</p>
+            <p *ngIf="message[0]!==authenticatedUsername">{{message[0]}} replied to {{getNoteReplyOriginalUsername(i)}}'s note</p>
+            <p style="background-color:white; border-style: solid; border-color: lightgray; border-radius: 2em; padding: 0.5em 1em;">{{ getNoteOriginalNoteText(i) }}</p>
+            <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
+                'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
+                'color': message[0] === authenticatedUsername ? 'white' : 'black',
+                'border-radius': '2em',
+                'padding': '0.5em 1em',
+                'word-break': 'break-word',
+                'overflow-wrap': 'break-word'
+            }" style="max-width: 25em;">
+            {{ getNoteReplyText(i) }}
+            </p>
+            </div>
+
 
             <div *ngIf="replies[i]!==-1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
             border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"

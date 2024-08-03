@@ -7,7 +7,8 @@
     (emitListOfConvosToParent)="receiveListOfConvos($event)" (notifyExpansionToParent)="updateExpansionOfMessagesOfAChat($event)"
     (notifyParentToShowListOfMessageRequestsSection)="showListOfMessageRequestsSection()"
     [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
-    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"></NotesAndConvosSection>
+    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
+    (notifyParentToSendNoteReply)="sendNoteReply($event)"></NotesAndConvosSection>
     
     <MessagesOfAChat *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"

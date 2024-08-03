@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NoteSectionNote } from './noteSectionNote.component';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Note } from '../note.model';
+import { NoteSectionNote } from './noteSectionNote.component';
 
 
 

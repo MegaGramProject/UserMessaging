@@ -82,6 +82,9 @@ export class ConvoDetailsPanel {
     }
 
     doesUserHaveConvoPerks() {
+        if(this.isRequestedConvosSectionDisplayed) {
+            return false;
+        }
         return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername))
         || (this.doesUserHaveConvoPerksInNonGroup());
     }
@@ -100,13 +103,14 @@ export class ConvoDetailsPanel {
         return false;
     }
 
+
     showAddMembersPopup() {
         this.notifyParentToShowAddMemberPopup.emit("show add members popup");
     }
 
     thisUserIsPromoted(username: string) {
         return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) ||
-        (this.doesUserHaveConvoPerksInNonGroup());
+        (this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
     }
 
     takeUserToThisUsersPage(username: string) {

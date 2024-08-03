@@ -754,4 +754,22 @@ export class MessagesOfAChat {
         return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
     }
 
+    isNoteReply(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Note-Reply';
+    }
+
+    getNoteReplyText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][0]);
+    }
+
+    getNoteOriginalNoteText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][1]);
+    }
+
+    getNoteReplyOriginalUsername(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][2]);
+    }
+
+
+
 }

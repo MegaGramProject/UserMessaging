@@ -848,6 +848,35 @@ import { Note } from '../note.model';
         this.listOfNotes1 = listOfNotes1;
     }
 
+    sendNoteReply(noteReplyInfo: string[]) {
+        this.messageData[0].push([this.authenticatedUsername, ["Note-Reply", noteReplyInfo], new Date()]);
+        this.messageData[1].push(-1);
+        this.messageData[2].push([-1, -1]);
+        this.messageData[3].push([]);
+        this.messageData[4].push([]);
+        this.messageData[5].push([]);
+        this.messageData[6].push([]);
+        this.messageData[7].push([]);
+        this.messageData[8].push([]);
+        for(let i=0; i<this.listOfConvos.length; i++) {
+            let convo = this.listOfConvos[i];
+            if(convo[1]===noteReplyInfo[2] && convo[5].length==0) {
+                this.selectedConvo = i;
+                this.selectedConvoTitle = convo[6];
+                this.selectedConvoPromotedUsernames = convo[7];
+                this.showMessagesOfConvo([noteReplyInfo[2], noteReplyInfo[3]]);
+                this.listOfConvos[this.selectedConvo][0] = "You: " + noteReplyInfo[0] + "• 1m", noteReplyInfo[2], noteReplyInfo[3];
+                return;
+            }
+        }
+        this.listOfConvos.push(["You: " + noteReplyInfo[0] + "• 1m", noteReplyInfo[2], noteReplyInfo[3], false, false, [], "", []]);
+        this.selectedConvo = this.listOfConvos.length-1;
+        this.selectedConvoTitle = "";
+        this.selectedConvoPromotedUsernames = [];
+
+        this.showMessagesOfConvo([noteReplyInfo[2], noteReplyInfo[3]]);
+    }
+
 
 }
 
