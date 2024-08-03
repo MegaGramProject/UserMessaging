@@ -1,0 +1,65 @@
+body {
+    font-family: Arial;
+}
+
+.hoverableElement:hover {
+    background-color: #e8e8e8;
+}
+
+.blueButton {
+    background-color: #348ceb;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6em 1em;
+    cursor:pointer;
+}
+
+.blueButton:hover {
+    opacity: 0.55 !important;
+}
+
+.checkbox-round {
+    width: 1.3em;
+    height: 1.3em;
+    background-color: white;
+    border-radius: 50%;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.checkbox-round:checked {
+    background-color: #348ceb;
+}
+
+.loseOpacityWhenActive:active {
+    opacity: 0.3;
+}
+
+.not-found {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.not-found h1 {
+font-size: 5em;
+color: #ff0000;
+}
+
+.not-found p {
+font-size: 1.5em;
+}
+
+.not-found a {
+color: #007bff;
+text-decoration: none;
+}
+
+.not-found a:hover {
+text-decoration: underline;
+}

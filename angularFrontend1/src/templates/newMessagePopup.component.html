@@ -1,0 +1,44 @@
+<div style="position: absolute; top: 15%; left: 34%; background-color: #f7f7f7;
+width: 35em; height: 37em; border-radius: 12px;">
+
+    <div style="border-style:solid; border-color: lightgray; border-top: none; border-left: none; border-right: none;
+    padding-top:0.6em; text-align: center; padding-bottom: 0.6em; position: relative;">
+        <b *ngIf="!isForwarding && !isAddingNewMembers">New message</b>
+        <b *ngIf="isForwarding">Forward</b>
+        <b *ngIf="isAddingNewMembers">Add members</b>
+        <img (click)="closePopup()" src="exitIcon.png" style="height: 1.7em; width: 1.7em; object-fit: contain; cursor: pointer; position: absolute;
+        left: 90%; top:15%;">
+    </div>
+
+    <div style="border-style:solid; border-color: lightgray; border-top: none; border-left: none; border-right: none;
+    padding-top:0.6em; display: flex; justify-content: start; align-items: center; padding-bottom: 0.6em; padding-left:
+    1em; gap: 0.4em;">
+        <b>To:</b>
+        <textarea (input)="showResultsForSearch()" [(ngModel)]="textareaInput" placeholder="Search..." style="font-family: Arial; font-size: 0.9em; outline: none; width: 90%; resize: none;
+        background-color: #f7f7f7; height:1.1em; border-style: none;"></textarea>
+    </div>
+
+    <div style="width:100%; height:75%; overflow-y: scroll; padding-left: 1em; padding-top: 1em;">
+        <p *ngIf="filteredUserResults.length==0" style="color:gray; font-size: 0.91em;">No account found.</p>
+
+        <div *ngFor="let result of filteredUserResults;">
+
+            <div (click)="selectUsername($event, result)" class="hoverableElement" style="display:flex; align-items: center; width:96%; gap:1em; position: relative; cursor:pointer;
+            border-radius:7px; padding-left: 0.4em;">
+                <img src="profileIcon.png" style="height: 2.6em; width: 2.6em; object-fit: contain;">
+                <div style="display: flex; flex-direction: column; align-items: start;">
+                    <p style="margin-bottom:-0.4em;">{{ result[1] }}</p>
+                    <p style="color:gray;">{{ result[0] }}</p>
+                </div>
+                <input (input)="selectUsername($event, result)" [(ngModel)]="checkboxStates[result[0]]" type="checkbox" style="position:absolute; left:90%;" class="checkbox-round">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div style="display: flex; justify-content: center; margin-top:1em;">
+        <button (click)="chatButtonOnClick()" type="button" class="blueButton" style="width:93%;" [ngStyle]="getChatButtonStyle()">Chat</button>
+    </div>
+
+</div>

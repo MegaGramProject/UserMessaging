@@ -1,0 +1,57 @@
+<div style="position: absolute; left: 82%; width: 18%; height: 100%; top: 0%; border-style: solid; background-color: white; z-index: 10;
+border-style: solid; border-color: lightgray; border-top: none; border-bottom: none; border-right: none;">
+    
+    <div style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none;
+    padding-left: 1em; padding-top: 1em; padding-bottom: 1em; font-size: 1.3em;">
+        <b>Details</b>
+    </div>
+
+    <div *ngIf="!convoIsRequested" style="display: flex; padding-left: 1em; padding-top: 1em; padding-bottom: 1em; border-style: solid; border-color: lightgray;
+    border-top: none; border-left: none; border-right: none; align-items: center; position: relative; gap: 0.6em;">
+        <img src="bellIcon.png" style="height: 1.8em; width: 1.8em; object-fit: contain;">
+        <p>Mute messages</p>
+        <img (click)="toggleMessagesAreMuted()" *ngIf="!messagesAreMuted" src="optionsSliderGray.png" style="height: 3.6em; width: 3.6em; position: absolute; left: 70%; object-fit: contain; cursor: pointer;">
+        <img (click)="toggleMessagesAreMuted()" *ngIf="messagesAreMuted" src="optionsSliderBlack.png" style="height: 3.6em; width: 3.6em; position: absolute; left: 70%; object-fit: contain; cursor: pointer;">
+    </div>
+
+    <div style="display: flex; flex-direction: column; border-style: solid; border-color: lightgray; border-top: none;
+    border-left: none; border-right: none; overflow-y: scroll; padding-left: 1.5em; padding-top: 2em;
+    padding-bottom: 1em;" [ngStyle]="getHeightOfMembersListDiv()">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-right: 3em;">
+            <b>Members</b>
+            <img *ngIf="doesUserHaveConvoPerks()" (click)="showAddMembersPopup()" src="plusIcon.png" style="cursor:pointer; height: 1em; width: 1em;">
+        </div>
+
+        <br/>
+
+        <div (click)="takeUserToThisUsersPage(messageRecipientInfo[0])" *ngIf="messageRecipientInfo.length>0" class="hoverableElement" style="display: flex; cursor: pointer; align-items: center; gap: 1em; width: 90%;
+        border-radius:8px; padding-left: 0.5em;">
+            <img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
+            <div style="display: flex; flex-direction: column; margin-top:1em;">
+                <b style="margin-bottom: 0em;">{{ messageRecipientInfo[0] }} <img *ngIf="thisUserIsPromoted(messageRecipientInfo[0])" src="promotedUserStarSymbol.png" style="height: 1.2em; width: 1.2em; object-fit: contain;"></b>
+                <p>{{ messageRecipientInfo[1] }}</p>
+            </div>
+        </div>
+
+        <div *ngFor="let groupMessageMember of groupMessageRecipientsInfo;">
+            <div (click)="showUserSettingsPopup(groupMessageMember)" *ngIf="groupMessageMember[0]!==authenticatedUsername" class="hoverableElement" style="display: flex; cursor: pointer; align-items: center; gap: 1em; width: 90%;
+            border-radius:8px; padding-left: 0.5em;">
+                <img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
+                <div style="display: flex; flex-direction: column; margin-top:1em;">
+                    <b style="margin-bottom: 0em;">{{ groupMessageMember[0] }} <span *ngIf="blockedUsernames.includes(groupMessageMember[0])" style="font-weight:100; color: gray; font-size: 0.85em; margin-left: 1.7em;">(blocked)</span>
+                    <img *ngIf="thisUserIsPromoted(groupMessageMember[0])" src="promotedUserStarSymbol.png" style="height: 1.2em; width: 1.2em; object-fit: contain;"></b>
+                    <p>{{ groupMessageMember[1] }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div *ngIf="!isRequestedConvosSectionDisplayed" style="padding-left: 1em; padding-top: 0.5em; display: flex; flex-direction: column; justify-content: center;">
+        <p *ngIf="messageRecipientInfo.length>0 && doesUserHaveConvoPerks() && !thisUserIsPromoted(messageRecipientInfo[0])" (click)="showPromoteUserPopup()" style="cursor: pointer;">Promote</p>
+        <p *ngIf="messageRecipientInfo.length>0 && doesUserHaveConvoPerks() && thisUserIsPromoted(messageRecipientInfo[0])" (click)="demoteUser()" style="cursor: pointer; color: red;">Demote</p>
+        <p *ngIf="messageRecipientInfo.length>0" (click)="showBlockUserPopup()" style="color: red; cursor: pointer;">Block</p>
+        <p *ngIf="groupMessageRecipientsInfo.length>0" (click)="showLeaveGroupPopup()" style="color: red; cursor: pointer;">Leave Group</p>
+        <p (click)="showDeleteChatPopup()" style="color: red; cursor: pointer;">Delete Chat</p>
+    </div>
+</div>

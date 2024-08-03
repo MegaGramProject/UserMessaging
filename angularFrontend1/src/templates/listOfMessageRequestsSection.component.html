@@ -1,0 +1,51 @@
+<div *ngIf="isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
+border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
+flex-direction: column; padding-left: 2em; padding-right: 2em;">
+
+    <div style="display: flex; align-items: center; padding-top: 1em; gap: 0.8em;">
+        <img (click)="closeSection()" src="backArrow.png" style="height: 2.4em; width: 2.4em; object-fit: contain; cursor: pointer;">
+        <b style="font-size: 1.3em;">Message Requests</b>
+        <img (click)="toggleExpansion()" src="dropdownV.png" style="height: 1.4em; width: 1.4em; object-fit: contain; cursor: pointer;">
+    </div>
+
+    <p style="text-align: center; font-size: 0.75em; color: gray; margin-top: 2em;">
+        Open a chat to get more info about who's messaging you. They won't know you've seen it until you accept.
+    </p>
+    <b (click)="takeUserToWhoCanSeeMessageTextSettings()" class="loseOpacityWhenActive" (mouseenter)="decideWhoCanMessageTextHovered()" (mouseleave)="decideWhoCanMessageTextUnhovered()"
+    style="cursor: pointer; text-align: center; font-size: 0.9em;" [ngStyle]="getColorOfDecideWhoCanMessageText()">
+        Decide who can message you
+    </b>
+
+    <br/>
+    
+
+    <div *ngFor="let convo of listOfConvos; let i = index;">
+        <Convo [lastMessage]="convo[0]"
+            [username]="convo[1]"
+            [fullName]="convo[2]"
+            [hasUnreadMessage]="convo[3]"
+            [isMuted]="convo[4]"
+            [convoIndex]="i"
+            [isSelected]="i==selectedConvo"
+            (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
+            (notifyParentToShowMessagesOfThisConvo)="showMessagesOfRequestedConvo($event)"
+            [membersOfGroupChatBesidesInitator]="convo[5]"
+            (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisRequestedGroupConvo($event)"
+            [convoTitle]="convo[6]"
+            >
+        </Convo>
+        <br/>
+    </div>
+
+    <p *ngIf="listOfConvos.length>0" (click)="deleteAllRequestedConvos()" style="color: red; text-align: center; font-size: 0.94em; cursor: pointer;">
+        Delete all
+    </p>
+
+</div>
+
+<div *ngIf="!isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:1em; height: 100%;
+border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
+justify-content: center; padding-top:1em;">
+    <img *ngIf="!isExpanded" (click)="toggleExpansion()" src="upArrow.webp" style="cursor: pointer; height: 1.4em; width: 1.4em; object-fit: contain;">
+</div>
+

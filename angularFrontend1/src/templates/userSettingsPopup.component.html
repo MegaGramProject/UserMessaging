@@ -1,0 +1,52 @@
+<div style= "position: absolute; border-style:solid; border-color: lightgray; left: 30%; top: 25%; background-color:white; height: 16.6em; width:30em; border-radius:1.3em;
+padding-bottom:2em; padding-top:0.5em; z-index: 10;">
+
+<div style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.7em;
+text-align: center; padding-bottom: 0.7em; font-size:1.2em;">
+    <b>{{messageMember[0]}}</b>
+</div>
+
+<div *ngIf="!isThisUserAlreadyPromoted() " (mouseenter)="showPromotionInfoText()" (mouseleave)="hidePromotionInfoText()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; cursor: pointer; position: relative;">
+    <p (click)="promoteUser()">Promote</p>
+    <p *ngIf="displayPromotionInfoText" style="padding: 0.5em 1em; background-color: black; color: white; position: absolute;
+    left: 0%; top: 500%; font-size: 0.9em; border-radius: 1.3em; width: 35em;">As a promoted member yourself, you have the ability to promote/demote other members(including {{messageMember[1]}}!) of the group-chat. The perks
+    of being a promoted member include: being able to edit the conversation title & add/delete members. One can become a promoted member
+    by one of two ways: being the initiator of the earliest non-deleted message(or of the message whose sender has not left the group-chat), or by being given the privilege by some other promoted member in the same group-chat. Any promoted user that leaves the
+    left the chat, will not gain automatic promotion upon rejoining; they will instead need to be given that privilege by one of the already promoted users.</p>
+</div>
+
+<div *ngIf="isThisUserAlreadyPromoted()" (mouseenter)="showPromotionInfoText()" (mouseleave)="hidePromotionInfoText()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; cursor: pointer; position: relative;">
+    <p (click)="demoteUser()">Demote</p>
+    <p *ngIf="displayPromotionInfoText" style="padding: 0.5em 1em; background-color: black; color: white; position: absolute;
+    left: 0%; top: 500%; font-size: 0.9em; border-radius: 1.3em; width: 35em;">As a promoted member yourself, you have the ability to demote/promote other members(including {{messageMember[1]}}!) of the group-chat. The perks
+    of being a promoted member include: being able to edit the conversation title & add/delete members. One can become a promoted member
+    by one of two ways: being the initiator of the earliest non-deleted message(or of the message whose sender has not left the group-chat), or by being given the privilege by some other promoted member in the same group-chat. Any promoted user that leaves the
+    left the chat, will not gain automatic promotion upon rejoining; they will instead need to be given that privilege by one of the promoted users. </p>
+</div>
+
+
+<div (click)="removeFromConvo()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; color: red; cursor: pointer">
+    <p>Remove From Group</p>
+</div>
+
+<div *ngIf="!(this.messageMember && this.blockedUsernames.includes(this.messageMember[0]))" (click)="blockUser()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; color: red; cursor: pointer">
+    <p>Block</p>
+</div>
+
+<div *ngIf="this.messageMember && this.blockedUsernames.includes(this.messageMember[0])" (click)="unblockUser()" style="border-style: solid; border-color: lightgray; border-top: none; border-left: none; border-right: none; padding-top: 0.2em;
+text-align: center; padding-bottom: 0.4em; color: red; cursor: pointer">
+    <p>Unblock</p>
+</div>
+
+
+
+
+<div (click)="closePopup()" style="padding-top: 0.4em; text-align: center; padding-bottom: 0.4em; cursor: pointer">
+    <p>Cancel</p>
+</div>
+
+</div>

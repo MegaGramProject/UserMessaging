@@ -1,0 +1,90 @@
+<div [ngStyle]="getStyleBasedOnPopups()">
+
+    <LeftSidebar></LeftSidebar>
+    
+    <NotesAndConvosSection (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"
+    (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
+    (emitListOfConvosToParent)="receiveListOfConvos($event)" (notifyExpansionToParent)="updateExpansionOfMessagesOfAChat($event)"
+    (notifyParentToShowListOfMessageRequestsSection)="showListOfMessageRequestsSection()"
+    [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
+    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
+    (notifyParentToSendNoteReply)="sendNoteReply($event)"></NotesAndConvosSection>
+    
+    <MessagesOfAChat *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
+    (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
+    (notifyParentToUpdateLatestMessageInConvo)="updateLatestMessageInConvo($event)"
+    (notifyParentToDeleteConvo)="deleteConvo($event)" [messagesOfAChatIsExpanded]="messagesOfAChatIsExpanded"
+    (notifyParentToToggleConvoDetailsPanel)="toggleConvoDetails()"
+    (notifyParentToShowForwardMessagePopup)="showForwardMessagePopup($event)"
+    (emitDataToParent)="receiveMessageData($event)" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
+    (notifyParentToShowForwardFilePopup)="showForwardFilePopup($event)"
+    [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
+    [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
+    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"></MessagesOfAChat>
+    
+    <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
+    [listOfNotes1]="listOfNotes1"></CreateNewNote>
+    
+    <NoteSection  [ngStyle]="noteSectionDynamicStyle()" [username]="noteSectionUsername" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"
+    (emitDataToParent)="receiveListOfNotes1($event)"></NoteSection>
+    
+    <ConvoDetailsPanel *ngIf="showConvoDetailsPanel" [messageRecipientInfo]="messageRecipientInfo"
+    (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
+    (toggleMutedMessageIconInConvo)="toggleMutedMessageIconInConvo()"
+    [convoIsRequested]="convoIsRequested" [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
+    (toggleMutedMessageIconInGroupConvo)="toggleMutedMessageIconInGroupConvo()" [authenticatedUsername]="authenticatedUsername"
+    [messages]="messageData[0]" (notifyParentToShowLeaveGroupPopup)="showLeaveGroupPopup()"
+    (notifyParentToShowAddMemberPopup)="showAddMembersPopup()" (notifyParentToShowUserSettingsPopup)="showUserSettingsPopup($event)"
+    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
+    (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
+    (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"></ConvoDetailsPanel>
+    
+    <ListOfMessageRequestsSection
+    (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
+    (notifyParentToCloseSection)="closeListOfMessageRequestsSection()"
+    (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"
+    (emitListOfRequestedConvosToParent)="receiveListOfRequestedConvos($event)"
+    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToUpdateSelectedConvo)="updateSelectedConvo($event)"
+    (notifyParentToShowMessagesOfThisRequestedGroupConvo)="showMessagesOfRequestedGroupConvo($event)"></ListOfMessageRequestsSection>
+    
+    <RequestedMessagesOfAChat [messageRecipientInfo]="messageRecipientInfo"
+    [isExpanded]="requestedMessagesOfAChatIsExpanded" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
+    (notifyParentToToggleConvoDetailsPanel)="toggleRequestedConvoDetails()"
+    (notifyParentToDeleteRequestedConvo)="deleteRequestedConvo()" [authenticatedUsername]="authenticatedUsername"
+    (notifyParentToAcceptRequestedConvo)="acceptRequestedConvo()" [ngStyle]="messageRequestsDynamicStyle()"
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo" [convoTitle]="selectedConvoTitle"></RequestedMessagesOfAChat>
+    
+</div>
+    
+    <NewMessagePopup *ngIf="showNewMessagePopup" (notifyParentToExitNewMessagePopup)="closeNewMessagePopup()"
+    (notifyParentToStartMessagingSelectedUsers)="startMessagingSelectedUsers($event)"
+    [isForwarding]="isForwarding" [messageToForward]="messageToForward"
+    (notifyParentToForwardMessageToSelectedUsers)="forwardMessageToSelectedUsers($event)"
+    [convoMembersOfForwardedMessage]="[messageRecipientInfo]" [fileToForward]="fileToForward"
+    (notifyParentToForwardFileToSelectedUsers)="forwardFileToSelectedUsers($event)"
+    [isAddingNewMembers]="isAddingNewMembers" (notifyParentToAddNewMemberToConvo)="addNewMemberToConvo($event)"></NewMessagePopup>
+    
+    <MessageReactionsPopup *ngIf="showMessageReactionsPopup" [messageReactionsInfo]="messageReactionsInfo"
+    (notifyParentToExitMessageReactionsPopup)="closeMessageReactionsPopup()" [authenticatedUsername]="authenticatedUsername"
+    [blockedUsernames]="blockedUsernames"></MessageReactionsPopup>
+    
+    <DeleteChatPopup *ngIf="displayDeleteChatPopup" [messageRecipientInfo]="messageRecipientInfo"
+    (notifyParentToCancelDeleteChat)="cancelDeleteChat()" (notifyParentToDeleteChat)="deleteChat()"></DeleteChatPopup>
+    
+    <BlockUserPopup *ngIf="displayBlockUserPopup" [messageRecipientInfo]="messageRecipientInfo"
+    (notifyParentToCancelBlock)="cancelBlockUser()" (notifyParentToBlockUser)="blockUser()"></BlockUserPopup>
+
+    <LeaveGroupPopup *ngIf="displayLeaveGroupPopup" (notifyParentToLeaveGroup)="leaveGroup()"
+    (notifyParentToCancelLeaveGroup)="cancelLeaveGroup()"></LeaveGroupPopup>
+    
+    <UserSettingsPopup *ngIf="displayUserSettingsPopup" [messageMember]="userSettingsPopupGroupMessageMember"
+    (notifyParentToClosePopup)="closeUserSettingsPopup()" (notifyParentToRemoveUserFromConvo)="removeMemberFromConvo()"
+    (notifyParentToBlockUser)="blockUserFromUserSettingsPopup()" [blockedUsernames]="blockedUsernames"
+    (notifyParentToUnblockUser)="unblockUserFromUserSettingsPopup()"
+    (notifyParentToPromoteUser)="promoteUserFromSettingsPopup()" [promotedUsernames]="selectedConvoPromotedUsernames"
+    (notifyParentToDemoteUser)="demoteUserFromSettingsPopup()"
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"></UserSettingsPopup>
+
+    <PromoteUserPopup *ngIf="displayPromoteUserPopup" (notifyParentToCancelPromoteUser)="closePromoteUserPopup()"
+    [messageRecipientInfo]="messageRecipientInfo" (notifyParentToPromoteUser)="promoteUserFromPromoteUserPopup()"></PromoteUserPopup>
