@@ -187,4 +187,36 @@ public class BackendController : ControllerBase
     }
 
 
+    [HttpGet("getAllConvos/{username}")]
+    public async Task<IActionResult> getAllConvosOfUsername(string username)
+    {
+        var convos = await _megaDbContext.convos
+            .Where(cl => cl.members.Contains(username))
+            .ToListAsync();
+
+        return Ok(convos);
+    }
+
+    [HttpGet("getMessage/{messageId}")]
+    public async Task<IActionResult> getMessage(string messageId)
+    {
+        if (!Guid.TryParse(messageId, out Guid parsedMessageId))
+        {
+        return BadRequest(false);
+        }
+
+        var message = await _megaDbContext.messages
+            .FirstOrDefaultAsync(cl => cl.messageId == parsedMessageId);
+
+        if(message!=null) {
+            return Ok(message);
+        }
+
+        return NotFound();
+
+    }
+
+
+
+
 }

@@ -112,6 +112,7 @@ export class MessagesOfAChat {
     @Output() notifyParentToUpdateConvoTitle: EventEmitter<string> = new EventEmitter();
     @Input() blockedUsernames!:string[];
     @Input() promotedUsernames!:string[];
+    @Input() convoId!:any;
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles,

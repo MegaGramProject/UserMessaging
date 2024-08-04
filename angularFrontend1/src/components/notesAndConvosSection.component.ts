@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, Input, EventEmitter, Output } from '@angular/core';
 import { Convo } from './convo.component';
 import { Note } from './note.component';
 import { group } from 'console';
-
+import axios from 'axios';
 
 
 @Component({
@@ -14,6 +14,7 @@ import { group } from 'console';
     styleUrl: '../styles.css'
 })
 export class NotesAndConvosSection {
+    @Input() authenticatedUsername!:string;
     @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
@@ -25,17 +26,13 @@ export class NotesAndConvosSection {
     //first boolean is true if there is an unread message; second boolean is true if convo is muted. then it is the list of the group-members besides the initiator.
     //then it is the convo-title if any, and finally it is the list of promoted usernames.
     listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry2", "Rishav Ray2", false , false, [], "Non-Group Convo", []],
-        ["Message #2 • 2w", "rishavry", "Rishav Ray", false , false, [['rishavry4', 'Rishav Ray4'], ['rishavry6', 'Rishav Ray6'], ['rishavry7', 'Rishav Ray7']], "Group Convo", []],
-       // ["Message #2 • 2w", "rishavry3", "Rishav Ray3", false, false, []],
-       // ["Message #3 • 3mo", "rishavry4", "Rishav Ray4", false, false, [["rishavry6", "Rishav Ray6"]]],
     ];
 
     @Output() emitListOfConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
     @Output() notifyExpansionToParent: EventEmitter<boolean> = new EventEmitter();
     isExpanded:boolean = true;
     @Output() notifyParentToShowListOfMessageRequestsSection: EventEmitter<string> = new EventEmitter();
-    selectedConvo:number = -1;
+    selectedConvo!:number;
     @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
 
     toggleExpansion() {
@@ -44,8 +41,51 @@ export class NotesAndConvosSection {
     }
 
     
-    ngOnInit() {
-        this.emitListOfConvosToParent.emit(this.listOfConvos);
+    async ngOnInit() {
+        try {
+            const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
+            const fetchedConvosOfUser = response.data;
+            for(let convo of fetchedConvosOfUser) {
+                convo['promotedUsers'] = JSON.parse(convo['promotedUsers']);
+                convo['convoInitiator'] = JSON.parse(convo['convoInitiator']);
+                convo['members'] = JSON.parse(convo['members']);
+                convo['isRequested'] = JSON.parse(convo['isRequested']);
+                convo['isMuted'] = JSON.parse(convo['isMuted']);
+                convo['hasUnreadMessage'] = JSON.parse(convo['hasUnreadMessage']);
+                for(let i=0; i< convo['members'].length; i++) {
+                    if(convo['members'][i][0]===this.authenticatedUsername) {
+                        if(convo['isRequested'][i]==0) {
+                            if(convo['members'].length==2) {
+                                if(convo['members'][0][0]!=='rishavry') {
+                                    this.listOfConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    ]);
+                                }
+                                else {
+                                    this.listOfConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    ]);
+                                }
+                            }
+                            else {
+                                convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
+                                this.listOfConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
+                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId']])
+                            }
+                            break;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+
+            }
+            this.emitListOfConvosToParent.emit(this.listOfConvos);
+        } catch (error) {
+            console.error('Error fetching conversations:', error);
+        }
+
     }
 
 
@@ -78,9 +118,9 @@ export class NotesAndConvosSection {
         this.notifyParentToShowListOfMessageRequestsSection.emit("show list of message requests section");
     }
 
-    updateSelectedConvo(convoIndex: number) {
-        this.selectedConvo = convoIndex;
-        this.notifyParentOfSelectedConvo.emit(convoIndex);
+    updateSelectedConvo(convoId: any) {
+        this.selectedConvo = convoId;
+        this.notifyParentOfSelectedConvo.emit(convoId);
     }
 
     tellParentToSendNoteReply(noteReplyInfo: string[]) {

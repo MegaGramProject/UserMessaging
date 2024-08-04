@@ -17,6 +17,8 @@ import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat
 import { UserSettingsPopup } from '../components/userSettingsPopup.component';
 import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 import { Note } from '../note.model';
+import axios from 'axios';
+
 
 
     @Component({
@@ -59,6 +61,7 @@ import { Note } from '../note.model';
     groupMessageRecipientsInfo:any[][]=[];
     selectedConvo:number = -1;
     selectedConvoTitle:any = "";
+    selectedConvoId:any = "";
     displayLeaveGroupPopup:boolean = false;
     displayAddMembersPopup:boolean = false;
     isAddingNewMembers:boolean = false;
@@ -556,20 +559,48 @@ import { Note } from '../note.model';
         if(!this.displayListOfMessageRequestsSection) {
             this.selectedConvoTitle = this.listOfConvos[convoIndex][6];
             this.selectedConvoPromotedUsernames = this.listOfConvos[convoIndex][7];
+            this.selectedConvoId = this.listOfConvos[convoIndex][8];
         }
         else {
             this.selectedConvoTitle = this.listOfRequestedConvos[convoIndex][6];
             this.selectedConvoPromotedUsernames = this.listOfRequestedConvos[convoIndex][7];
+            this.selectedConvoId = this.listOfRequestedConvos[convoIndex][8];
         }
     }
 
-    updateConvoTitle(newConvoTitle: string) {
-        if(!this.displayListOfMessageRequestsSection) {
-            this.listOfConvos[this.selectedConvo][6] = newConvoTitle;
+    getMembersOfSelectedConvo() {
+        let output = [[this.authenticatedUsername, "Rishav Ray"]];
+        if(this.listOfConvos[this.selectedConvo][1]!==this.authenticatedUsername) {
+            output.push([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]])
         }
-        else {
-            this.listOfRequestedConvos[this.selectedConvo][6] = newConvoTitle;
+        for(let elem of this.listOfConvos[this.selectedConvo][5]) {
+            output.push(elem);
         }
+
+        return output;
+    }
+
+
+    async updateConvoTitle(newConvoTitle: string) {
+        const url = "http://localhost:8012/editConvo/"+ this.selectedConvoId;
+        const data = {
+            convoTitle: newConvoTitle,
+            members: JSON.stringify(this.getMembersOfSelectedConvo()),
+            convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
+            latestMessageId: this.listOfConvos[this.selectedConvo][0],
+            promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7])
+        };
+        try {
+            const response = await axios.patch(url, data);
+            if(response.data) {
+                this.selectedConvoTitle = newConvoTitle;
+                this.listOfConvos[this.selectedConvo][6] = newConvoTitle;
+            }
+        } catch (error) {
+            console.error('Error updating data:', error);
+            throw error;
+        }
+
     }
 
     showLeaveGroupPopup() {

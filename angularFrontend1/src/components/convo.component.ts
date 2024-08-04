@@ -9,7 +9,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     styleUrl: '../styles.css'
 })
 export class Convo {
-    @Input() lastMessage!: any;
+    @Input() lastMessageId!: any;
     @Input() username!: any;
     @Input() fullName!: any;
     @Input() hasUnreadMessage!: any;
@@ -21,6 +21,7 @@ export class Convo {
     @Input() membersOfGroupChatBesidesInitator: any = [];
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any[][]> = new EventEmitter();
     @Input() convoTitle:any = "";
+    @Input() convoId:any = "";
 
 
     selectConvo() {

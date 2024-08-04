@@ -2,7 +2,7 @@
 
     <LeftSidebar></LeftSidebar>
     
-    <NotesAndConvosSection (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"
+    <NotesAndConvosSection [authenticatedUsername]="authenticatedUsername" (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"
     (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
     (emitListOfConvosToParent)="receiveListOfConvos($event)" (notifyExpansionToParent)="updateExpansionOfMessagesOfAChat($event)"
     (notifyParentToShowListOfMessageRequestsSection)="showListOfMessageRequestsSection()"
@@ -21,7 +21,7 @@
     [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
     [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
-    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"></MessagesOfAChat>
+    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames" [convoId]="selectedConvoId"></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
     [listOfNotes1]="listOfNotes1"></CreateNewNote>
@@ -40,7 +40,7 @@
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
     (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"></ConvoDetailsPanel>
     
-    <ListOfMessageRequestsSection
+    <ListOfMessageRequestsSection [authenticatedUsername]="authenticatedUsername"
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
     (notifyParentToCloseSection)="closeListOfMessageRequestsSection()"
     (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"

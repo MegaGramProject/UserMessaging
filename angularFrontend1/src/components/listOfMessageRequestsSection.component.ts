@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, Input, EventEmitter, Output } from '@angular/core';
 import { Convo } from './convo.component';
+import axios from 'axios';
 
 @Component({
     selector: 'ListOfMessageRequestsSection',
@@ -14,19 +15,58 @@ export class ListOfMessageRequestsSection {
     @Output() notifyExpansionToParent: EventEmitter<boolean> = new EventEmitter();
     @Output() notifyParentToCloseSection: EventEmitter<string> = new EventEmitter();
     whoCanMessageTextHovered:boolean = false;
-    listOfConvos:Array<Array<any>> = [
-        ["Message #1 • 1d", "rishavry5", "Rishav Ray5", false , false, [], "Hello world", []],
-        ["Message #2 • 2w", "rishavry6", "Rishav Ray6", false, false, [["rishavry2", "Rishav Ray2"], ["rishavry3", "Rishav Ray3"]], "", []],
-        ["Message #3 • 3mo", "rishavry7", "Rishav Ray7", false, false, [], "", []],
+    listOfRequestedConvos:Array<Array<any>> = [
     ];
     selectedConvo:number = -1;
     @Output() notifyParentToShowMessagesOfThisRequestedConvo: EventEmitter<string[]> = new EventEmitter();
     @Output() emitListOfRequestedConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
     @Output() notifyParentToUpdateSelectedConvo: EventEmitter<number> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisRequestedGroupConvo: EventEmitter<string[][]> = new EventEmitter();
+    @Input() authenticatedUsername!:string;
 
-    ngOnInit() {
-        this.emitListOfRequestedConvosToParent.emit(this.listOfConvos);
+    async ngOnInit() {
+        try {
+            const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
+            const fetchedRequestedConvosOfUser = response.data;
+            for(let convo of fetchedRequestedConvosOfUser) {
+                convo['promotedUsers'] = JSON.parse(convo['promotedUsers']);
+                convo['convoInitiator'] = JSON.parse(convo['convoInitiator']);
+                convo['members'] = JSON.parse(convo['members']);
+                convo['isRequested'] = JSON.parse(convo['isRequested']);
+                convo['isMuted'] = JSON.parse(convo['isMuted']);
+                convo['hasUnreadMessage'] = JSON.parse(convo['hasUnreadMessage']);
+                for(let i=0; i< convo['members'].length; i++) {
+                    if(convo['members'][i][0]===this.authenticatedUsername) {
+                        if(convo['isRequested'][i]==1) {
+                            if(convo['members'].length==2) {
+                                if(convo['members'][0][0]!=='rishavry') {
+                                    this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    ]);
+                                }
+                                else {
+                                    this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    ]);
+                                }
+                            }
+                            else {
+                                convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
+                                this.listOfRequestedConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
+                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId']])
+                            }
+                            break;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+            }
+            this.emitListOfRequestedConvosToParent.emit(this.listOfRequestedConvos);
+        } catch (error) {
+            console.error('Error fetching conversations:', error);
+        }
     }
 
 
@@ -63,7 +103,7 @@ export class ListOfMessageRequestsSection {
     }
 
     deleteAllRequestedConvos() {
-        this.listOfConvos = [];
+        this.listOfRequestedConvos = [];
         this.selectedConvo = -1;
     }
 

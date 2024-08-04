@@ -89,6 +89,7 @@ export class ConvoDetailsPanel {
         || (this.doesUserHaveConvoPerksInNonGroup());
     }
 
+    
     doesUserHaveConvoPerksInNonGroup() {
         if(this.groupMessageRecipientsInfo.length==0) {
             for(let message of this.messages) {
@@ -109,6 +110,8 @@ export class ConvoDetailsPanel {
     }
 
     thisUserIsPromoted(username: string) {
+        console.log(username);
+        console.log(this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
         return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) ||
         (this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
     }

@@ -19,25 +19,26 @@ flex-direction: column; padding-left: 2em; padding-right: 2em;">
     <br/>
     
 
-    <div *ngFor="let convo of listOfConvos; let i = index;">
-        <Convo [lastMessage]="convo[0]"
+    <div *ngFor="let convo of listOfRequestedConvos; let i = index;">
+        <Convo
+            [lastMessageId]="convo[0]"
             [username]="convo[1]"
             [fullName]="convo[2]"
             [hasUnreadMessage]="convo[3]"
             [isMuted]="convo[4]"
-            [convoIndex]="i"
             [isSelected]="i==selectedConvo"
             (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
             (notifyParentToShowMessagesOfThisConvo)="showMessagesOfRequestedConvo($event)"
             [membersOfGroupChatBesidesInitator]="convo[5]"
             (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisRequestedGroupConvo($event)"
             [convoTitle]="convo[6]"
+            [convoId]="convo[8]"
             >
         </Convo>
         <br/>
     </div>
 
-    <p *ngIf="listOfConvos.length>0" (click)="deleteAllRequestedConvos()" style="color: red; text-align: center; font-size: 0.94em; cursor: pointer;">
+    <p *ngIf="listOfRequestedConvos.length>0" (click)="deleteAllRequestedConvos()" style="color: red; text-align: center; font-size: 0.94em; cursor: pointer;">
         Delete all
     </p>
 

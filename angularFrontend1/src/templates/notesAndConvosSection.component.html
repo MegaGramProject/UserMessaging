@@ -29,7 +29,7 @@ top: -20%; left: 90%;">
 <br/>
 
 <div *ngFor="let convo of listOfConvos; let i = index;">
-    <Convo [lastMessage]="convo[0]"
+    <Convo [lastMessageId]="convo[0]"
         [username]="convo[1]"
         [fullName]="convo[2]"
         [hasUnreadMessage]="convo[3]"
