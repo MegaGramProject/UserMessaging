@@ -9,4 +9,5 @@ public class ConvoEditRequestBody
         public string promotedUsers { get; set; }
         public string isMuted { get; set; }
         public string hasUnreadMessage { get; set; }
+        public string isRequested { get; set; }
     }

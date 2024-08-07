@@ -58,19 +58,22 @@ export class NotesAndConvosSection {
                             if(convo['members'].length==2) {
                                 if(convo['members'][0][0]!=='rishavry') {
                                     this.listOfConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
-                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
                                     ]);
                                 }
                                 else {
                                     this.listOfConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
-                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
                                     ]);
                                 }
                             }
                             else {
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
                                 this.listOfConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
-                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId']])
+                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']])
                             }
                             break;
                         }

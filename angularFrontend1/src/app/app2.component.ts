@@ -1,6 +1,7 @@
     import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import axios from 'axios';
 import { BlockUserPopup } from '../components/blockUserPopup.component';
 import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
 import { CreateNewNote } from '../components/createNewNote.component';
@@ -13,11 +14,10 @@ import { MessagesOfAChat } from '../components/messagesOfAChat.component';
 import { NewMessagePopup } from '../components/newMessagePopup.component';
 import { NoteSection } from '../components/noteSection.component';
 import { NotesAndConvosSection } from '../components/notesAndConvosSection.component';
+import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
 import { UserSettingsPopup } from '../components/userSettingsPopup.component';
-import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 import { Note } from '../note.model';
-import axios from 'axios';
 
 
 
@@ -71,6 +71,7 @@ import axios from 'axios';
     selectedConvoPromotedUsernames:string[] = [];
     displayPromoteUserPopup:boolean = false;
     listOfNotes1!:Note[];
+    isSelectedConvoMuted!:boolean;
 
     ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
@@ -209,7 +210,7 @@ import axios from 'axios';
     this.showNoteSection = false;
     }
 
-    showMessagesOfConvo(messageRecipientInfo: Array<string>) {
+    async showMessagesOfConvo(messageRecipientInfo: Array<string>) {
         this.messageRecipientInfo = messageRecipientInfo;
         this.groupMessageRecipientsInfo = [];
         this.showMessagesOfAChat = true;
@@ -345,7 +346,14 @@ import axios from 'axios';
 
     toggleConvoDetails() {
     this.convoIsRequested = false;
-    this.showConvoDetailsPanel = !this.showConvoDetailsPanel;
+    if(!this.showConvoDetailsPanel) {
+        this.showConvoDetailsPanel = true;
+        this.isSelectedConvoMuted = this.listOfConvos[this.selectedConvo][4];
+    }
+    else {
+        this.showConvoDetailsPanel = false;
+        this.isSelectedConvoMuted = this.listOfConvos[this.selectedConvo][4];
+    }
     }
 
     toggleRequestedConvoDetails() {
@@ -404,13 +412,33 @@ import axios from 'axios';
         }
     }
 
-    toggleMutedMessageIconInConvo() {
-    for(let i=0; i<this.listOfConvos.length; i++) {
-        if(this.listOfConvos[i][1]===this.messageRecipientInfo[0]) {
-        this.listOfConvos[i][4] = !this.listOfConvos[i][4];
-        return;
+    async toggleMutedMessageIconInConvo() {
+        const url = "http://localhost:8012/editConvo/"+ this.selectedConvoId;
+        if(this.listOfConvos[this.selectedConvo][9][this.listOfConvos[this.selectedConvo][11]]==0) {
+            this.listOfConvos[this.selectedConvo][9][this.listOfConvos[this.selectedConvo][11]] = 1;
         }
-    }
+        else {
+            this.listOfConvos[this.selectedConvo][9][this.listOfConvos[this.selectedConvo][11]] = 0;
+        }
+        const data = {
+            convoTitle: this.selectedConvoTitle,
+            members: JSON.stringify(this.getMembersOfSelectedConvo()),
+            convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
+            latestMessageId: this.listOfConvos[this.selectedConvo][0],
+            promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
+            isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
+            hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
+            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12])
+        };
+        try {
+            const response = await axios.patch(url, data);
+            if(response.data) {
+                this.listOfConvos[this.selectedConvo][4] = !this.listOfConvos[this.selectedConvo][4];
+            }
+        } catch (error) {
+            console.error('Error updating data:', error);
+            throw error;
+        }
     }
 
     showForwardMessagePopup(messageToForward: string) {
@@ -498,13 +526,33 @@ import axios from 'axios';
         this.selectedConvo = -1;
     }
 
-    acceptRequestedConvo() {
-        this.listOfConvos.push(this.listOfRequestedConvos[this.selectedConvo]);
-        this.listOfRequestedConvos.splice(this.selectedConvo,1);
-        this.messageRecipientInfo = [];
-        this.groupMessageRecipientsInfo = [];
-        this.selectedConvo = -1;
-        return;
+    async acceptRequestedConvo() {
+        const url = "http://localhost:8012/editConvo/"+ this.selectedConvoId;
+        this.listOfRequestedConvos[this.selectedConvo][12][this.listOfRequestedConvos[this.selectedConvo][11]] = 0;
+        const data = {
+            convoTitle: this.selectedConvoTitle,
+            members: JSON.stringify(this.getMembersOfSelectedConvo()),
+            convoInitiator: JSON.stringify([this.listOfRequestedConvos[this.selectedConvo][1], this.listOfRequestedConvos[this.selectedConvo][2]]),
+            latestMessageId: this.listOfRequestedConvos[this.selectedConvo][0],
+            promotedUsers: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][7]),
+            isMuted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][9]),
+            hasUnreadMessage: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][10]),
+            isRequested: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][12])
+        };
+        try {
+            const response = await axios.patch(url, data);
+            if(response.data) {
+                this.listOfConvos.push(this.listOfRequestedConvos[this.selectedConvo]);
+                this.listOfRequestedConvos.splice(this.selectedConvo,1);
+                this.messageRecipientInfo = [];
+                this.groupMessageRecipientsInfo = [];
+                this.selectedConvo = -1;
+            }
+        } catch (error) {
+            console.error('Error updating data:', error);
+            throw error;
+        }
+
     }
 
     noteSectionDynamicStyle() {
@@ -549,32 +597,98 @@ import axios from 'axios';
         this.showMessagesOfAChat = true;
     }
 
-    toggleMutedMessageIconInGroupConvo() {
-        this.listOfConvos[this.selectedConvo][4] = !this.listOfConvos[this.selectedConvo][4];
 
-    }
-
-    updateSelectedConvo(convoIndex:number) {
+    async updateSelectedConvo(convoIndex:number) {
+        const previousSelectedConvo = this.selectedConvo;
         this.selectedConvo = convoIndex;
-        if(!this.displayListOfMessageRequestsSection) {
-            this.selectedConvoTitle = this.listOfConvos[convoIndex][6];
-            this.selectedConvoPromotedUsernames = this.listOfConvos[convoIndex][7];
-            this.selectedConvoId = this.listOfConvos[convoIndex][8];
-        }
-        else {
-            this.selectedConvoTitle = this.listOfRequestedConvos[convoIndex][6];
-            this.selectedConvoPromotedUsernames = this.listOfRequestedConvos[convoIndex][7];
-            this.selectedConvoId = this.listOfRequestedConvos[convoIndex][8];
+        if(previousSelectedConvo!==this.selectedConvo) {
+            if(!this.displayListOfMessageRequestsSection) {
+                this.selectedConvoTitle = this.listOfConvos[this.selectedConvo][6];
+                this.selectedConvoPromotedUsernames = this.listOfConvos[this.selectedConvo][7];
+                this.selectedConvoId = this.listOfConvos[this.selectedConvo][8];
+                this.isSelectedConvoMuted = this.listOfConvos[this.selectedConvo][4];
+            }
+            else {
+                this.selectedConvoTitle = this.listOfRequestedConvos[this.selectedConvo][6];
+                this.selectedConvoPromotedUsernames = this.listOfRequestedConvos[this.selectedConvo][7];
+                this.selectedConvoId = this.listOfRequestedConvos[this.selectedConvo][8];
+                this.isSelectedConvoMuted = this.listOfRequestedConvos[this.selectedConvo][4];
+            }
+    
+
+            const response = await fetch('http://localhost:8012/getMessagesForConvo/'+this.selectedConvoId);
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+
+            for(let messageDataPart of this.messageData) {
+                while(messageDataPart.length>0) {
+                    messageDataPart.splice(messageDataPart.length-1, 1);
+                }
+            }
+
+            const messages = await response.json();
+
+            for(let message of messages) {
+                message['message'] = JSON.parse(message['message']);
+                if(message['message'][0]==='Regular-Message') {
+                    this.messageData[0].push([message['sender'], message['message'][1], new Date(message['messageSentAt']), ""]);
+                    this.messageData[1].push(-1);
+                    this.messageData[2].push([]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([-1, -1]);
+                    this.messageData[7].push([]);
+                    this.messageData[8].push([]);
+                }
+                else if(message['message'][0]==='Reply') {
+                    this.messageData[0].push([ message['sender'], [ "Reply", "replied to " + message['message'][1],  message['message'][2],
+                    message['message'][3] ], new Date(message['messageSentAt']) ]);
+                    this.messageData[1].push(-1);
+                    this.messageData[2].push([]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([-1, -1]);
+                    this.messageData[7].push([]);
+                    this.messageData[8].push([]);
+                }
+            else if(message['message'][0]==='Forward') {
+                this.messageData[0].push([ message['sender'], ["Forward", "forwarded a message from a conversation with " + message['message'][1],  message['message'][2]],
+                new Date(message['messageSentAt']) ]);
+                    this.messageData[1].push(-1);
+                    this.messageData[2].push([]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([-1, -1]);
+                    this.messageData[7].push([]);
+                    this.messageData[8].push([]);
+            }
+            }
         }
     }
 
     getMembersOfSelectedConvo() {
         let output = [[this.authenticatedUsername, "Rishav Ray"]];
-        if(this.listOfConvos[this.selectedConvo][1]!==this.authenticatedUsername) {
-            output.push([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]])
+        if(!this.displayListOfMessageRequestsSection) {
+            if(this.listOfConvos[this.selectedConvo][1]!==this.authenticatedUsername) {
+                output.push([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]])
+            }
+            for(let elem of this.listOfConvos[this.selectedConvo][5]) {
+                output.push(elem);
+            }
         }
-        for(let elem of this.listOfConvos[this.selectedConvo][5]) {
-            output.push(elem);
+
+        else {
+            if(this.listOfRequestedConvos[this.selectedConvo][1]!==this.authenticatedUsername) {
+                output.push([this.listOfRequestedConvos[this.selectedConvo][1], this.listOfRequestedConvos[this.selectedConvo][2]])
+            }
+            for(let elem of this.listOfRequestedConvos[this.selectedConvo][5]) {
+                output.push(elem);
+            }
+
         }
 
         return output;
@@ -588,7 +702,10 @@ import axios from 'axios';
             members: JSON.stringify(this.getMembersOfSelectedConvo()),
             convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
             latestMessageId: this.listOfConvos[this.selectedConvo][0],
-            promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7])
+            promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
+            isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
+            hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
+            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12])
         };
         try {
             const response = await axios.patch(url, data);
@@ -600,7 +717,6 @@ import axios from 'axios';
             console.error('Error updating data:', error);
             throw error;
         }
-
     }
 
     showLeaveGroupPopup() {

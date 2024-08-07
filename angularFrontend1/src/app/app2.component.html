@@ -33,20 +33,21 @@
     (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
     (toggleMutedMessageIconInConvo)="toggleMutedMessageIconInConvo()"
     [convoIsRequested]="convoIsRequested" [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
-    (toggleMutedMessageIconInGroupConvo)="toggleMutedMessageIconInGroupConvo()" [authenticatedUsername]="authenticatedUsername"
+    [authenticatedUsername]="authenticatedUsername"
     [messages]="messageData[0]" (notifyParentToShowLeaveGroupPopup)="showLeaveGroupPopup()"
     (notifyParentToShowAddMemberPopup)="showAddMembersPopup()" (notifyParentToShowUserSettingsPopup)="showUserSettingsPopup($event)"
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
-    (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"></ConvoDetailsPanel>
+    (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"
+    [messagesAreMuted]="isSelectedConvoMuted"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection [authenticatedUsername]="authenticatedUsername"
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
     (notifyParentToCloseSection)="closeListOfMessageRequestsSection()"
     (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"
     (emitListOfRequestedConvosToParent)="receiveListOfRequestedConvos($event)"
-    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToUpdateSelectedConvo)="updateSelectedConvo($event)"
-    (notifyParentToShowMessagesOfThisRequestedGroupConvo)="showMessagesOfRequestedGroupConvo($event)"></ListOfMessageRequestsSection>
+    [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToShowMessagesOfThisRequestedGroupConvo)="showMessagesOfRequestedGroupConvo($event)"
+    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"></ListOfMessageRequestsSection>
     
     <RequestedMessagesOfAChat [messageRecipientInfo]="messageRecipientInfo"
     [isExpanded]="requestedMessagesOfAChatIsExpanded" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"

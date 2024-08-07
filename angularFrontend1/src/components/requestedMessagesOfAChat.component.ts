@@ -17,9 +17,9 @@ export class RequestedMessagesOfAChat {
     @Output() notifyParentToDeleteRequestedConvo:EventEmitter<string> = new EventEmitter();
     @Input() authenticatedUsername!:string;
     messages:Array<Array<Object>> = [
-        ["Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
-        ["It's your old friend", new Date(2024, 4, 15, 10, 30, 30), ""],
-        ["Oh come on, just accept me already! i am just a frustrated hackeasmdsajdnsajdnjasndajsdnsajdajsndjasdasdjsandjasndjasddasjdnjasdnajsdasjdnasjdnajsdas akdxmnasdxas", new Date(2024, 4, 16, 12, 30, 30), "santaclaus"],
+    //    ["Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
+     //   ["It's your old friend", new Date(2024, 4, 15, 10, 30, 30), ""],
+     //   ["Oh come on, just accept me already! i am just a frustrated hackeasmdsajdnsajdnjasndajsdnsajdajsndjasdasdjsandjasndjasddasjdnjasdnajsdasjdnasjdnajsdas akdxmnasdxas", new Date(2024, 4, 16, 12, 30, 30), "santaclaus"],
     ];
     currentlyHoveredSentMessageAndFileIndices: Array<number> = [-1, -1];
     currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];
@@ -37,35 +37,35 @@ export class RequestedMessagesOfAChat {
     file3 = new File([this.blob3], 'hello3.txt', { type: 'text/plain' });
 
     replies: Array<number> = [
-        -1,
-        0,
-        -1
+    //    -1,
+    //    0,
+    //    -1
     ];
     reactions: Array<Array<string>> = [
-        ["❤️"],
-        [],
-        []
+    //    ["❤️"],
+    //    [],
+    //    []
     ];
     reactionUsernames: Array<Array<string>> = [
-        ["rishavry2"],
-        [],
-        []
+    //    ["rishavry2"],
+    //    [],
+   //     []
     ];
 
     messageFiles: Array<Array<File>> = [
-        [],
-        [],
-        [this.file, this.file2, this.file3]
+    //    [],
+    //    [],
+   //     [this.file, this.file2, this.file3]
     ];
     messageFileImages: Array<Array<any>> = [
-        [],
-        [],
-        ['default file image', 'default file image', 'default file image']
+   //     [],
+   //     [],
+   //     ['default file image', 'default file image', 'default file image']
     ];
     fileReplies: Array<Array<number>> = [
-        [-1, -1],
-        [-1, -1],
-        [-1, -1]
+    //    [-1, -1],
+    //    [-1, -1],
+   //     [-1, -1]
     ];
     @Input() groupMessageRecipientsInfo: string[][] = [];
     @Input() convoTitle:string = "";

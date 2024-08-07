@@ -14,60 +14,60 @@ export class MessagesOfAChat {
 
 
     messages: Array<Array<Object>> = [
-        ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
-        ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
-        ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
-        ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0), ""],
+     //   ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
+     //   ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
+    //    ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
+    //    ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0), ""],
     ];
 
     replies: Array<number> = [
-        -1,
-        -1,
-        -1,
-        -1,
+     //   -1,
+    //    -1,
+    //    -1,
+    //    -1,
     ];
     reactions: Array<Array<string>> = [
-        ["❤️"],
-        [],
-        [],
-        ["😭", "🖕"]
+    //    ["❤️"],
+    //    [],
+//        [],
+     //   ["😭", "🖕"]
     ];
     reactionUsernames: Array<Array<string>> = [
-        ["rishavry2"],
-        [],
-        [],
-        ["rishavry", "rishavry2"]
+   //     ["rishavry2"],
+   //     [],
+   //     [],
+   //     ["rishavry", "rishavry2"]
     ];
 
     messageFiles: Array<Array<File>> = [
-        [],
-        [],
-        [],
-        []
+     //   [],
+    //    [],
+     //   [],
+     //   []
     ];
     messageFileImages: Array<Array<any>> = [
-        [],
-        [],
-        [],
-        []
+    //    [],
+    //    [],
+    //    [],
+    //    []
     ];
     fileReplies: Array<Array<number>> = [
-        [-1, -1],
-        [-1, -1],
-        [-1, -1],
-        [-1, -1],
+    //    [-1, -1],
+   //     [-1, -1],
+   //     [-1, -1],
+   //     [-1, -1],
     ];
     messageFileReactions: Array<Array<any>> = [
-        [],
-        [],
-        [],
-        []
+    //    [],
+    //    [],
+   //     [],
+   //     []
     ];
     messageFileReactionUsernames: Array<Array<any>> = [
-        [],
-        [],
-        [],
-        []
+    //    [],
+   //   [],
+    //    [],
+   //     []
     ];
 
     @Input() authenticatedUsername!: string;
@@ -770,6 +770,38 @@ export class MessagesOfAChat {
     getNoteReplyOriginalUsername(messageIndex: number) {
         return (<string>(<Array<any>>this.messages)[messageIndex][1][1][2]);
     }
+
+    isMessageReply(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Reply';
+    }
+
+    getRepliedToText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
+    getOriginalMessageReplyText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][2]);
+    }
+
+    getMessageReplyText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][3]);
+    }
+
+    isForwardedMessage(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Forward';
+    }
+
+    getForwardedMessageFromConvoText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
+    getForwardedMessage(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][2]);
+    }
+
+
+
+    
 
 
 

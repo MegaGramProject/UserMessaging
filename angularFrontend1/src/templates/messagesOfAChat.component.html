@@ -97,6 +97,55 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </p>
             </div>
 
+            
+            <div *ngIf="isMessageReply(i)" style="display: flex; flex-direction: column; color: gray; border-color: lightgray; border-style: solid;
+            border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
+            [ngStyle]="{
+                'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
+                'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
+                'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
+            }">
+                <p *ngIf="message[0]===authenticatedUsername" style="font-size: 0.85em;">You {{getRepliedToText(i)}}</p>
+                <p *ngIf="message[0]!==authenticatedUsername" style="font-size: 0.85em;">{{message[0]}} {{getRepliedToText(i)}}</p>
+                <p style="background-color:#f0f0f0; border-radius: 2em; padding: 0.5em 1em; font-size: 0.85em;">{{ getOriginalMessageReplyText(i)}}</p>
+
+                <p [ngStyle]="{
+                        'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
+                        'color': message[0] === authenticatedUsername ? 'white' : 'black',
+                        'border-radius': '2em',
+                        'padding': '0.5em 1em',
+                        'word-break': 'break-word',
+                        'overflow-wrap': 'break-word'
+                    }" style="max-width: 25em;">
+                    {{ getMessageReplyText(i) }}
+                </p>
+            </div>
+
+            <div *ngIf="isForwardedMessage(i)" style="display: flex; flex-direction: column; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
+                border-width: 3px; padding-left: 1em; padding-right: 1em;"
+                [ngStyle]="{
+                    'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
+                    'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
+                    'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
+                }">
+                    <p *ngIf="message[3]!=='' && message[0]===authenticatedUsername" style="font-size:0.88em; color: gray;">
+                        You {{getForwardedMessageFromConvoText(i)}}</p>
+                
+                    <p *ngIf="message[3]!=='' && message[0]!==authenticatedUsername" style="font-size:0.88em; color: gray;">
+                        {{message[0]}} {{getForwardedMessageFromConvoText(i)}}</p>
+
+                        <p [ngStyle]="{
+                            'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
+                            'color': message[0] === authenticatedUsername ? 'white' : 'black',
+                            'border-radius': '2em',
+                            'padding': '0.5em 1em',
+                            'word-break': 'break-word',
+                            'overflow-wrap': 'break-word'
+                        }" style="max-width: 25em;">
+                        {{ getForwardedMessage(i) }}
+                    </p>
+            </div>
+
 
             <div *ngIf="replies[i]!==-1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
             border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
@@ -122,6 +171,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
             </div>
 
+        
             <div *ngIf="message.length>3" style="display: flex; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
             border-width: 3px; padding-left: 1em; padding-right: 1em;"
             [ngStyle]="{

@@ -154,6 +154,9 @@ public class BackendController : ControllerBase
             convo.convoInitiator = editedConvo.convoInitiator;
             convo.latestMessageId = editedConvo.latestMessageId;
             convo.promotedUsers = editedConvo.promotedUsers;
+            convo.isMuted = editedConvo.isMuted;
+            convo.hasUnreadMessage = editedConvo.hasUnreadMessage;
+            convo.isRequested = editedConvo.isRequested;
 
             _megaDbContext.convos.Update(convo);
             await _megaDbContext.SaveChangesAsync();
@@ -214,6 +217,19 @@ public class BackendController : ControllerBase
 
         return NotFound();
 
+    }
+
+
+    [HttpGet("getMessagesForConvo/{convoId}")]
+    public async Task<IActionResult> getMessagesForConvo(string convoId)
+    {
+        var messages = await _megaDbContext.messages
+        .Where(cl => cl.convoId == convoId)
+        .OrderBy(cl => cl.messageSentAt)
+        .ToListAsync();
+
+
+        return Ok(messages);
     }
 
 

@@ -20,9 +20,9 @@ export class ListOfMessageRequestsSection {
     selectedConvo:number = -1;
     @Output() notifyParentToShowMessagesOfThisRequestedConvo: EventEmitter<string[]> = new EventEmitter();
     @Output() emitListOfRequestedConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
-    @Output() notifyParentToUpdateSelectedConvo: EventEmitter<number> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisRequestedGroupConvo: EventEmitter<string[][]> = new EventEmitter();
     @Input() authenticatedUsername!:string;
+    @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
 
     async ngOnInit() {
         try {
@@ -41,19 +41,22 @@ export class ListOfMessageRequestsSection {
                             if(convo['members'].length==2) {
                                 if(convo['members'][0][0]!=='rishavry') {
                                     this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
-                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
                                     ]);
                                 }
                                 else {
                                     this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
-                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId']
+                                    Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
                                     ]);
                                 }
                             }
                             else {
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
                                 this.listOfRequestedConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
-                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId']])
+                                Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']])
                             }
                             break;
                         }
@@ -107,9 +110,9 @@ export class ListOfMessageRequestsSection {
         this.selectedConvo = -1;
     }
 
-    updateSelectedConvo(convoIndex: number) {
+    updateSelectedConvo(convoIndex: any) {
         this.selectedConvo = convoIndex;
-        this.notifyParentToUpdateSelectedConvo.emit(convoIndex);
+        this.notifyParentOfSelectedConvo.emit(convoIndex);
     }
 
     showMessagesOfRequestedConvo(messageRecipientInfo: string[]) {

@@ -11,11 +11,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class ConvoDetailsPanel {
 
     @Input() messageRecipientInfo: string[] = [];
-    messagesAreMuted: boolean = false;
+    @Input() messagesAreMuted!: boolean;
     @Output() notifyParentToShowDeleteChatPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowBlockUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() toggleMutedMessageIconInConvo:  EventEmitter<any> = new EventEmitter();
-    @Output() toggleMutedMessageIconInGroupConvo:  EventEmitter<any> = new EventEmitter();
     @Input() convoIsRequested!:boolean;
     @Input() groupMessageRecipientsInfo:string[][]=[];
     @Output() notifyParentToShowLeaveGroupPopup: EventEmitter<any> = new EventEmitter();
@@ -32,21 +31,11 @@ export class ConvoDetailsPanel {
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
             this.messagesAreMuted = false;
-            if(this.messageRecipientInfo.length>0) {
-                this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
-            }
-            else {
-                this.toggleMutedMessageIconInGroupConvo.emit("toggle muted message icon in group-convo");
-            }
+            this.toggleMutedMessageIconInConvo.emit("toggle muted message icon");
         }
         else {
             this.messagesAreMuted = true;
-            if(this.messageRecipientInfo.length>0) {
-                this.toggleMutedMessageIconInConvo.emit("toggle muted message icon in convo");
-            }
-            else {
-                this.toggleMutedMessageIconInGroupConvo.emit("toggle muted message icon in group-convo");
-            }
+            this.toggleMutedMessageIconInConvo.emit("toggle muted message icon");
         }
     }
 
@@ -110,8 +99,6 @@ export class ConvoDetailsPanel {
     }
 
     thisUserIsPromoted(username: string) {
-        console.log(username);
-        console.log(this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
         return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) ||
         (this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
     }
