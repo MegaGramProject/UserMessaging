@@ -35,6 +35,7 @@ export class ListOfMessageRequestsSection {
                 convo['isRequested'] = JSON.parse(convo['isRequested']);
                 convo['isMuted'] = JSON.parse(convo['isMuted']);
                 convo['hasUnreadMessage'] = JSON.parse(convo['hasUnreadMessage']);
+                convo['isDeleted'] = JSON.parse(convo['isDeleted']);
                 for(let i=0; i< convo['members'].length; i++) {
                     if(convo['members'][i][0]===this.authenticatedUsername) {
                         if(convo['isRequested'][i]==1) {
@@ -42,13 +43,13 @@ export class ListOfMessageRequestsSection {
                                 if(convo['members'][0][0]!=='rishavry') {
                                     this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']
                                     ]);
                                 }
                                 else {
                                     this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']
                                     ]);
                                 }
                             }
@@ -56,7 +57,7 @@ export class ListOfMessageRequestsSection {
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
                                 this.listOfRequestedConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested']])
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']])
                             }
                             break;
                         }

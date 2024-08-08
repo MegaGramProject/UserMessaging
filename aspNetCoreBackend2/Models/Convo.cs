@@ -15,4 +15,6 @@ public class Convo
     public string convoInitiator { get; set; }
     public string isMuted { get; set; }
     public string hasUnreadMessage { get; set; }
+    public string isDeleted { get; set; }
 }
+

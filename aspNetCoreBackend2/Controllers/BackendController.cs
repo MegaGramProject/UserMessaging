@@ -91,7 +91,19 @@ public class BackendController : ControllerBase
         if (convo != null)
         {
             _megaDbContext.convos.Remove(convo);
+            
+            var messages = await _megaDbContext.messages
+            .Where(cl => cl.convoId == convoId)
+            .ToListAsync();
+
+            foreach (var message in messages)
+            {
+                _megaDbContext.messages.Remove(message);
+            }
+
             await _megaDbContext.SaveChangesAsync();
+
+
             return Ok(true);
         }
 
@@ -157,6 +169,7 @@ public class BackendController : ControllerBase
             convo.isMuted = editedConvo.isMuted;
             convo.hasUnreadMessage = editedConvo.hasUnreadMessage;
             convo.isRequested = editedConvo.isRequested;
+            convo.isDeleted = editedConvo.isDeleted;
 
             _megaDbContext.convos.Update(convo);
             await _megaDbContext.SaveChangesAsync();

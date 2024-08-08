@@ -2,6 +2,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { BlockUserPopup } from '../components/blockUserPopup.component';
 import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
 import { CreateNewNote } from '../components/createNewNote.component';
@@ -262,13 +263,14 @@ import { Note } from '../note.model';
         for(let convo of this.listOfConvos) {
             twoConvosAreEqual = true;
             if(convo[1]!==this.authenticatedUsername) {
-                convoInListOfConvos = this.flattenAndSort([convo[1], convo[2], convo[5]]);
+                convoInListOfConvos = this.flattenAndSort([convo[1], convo[2],  this.flattenAndSort(convo[5])]);
             }
             else {
                 convoInListOfConvos = this.flattenAndSort(convo[5]);
             }
             if(convoInListOfConvos.length!==flattenedAndSortedMembers.length) {
                 twoConvosAreEqual = false;
+                break;
             }
             else {
                 for(let i=0; i< flattenedAndSortedMembers.length; i++) {
@@ -286,27 +288,101 @@ import { Note } from '../note.model';
         return true;
     }
 
-    startMessagingSelectedUsers(selectedUsers: string[][]) {
+    async startMessagingSelectedUsers(selectedUsers: string[][]) {
         this.showNewMessagePopup = false;
+        selectedUsers = selectedUsers.filter(x=>x[0]!==this.authenticatedUsername);
+        const newConvoId = uuidv4();
         if(selectedUsers.length==1) {
-            if(this.listOfConvos.filter(x=>x[1]===selectedUsers[0][0]).length==0) {
-                this.listOfConvos.push(["Message #4 • 5w", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", []]);
+            if(this.listOfConvos.filter(x=>x[1]===selectedUsers[0][0] && x[5].length==0).length==0) {
+                this.listOfConvos.push(["", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", [], newConvoId, [0, 0], [0, 0], this.listOfConvos.length,
+            [0, 0], [0, 0]]);
+
+                await this.updateSelectedConvo(this.listOfConvos.length-1);
+
+                this.showMessagesOfConvo(selectedUsers[0]);
+
+                const response = await fetch('http://localhost:8012/addConvo', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: newConvoId,
+                        convoTitle: "",
+                        latestMessageId: "",
+                        isRequested: JSON.stringify([0, 0]),
+                        hasUnreadMessage: JSON.stringify([0,0]),
+                        promotedUsers: JSON.stringify([]),
+                        members: JSON.stringify([ [this.authenticatedUsername, 'Rishav Ray'], [selectedUsers[0][0],  selectedUsers[0][1]] ]),
+                        convoInitiator: JSON.stringify([selectedUsers[0][0],  selectedUsers[0][1]]),
+                        isMuted: JSON.stringify([0, 0]),
+                        isDeleted: JSON.stringify([0, 0])
+                    })
+                });
+                if(!response.ok) {
+                    throw new Error('Network response not ok');
+                }
+
             }
             else {
                 this.showMessagesOfConvo(selectedUsers[0]);
+                for(let i=0; i<this.listOfConvos.length; i++) {
+                    let convo = this.listOfConvos[i];
+                    if(convo[1]===selectedUsers[0][0]) {
+                        if(i !==this.selectedConvo) {
+                            await this.updateSelectedConvo(i);
+                            if(convo[13][convo[11]] == 1) {
+                                convo[13][convo[11]] = 0;
+                                const response = await fetch('http://localhost:8012/editConvo/'+this.selectedConvoId, {
+                                method: 'PATCH',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({
+                                    convoTitle: this.selectedConvoTitle,
+                                    members: JSON.stringify(this.getMembersOfSelectedConvo()),
+                                    convoInitiator: JSON.stringify([convo[1], convo[2]]),
+                                    latestMessageId: convo[0],
+                                    promotedUsers: JSON.stringify(convo[7]),
+                                    isMuted: JSON.stringify(convo[9]),
+                                    hasUnreadMessage: JSON.stringify(convo[10]),
+                                    isRequested: JSON.stringify(convo[12]),
+                                    isDeleted: JSON.stringify(convo[13])
+                                    })
+                                });
+                                if(!response.ok) {
+                                    throw new Error('Network response not ok');
+                                }
+                            }
+                        }
+                        return;
+                    }
+                }
     ;        }
         }
-        else {
-            selectedUsers = selectedUsers.filter(x=>x[0]!==this.authenticatedUsername);
+        else if(selectedUsers.length>1) {
             if (this.groupConvoIsNew(selectedUsers)) {
-                this.listOfConvos.push(["Message #4 • 5w", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", []]);
+                const array1: number[] = [0];
+                const array2: number[] = new Array(selectedUsers.length).fill(1)
+                this.listOfConvos.push(["Message #4 • 5w", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", [], uuidv4(), new Array(selectedUsers.length+1).fill(0),
+                array1.concat(array2), this.listOfConvos.length, new Array(selectedUsers.length+1).fill(0)]);
+    
+                await this.updateSelectedConvo(this.listOfConvos.length-1);
+
+                this.showMessagesOfThisGroupConvo(selectedUsers);
             }
             else {
                 this.showMessagesOfThisGroupConvo(selectedUsers);
+                for(let i=0; i<this.listOfConvos.length; i++) {
+                    let convo = this.listOfConvos[i];
+                    if(convo[1]===selectedUsers[0][0]) {
+                        if(convo[8]!==this.selectedConvo) {
+                            await this.updateSelectedConvo(i);
+                            return;
+                        }
+                    }
+                }
                 
             }
         }
     }
+
 
     receiveListOfConvos(listOfConvos: any[][]) {
     this.listOfConvos = listOfConvos;
@@ -329,15 +405,16 @@ import { Note } from '../note.model';
     });
     }
 
-    deleteConvo(convoRecipient: string) {
-    for(let i=0; i<this.listOfConvos.length; i++) {
-        if(this.listOfConvos[i][1]===convoRecipient) {
-        this.listOfConvos.splice(i,1);
+    async deleteConvo(convoRecipient: string) {
+        const response = await fetch('http://localhost:8012/deleteConvo/'+this.selectedConvoId, {
+            method: 'DELETE'
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        this.listOfConvos.splice(this.selectedConvo, 1);
         this.messageRecipientInfo = [];
         this.groupMessageRecipientsInfo = [];
-        return;
-        }
-    }
     }
 
     updateExpansionOfMessagesOfAChat(notesAndConvosSectionIsExpanded: boolean) {
@@ -373,8 +450,28 @@ import { Note } from '../note.model';
     this.displayDeleteChatPopup = false;
     }
 
-    deleteChat() {
+    async deleteChat() {
         if(!this.displayListOfMessageRequestsSection) {
+            this.listOfConvos[this.selectedConvo][13][this.listOfConvos[this.selectedConvo][11]] = 1;
+            const data = {
+                convoTitle: this.selectedConvoTitle,
+                members: JSON.stringify(this.getMembersOfSelectedConvo()),
+                convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
+                latestMessageId: this.listOfConvos[this.selectedConvo][0],
+                promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
+                isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
+                hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
+                isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
+                isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+            };
+            const response = await fetch('http://localhost:8012/editConvo/'+this.selectedConvoId, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
             this.listOfConvos.splice(this.selectedConvo,1);
             this.messageRecipientInfo = [];
             this.groupMessageRecipientsInfo = [];
@@ -428,7 +525,8 @@ import { Note } from '../note.model';
             promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
-            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12])
+            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
         };
         try {
             const response = await axios.patch(url, data);
@@ -456,34 +554,64 @@ import { Note } from '../note.model';
     this.showNewMessagePopup = true;
     }
 
-    forwardMessageToSelectedUsers(forwardMessageInfo:any[]) {
-    this.startMessagingSelectedUsers(forwardMessageInfo[1]);
-    if(forwardMessageInfo[1].length==1 && forwardMessageInfo[2].length==1) {
-        this.messageData[0].push([this.authenticatedUsername, forwardMessageInfo[0], new Date(), forwardMessageInfo[2][0][0]]);
-        this.messageData[1].push(-1);
+    getUsernamesOfMembers(members:string[][]) {
+        let usernamesOfMembers:string = members[0][0];
+        for(let i = 1; i < members.length-1; i++) {
+            usernamesOfMembers+= ", " + members[i][0];
+        }
+        usernamesOfMembers += ", & " + members[members.length-1][0];
+        return usernamesOfMembers;
+    }
+
+    async forwardMessageToSelectedUsers(forwardMessageInfo:any[]) {
+        await this.startMessagingSelectedUsers(forwardMessageInfo[1]);
+        const newMessageId = uuidv4();
+        let message;
+        console.log(forwardMessageInfo);
+        if(forwardMessageInfo[2].length==1) {
+            message = ["Forward", forwardMessageInfo[2][0][0],  forwardMessageInfo[0]];
+            this.messageData[0].push([this.authenticatedUsername, ["Forward", "forwarded a message from a conversation with " + forwardMessageInfo[2][0][0],  forwardMessageInfo[0], newMessageId], new Date()]);
+        }
+        else {
+            message = ["Forward", this.getUsernamesOfMembers(forwardMessageInfo[2]),  forwardMessageInfo[0]];
+            this.messageData[0].push([this.authenticatedUsername, ["Forward", "forwarded a message from a conversation with " + this.getUsernamesOfMembers(forwardMessageInfo[2]),  forwardMessageInfo[0], newMessageId], new Date()]);
+        }
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
-        this.messageData[6].push([-1, -1]);
+        this.messageData[5].push([-1, -1]);
+        this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
-    }
-
+        const responseForSendingForwardedMessage = await fetch('http://localhost:8012/addMessage', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                messageId: newMessageId,
+                convoId: this.selectedConvoId,
+                message: JSON.stringify(message),
+                sender: this.authenticatedUsername,
+                messageSentAt: new Date()
+            })
+        });
+        
+        if(!responseForSendingForwardedMessage.ok) {
+            throw new Error('Network response not ok');
+        }
+        
     }
 
     forwardFileToSelectedUsers(forwardMessageInfo:any[]) {
     this.startMessagingSelectedUsers(forwardMessageInfo[1]);
     if(forwardMessageInfo[1].length==1 && forwardMessageInfo[2].length==1) {
         this.messageData[0].push([this.authenticatedUsername, "", new Date(), forwardMessageInfo[2][0][0]]);
-        this.messageData[1].push(-1);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
-        this.messageData[3].push([]);
-        this.messageData[4].push([forwardMessageInfo[0][0]]);
-        this.messageData[5].push([forwardMessageInfo[0][1]]);
-        this.messageData[6].push([-1, -1]);
+        this.messageData[3].push([forwardMessageInfo[0][0]]);
+        this.messageData[4].push([forwardMessageInfo[0][1]]);
+        this.messageData[5].push([-1, -1]);
+        this.messageData[6].push([[]]);
         this.messageData[7].push([[]]);
-        this.messageData[8].push([[]]);
     }
 
     }
@@ -537,7 +665,8 @@ import { Note } from '../note.model';
             promotedUsers: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][10]),
-            isRequested: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][12])
+            isRequested: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][12]),
+            isDeleted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][13])
         };
         try {
             const response = await axios.patch(url, data);
@@ -632,39 +761,36 @@ import { Note } from '../note.model';
             for(let message of messages) {
                 message['message'] = JSON.parse(message['message']);
                 if(message['message'][0]==='Regular-Message') {
-                    this.messageData[0].push([message['sender'], message['message'][1], new Date(message['messageSentAt']), ""]);
-                    this.messageData[1].push(-1);
+                    this.messageData[0].push([message['sender'], message['message'][1], new Date(message['messageSentAt']+"Z"), message['messageId']]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
-                    this.messageData[6].push([-1, -1]);
+                    this.messageData[5].push([-1, -1]);
+                    this.messageData[6].push([]);
                     this.messageData[7].push([]);
-                    this.messageData[8].push([]);
                 }
                 else if(message['message'][0]==='Reply') {
                     this.messageData[0].push([ message['sender'], [ "Reply", "replied to " + message['message'][1],  message['message'][2],
-                    message['message'][3] ], new Date(message['messageSentAt']) ]);
-                    this.messageData[1].push(-1);
+                    message['message'][3], message['messageId'] ], new Date(message['messageSentAt']+"Z") ]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
-                    this.messageData[6].push([-1, -1]);
+                    this.messageData[5].push([-1, -1]);
+                    this.messageData[6].push([]);
                     this.messageData[7].push([]);
-                    this.messageData[8].push([]);
                 }
             else if(message['message'][0]==='Forward') {
-                this.messageData[0].push([ message['sender'], ["Forward", "forwarded a message from a conversation with " + message['message'][1],  message['message'][2]],
-                new Date(message['messageSentAt']) ]);
-                    this.messageData[1].push(-1);
+                this.messageData[0].push([ message['sender'], ["Forward", "forwarded a message from a conversation with " + message['message'][1],  message['message'][2], message['messageId']],
+                new Date(message['messageSentAt']+"Z") ]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
-                    this.messageData[6].push([-1, -1]);
+                    this.messageData[5].push([-1, -1]);
+                    this.messageData[6].push([]);
                     this.messageData[7].push([]);
-                    this.messageData[8].push([]);
             }
             }
         }
@@ -705,7 +831,8 @@ import { Note } from '../note.model';
             promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
-            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12])
+            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
         };
         try {
             const response = await axios.patch(url, data);
@@ -747,14 +874,13 @@ import { Note } from '../note.model';
                     this.listOfConvos[this.selectedConvo][5].push(user);
                     this.groupMessageRecipientsInfo.push(user);
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0]], new Date()]);
-                    this.messageData[1].push(-1);
-                    this.messageData[2].push([-1, -1]);
+                    this.messageData[1].push([-1, -1]);
+                    this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
                     this.messageData[5].push([]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
-                    this.messageData[8].push([]);
                 }
             }
         }
@@ -765,14 +891,13 @@ import { Note } from '../note.model';
                     this.listOfConvos[this.selectedConvo][5].push(user);
                     this.groupMessageRecipientsInfo.push(user);
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0]], new Date()]);
-                    this.messageData[1].push(-1);
-                    this.messageData[2].push([-1, -1]);
+                    this.messageData[1].push([-1, -1]);
+                    this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
                     this.messageData[5].push([]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
-                    this.messageData[8].push([]);
                     if(!isNewUserAdded) {
                         isNewUserAdded = true;
                         for(let message of this.messageData[0]) {
@@ -847,14 +972,13 @@ import { Note } from '../note.model';
 
     removeMemberFromConvo() {
         this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "removed " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
 
         for(let j=0; j<this.listOfConvos[this.selectedConvo][7]; j++) {
             if(this.listOfConvos[this.selectedConvo][7][j]===this.userSettingsPopupGroupMessageMember[0]) {
@@ -914,14 +1038,13 @@ import { Note } from '../note.model';
         this.listOfConvos[this.selectedConvo][7].push(this.userSettingsPopupGroupMessageMember[0]);
         this.displayUserSettingsPopup = false;
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
     }
 
     demoteUserFromSettingsPopup() {
@@ -935,14 +1058,13 @@ import { Note } from '../note.model';
                 1);
         }
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
         this.displayUserSettingsPopup = false;
     }
 
@@ -958,14 +1080,13 @@ import { Note } from '../note.model';
         this.listOfConvos[this.selectedConvo][7].push(this.messageRecipientInfo[0]);
         this.selectedConvoPromotedUsernames =  this.listOfConvos[this.selectedConvo][7];
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.messageRecipientInfo[0]], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
         this.displayPromoteUserPopup = false;
     }
 
@@ -980,14 +1101,13 @@ import { Note } from '../note.model';
             return;
         }
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.messageRecipientInfo[0]], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
         this.selectedConvoPromotedUsernames = [];
     }
 
@@ -997,14 +1117,13 @@ import { Note } from '../note.model';
 
     sendNoteReply(noteReplyInfo: string[]) {
         this.messageData[0].push([this.authenticatedUsername, ["Note-Reply", noteReplyInfo], new Date()]);
-        this.messageData[1].push(-1);
-        this.messageData[2].push([-1, -1]);
+        this.messageData[1].push([-1, -1]);
+        this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
         this.messageData[5].push([]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
-        this.messageData[8].push([]);
         for(let i=0; i<this.listOfConvos.length; i++) {
             let convo = this.listOfConvos[i];
             if(convo[1]===noteReplyInfo[2] && convo[5].length==0) {

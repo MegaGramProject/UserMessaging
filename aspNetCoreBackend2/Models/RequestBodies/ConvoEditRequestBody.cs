@@ -10,4 +10,5 @@ public class ConvoEditRequestBody
         public string isMuted { get; set; }
         public string hasUnreadMessage { get; set; }
         public string isRequested { get; set; }
+        public string isDeleted { get; set; }
     }

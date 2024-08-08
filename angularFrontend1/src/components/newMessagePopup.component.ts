@@ -20,6 +20,7 @@ export class NewMessagePopup {
     @Output() notifyParentToStartMessagingSelectedUsers: EventEmitter<string[][]> = new EventEmitter();
     @Input() isForwarding!:boolean;
     @Input() messageToForward!:string;
+    @Input() convoMemberOfForwardedMessage!:string[][];
     @Input() convoMembersOfForwardedMessage!:string[][];
     @Output() notifyParentToForwardMessageToSelectedUsers: EventEmitter<any[]> = new EventEmitter();
     @Output() notifyParentToForwardFileToSelectedUsers: EventEmitter<any[]> = new EventEmitter();
@@ -73,10 +74,19 @@ export class NewMessagePopup {
         }
         else if(this.isForwarding) {
             if(this.fileToForward.length==0) {
-                this.notifyParentToForwardMessageToSelectedUsers.emit([this.messageToForward, this.usersSelected, this.convoMembersOfForwardedMessage]);
+                if(this.convoMemberOfForwardedMessage[0].length!==0) {
+                    this.notifyParentToForwardMessageToSelectedUsers.emit([this.messageToForward, this.usersSelected,
+                    this.convoMemberOfForwardedMessage]);
+                }
+                else {
+                    this.notifyParentToForwardMessageToSelectedUsers.emit([this.messageToForward, this.usersSelected,
+                    this.convoMembersOfForwardedMessage]);
+                }
             }
             else {
-                this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected, this.convoMembersOfForwardedMessage]);
+                //make consistent with above logic
+                this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected,
+                this.convoMemberOfForwardedMessage.length>0 ? this.convoMemberOfForwardedMessage : this.convoMembersOfForwardedMessage]);
             }
         
         }

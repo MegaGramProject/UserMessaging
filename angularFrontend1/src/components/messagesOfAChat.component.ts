@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, Output, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { v4 as uuidv4 } from 'uuid';
 
 
 @Component({
@@ -14,22 +15,16 @@ export class MessagesOfAChat {
 
 
     messages: Array<Array<Object>> = [
-     //   ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0), ""],
-     //   ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30), ""],
-    //    ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0), ""],
-    //    ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0), ""],
+     //   ["rishavry", "Hey man, how's it going?", new Date(2024, 4, 15, 10, 30, 0)],
+     //   ["rishavry2", "Good man, what about you", new Date(2024, 4, 15, 10, 30, 30)],
+    //    ["rishavry2", "Really dude? Start it and then have me double text?", new Date(2024, 4, 15, 11, 50, 0)],
+    //    ["rishavry", "Well I was actually hoping you'd triple text but it turns out you have more self-respect than that lol", new Date(2024, 4, 15, 11, 51, 0)],
     ];
 
-    replies: Array<number> = [
-     //   -1,
-    //    -1,
-    //    -1,
-    //    -1,
-    ];
     reactions: Array<Array<string>> = [
     //    ["❤️"],
     //    [],
-//        [],
+    //        [],
      //   ["😭", "🖕"]
     ];
     reactionUsernames: Array<Array<string>> = [
@@ -115,7 +110,7 @@ export class MessagesOfAChat {
     @Input() convoId!:any;
 
     ngOnInit() {
-        this.emitDataToParent.emit([this.messages, this.replies, this.reactions, this.reactionUsernames, this.messageFiles,
+        this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
         this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames, [this.myScrollContainer, this.cdRef]]);
         if(!this.isRequestingConvoWithRecipient) {
             this.textareaPlaceholder = "Message...";
@@ -212,10 +207,46 @@ export class MessagesOfAChat {
     }
     }
 
-    sendMessage() {
-        this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), ""]);
+    async sendMessage() {
+        const newMessageId = uuidv4();
+        if(this.messageIndexToReplyTo!==-1) {
+            this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + this.messages[this.messageIndexToReplyTo][0], this.messages[this.messageIndexToReplyTo][1], this.messageToSend, newMessageId], new Date()]);
+            const responseForSendingReplyMessage = await fetch('http://localhost:8012/addMessage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    messageId: newMessageId,
+                    convoId: this.convoId,
+                    message: JSON.stringify(["Reply", this.messages[this.messageIndexToReplyTo][0], this.messages[this.messageIndexToReplyTo][1], this.messageToSend]),
+                    sender: this.authenticatedUsername,
+                    messageSentAt: new Date()
+                    
+                })
+            });
+            
+            if(!responseForSendingReplyMessage.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+        else {
+            this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
+            const responseForSendingRegularMessage = await fetch('http://localhost:8012/addMessage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    messageId: newMessageId,
+                    convoId: this.convoId,
+                    message: JSON.stringify(["Regular-Message", this.messageToSend]),
+                    sender: this.authenticatedUsername,
+                    messageSentAt: new Date()
+                })
+            });
+            
+            if(!responseForSendingRegularMessage.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
         this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], "You: " + this.messageToSend + " • 1m" ]);
-        this.replies.push(this.messageIndexToReplyTo);
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -245,10 +276,25 @@ export class MessagesOfAChat {
         this.scrollToBottom();
     }
 
-    sendHeart() {
-        this.messages.push([this.authenticatedUsername, "❤️", new Date(), ""]);
+    async sendHeart() {
+        const newMessageId = uuidv4();
+        this.messages.push([this.authenticatedUsername, "❤️", new Date(), newMessageId]);
+        const responseForSendingHeart = await fetch('http://localhost:8012/addMessage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    messageId: newMessageId,
+                    convoId: this.convoId,
+                    message: JSON.stringify(["Regular-Message", "❤️"]),
+                    sender: this.authenticatedUsername,
+                    messageSentAt: new Date()
+                })
+            });
+            
+        if(!responseForSendingHeart.ok) {
+            throw new Error('Network response not ok');
+        }
         this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], "You: ❤️ • 1m"]);
-        this.replies.push(this.messageIndexToReplyTo);
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -321,6 +367,7 @@ export class MessagesOfAChat {
         }
         this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + this.messages[index][1]
         this.messageIndexToReplyTo = index;
+        console.log(this.messageIndexToReplyTo);
     }
 
     replyToFile(messageIndex: number, fileImageIndex: number) {
@@ -414,7 +461,7 @@ export class MessagesOfAChat {
     }
     
 
-    deleteMessage(index: number) {
+    async deleteMessage(index: number) {
         if(index==this.messages.length-1){
             if(this.messages.length==1) {
                 this.notifyParentToDeleteConvo.emit(this.messageRecipientInfo[0]);
@@ -431,8 +478,29 @@ export class MessagesOfAChat {
                 }
             }
         }
+        let messageId:string = "";
+
+        if (Array.isArray(this.messages[index][1])) {
+            if((<string[]>this.messages[index][1])[0]==='Reply') {
+                messageId = (<string[]>this.messages[index][1])[4];
+            }
+            else {
+                messageId = (<string[]>this.messages[index][1])[3];
+            }
+        }
+        else {
+            messageId = <string>this.messages[index][3];
+        }
+
+        const response = await fetch('http://localhost:8012/deleteMessage/'+messageId, {
+            method: 'DELETE'
+        });
+
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        
         this.messages.splice(index, 1);
-        this.replies.splice(index, 1);
         this.reactions.splice(index, 1);
         this.reactionUsernames.splice(index, 1);
         this.messageFiles.slice(index, 1);
@@ -602,7 +670,6 @@ export class MessagesOfAChat {
         //code for starting audio call
         let currentDateTime = new Date();
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Started"], currentDateTime]);
-        this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -614,7 +681,6 @@ export class MessagesOfAChat {
         let newDateTime = new Date();
         newDateTime.setHours(currentDateTime.getHours() + 2);
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Ended"], newDateTime]);
-        this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -631,7 +697,6 @@ export class MessagesOfAChat {
          //code for starting video call
         let currentDateTime = new Date();
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Started"], currentDateTime]);
-        this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -643,7 +708,6 @@ export class MessagesOfAChat {
         let newDateTime = new Date();
         newDateTime.setHours(currentDateTime.getHours() + 2);
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Ended"], newDateTime]);
-        this.replies.push(-1);
         this.fileReplies.push([-1, -1]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -706,7 +770,6 @@ export class MessagesOfAChat {
             if(this.convoTitleBeforeEditing!==this.convoTitle) {
                 this.notifyParentToUpdateConvoTitle.emit(this.convoTitle);
                 this.messages.push([this.authenticatedUsername, ["Convo-Title", this.convoTitleBeforeEditing + " to " + this.convoTitle], new Date()]);
-                this.replies.push(-1);
                 this.fileReplies.push([-1, -1]);
                 this.reactions.push([]);
                 this.reactionUsernames.push([]);

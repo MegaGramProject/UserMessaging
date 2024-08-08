@@ -62,7 +62,7 @@
     (notifyParentToStartMessagingSelectedUsers)="startMessagingSelectedUsers($event)"
     [isForwarding]="isForwarding" [messageToForward]="messageToForward"
     (notifyParentToForwardMessageToSelectedUsers)="forwardMessageToSelectedUsers($event)"
-    [convoMembersOfForwardedMessage]="[messageRecipientInfo]" [fileToForward]="fileToForward"
+    [convoMemberOfForwardedMessage]="[messageRecipientInfo]" [convoMembersOfForwardedMessage]="groupMessageRecipientsInfo" [fileToForward]="fileToForward"
     (notifyParentToForwardFileToSelectedUsers)="forwardFileToSelectedUsers($event)"
     [isAddingNewMembers]="isAddingNewMembers" (notifyParentToAddNewMemberToConvo)="addNewMemberToConvo($event)"></NewMessagePopup>
     
