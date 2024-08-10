@@ -8,7 +8,7 @@ public class Convo
     [Key]
     public Guid convoId {get; set; }
     public string convoTitle { get; set; }
-    public string latestMessageId { get; set; }
+    public string latestMessage { get; set; }
     public string isRequested { get; set; }
     public string promotedUsers { get; set; }
     public string members { get; set; }

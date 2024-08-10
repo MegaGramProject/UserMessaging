@@ -76,7 +76,7 @@ export class MessagesOfAChat {
     currentlyShownOptionsPanel:number = -1;
     @Output() notifyParentToShowMessageReactions: EventEmitter<Array<Array<string>>> = new EventEmitter();
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
-    @Output() notifyParentToUpdateLatestMessageInConvo: EventEmitter<Array<string>> = new EventEmitter();
+    @Output() notifyParentToUpdateLatestMessageInConvo: EventEmitter<string> = new EventEmitter();
     @Output() notifyParentToDeleteConvo: EventEmitter<string> = new EventEmitter();
     audioContext: AudioContext | null = null;
     sourceNode: MediaStreamAudioSourceNode | null = null;
@@ -108,6 +108,8 @@ export class MessagesOfAChat {
     @Input() blockedUsernames!:string[];
     @Input() promotedUsernames!:string[];
     @Input() convoId!:any;
+    @Input() hasConvoBeenAdded!: boolean;
+    @Output() notifyParentToAddConvoToDatabase: EventEmitter<string> = new EventEmitter();
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -184,16 +186,21 @@ export class MessagesOfAChat {
 
 
     ngOnChanges(changes: SimpleChanges) {
-        if (changes['messageRecipientInfo']) {
-            this.scrollToBottom();
+        if (changes['messageRecipientInfo'] && changes['messageRecipientInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
             if(!this.isRequestingConvoWithRecipient) {
                 this.textareaPlaceholder = "Message...";
             }
-            else if(this.messageRecipientInfo.length>0) {
+            else {
                 this.textareaPlaceholder = "You have " + (3-this.messages.length) + " messages before " + this.messageRecipientInfo[0] + " decides to accept messaging you";
             }
-            else if(this.groupMessageRecipientsInfo.length>0) {
+        }
+        else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
+            this.messageIndexToReplyTo = -1;
+            if(!this.isRequestingConvoWithRecipient) {
+                this.textareaPlaceholder = "Message...";
+            }
+            else {
                 this.textareaPlaceholder = "You have " + (3-this.messages.length) + " messages before " + this.getFullNamesOfAllConvoMembers() + " decide to accept messaging you";
             }
         }
@@ -208,16 +215,32 @@ export class MessagesOfAChat {
     }
 
     async sendMessage() {
+        if(!this.hasConvoBeenAdded) {
+            this.notifyParentToAddConvoToDatabase.emit("You: " + this.messageToSend + " • 1m");
+        }
         const newMessageId = uuidv4();
         if(this.messageIndexToReplyTo!==-1) {
-            this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + this.messages[this.messageIndexToReplyTo][0], this.messages[this.messageIndexToReplyTo][1], this.messageToSend, newMessageId], new Date()]);
+            let message:string[] = [];
+            if(this.messages[this.messageIndexToReplyTo].length>3) {
+                message = ["Reply", <string>this.messages[this.messageIndexToReplyTo][0], <string>this.messages[this.messageIndexToReplyTo][1], this.messageToSend];
+                this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + <string>this.messages[this.messageIndexToReplyTo][0], <string>this.messages[this.messageIndexToReplyTo][1], this.messageToSend], new Date()]);
+            }
+            else if(this.isMessageReply(this.messageIndexToReplyTo)) {
+                message = ["Reply", <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[3], this.messageToSend];
+                this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[3], this.messageToSend], new Date()]);
+            }
+            else if(this.isForwardedMessage(this.messageIndexToReplyTo)) {
+                message = ["Reply", <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[2], this.messageToSend];
+                this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[2], this.messageToSend], new Date()]);
+            }
+
             const responseForSendingReplyMessage = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     messageId: newMessageId,
                     convoId: this.convoId,
-                    message: JSON.stringify(["Reply", this.messages[this.messageIndexToReplyTo][0], this.messages[this.messageIndexToReplyTo][1], this.messageToSend]),
+                    message: JSON.stringify(message),
                     sender: this.authenticatedUsername,
                     messageSentAt: new Date()
                     
@@ -246,7 +269,7 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
         }
-        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], "You: " + this.messageToSend + " • 1m" ]);
+        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + this.messageToSend + " • 1m");
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -277,6 +300,9 @@ export class MessagesOfAChat {
     }
 
     async sendHeart() {
+        if(!this.hasConvoBeenAdded) {
+            this.notifyParentToAddConvoToDatabase.emit("add the selected convo");
+        }
         const newMessageId = uuidv4();
         this.messages.push([this.authenticatedUsername, "❤️", new Date(), newMessageId]);
         const responseForSendingHeart = await fetch('http://localhost:8012/addMessage', {
@@ -294,7 +320,7 @@ export class MessagesOfAChat {
         if(!responseForSendingHeart.ok) {
             throw new Error('Network response not ok');
         }
-        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], "You: ❤️ • 1m"]);
+        this.notifyParentToUpdateLatestMessageInConvo.emit("You: ❤️ • 1m");
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -365,9 +391,16 @@ export class MessagesOfAChat {
             }
             return;
         }
-        this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + this.messages[index][1]
+        if(this.messages[index].length>3) {
+            this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + this.messages[index][1];
+        }
+        else if(this.isMessageReply(index)) {
+            this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + (<string[]>this.messages[index][1])[3];
+        }
+        else if(this.isForwardedMessage(index)) {
+            this.textareaPlaceholder = "Replying to " + this.messages[index][0] + ": " + (<string[]>this.messages[index][1])[2];
+        }
         this.messageIndexToReplyTo = index;
-        console.log(this.messageIndexToReplyTo);
     }
 
     replyToFile(messageIndex: number, fileImageIndex: number) {
@@ -469,12 +502,32 @@ export class MessagesOfAChat {
             }
             else {
                 if(this.messages[index-1][0]===this.authenticatedUsername) {
-                    this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], "You: " + this.messages[index-1][1] + " • "
-                    + this.formatTimeSinceSent(this.messages[index-1][2]) ]);
+                    if(this.messages[index-1].length>3) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + this.messages[index-1][1] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
+                    else if(this.isMessageReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + (<string[]>this.messages[index-1][1])[3] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
+                    else if(this.isForwardedMessage(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + (<string[]>this.messages[index-1][1])[2] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
                 }
                 else {
-                    this.notifyParentToUpdateLatestMessageInConvo.emit([this.messageRecipientInfo[0], this.messages[index-1][1] + " • "
-                    + this.formatTimeSinceSent(this.messages[index-1][2]) ]);
+                    if(this.messages[index-1].length>3) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit(this.messages[index-1][1] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
+                    else if(this.isMessageReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit((<string[]>this.messages[index-1][1])[3] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
+                    else if(this.isForwardedMessage(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit((<string[]>this.messages[index-1][1])[2] + " • "
+                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                    }
                 }
             }
         }

@@ -10,7 +10,7 @@
     (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
     (notifyParentToSendNoteReply)="sendNoteReply($event)"></NotesAndConvosSection>
     
-    <MessagesOfAChat *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
+    <MessagesOfAChat [hasConvoBeenAdded]="hasSelectedConvoBeenAdded" *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
     (notifyParentToUpdateLatestMessageInConvo)="updateLatestMessageInConvo($event)"
     (notifyParentToDeleteConvo)="deleteConvo($event)" [messagesOfAChatIsExpanded]="messagesOfAChatIsExpanded"
@@ -21,7 +21,8 @@
     [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
     [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
-    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames" [convoId]="selectedConvoId"></MessagesOfAChat>
+    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
+    [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
     [listOfNotes1]="listOfNotes1"></CreateNewNote>
@@ -54,7 +55,8 @@
     (notifyParentToToggleConvoDetailsPanel)="toggleRequestedConvoDetails()"
     (notifyParentToDeleteRequestedConvo)="deleteRequestedConvo()" [authenticatedUsername]="authenticatedUsername"
     (notifyParentToAcceptRequestedConvo)="acceptRequestedConvo()" [ngStyle]="messageRequestsDynamicStyle()"
-    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo" [convoTitle]="selectedConvoTitle"></RequestedMessagesOfAChat>
+    [groupMessageRecipientsInfo]="groupMessageRecipientsInfo" [convoTitle]="selectedConvoTitle"
+    (emitDataToParent)="receiveRequestedMessageData($event)"></RequestedMessagesOfAChat>
     
 </div>
     

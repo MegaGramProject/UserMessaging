@@ -21,9 +21,12 @@ export class RequestedMessagesOfAChat {
      //   ["It's your old friend", new Date(2024, 4, 15, 10, 30, 30), ""],
      //   ["Oh come on, just accept me already! i am just a frustrated hackeasmdsajdnsajdnjasndajsdnsajdajsndjasdasdjsandjasndjasddasjdnjasdnajsdasjdnasjdnajsdas akdxmnasdxas", new Date(2024, 4, 16, 12, 30, 30), "santaclaus"],
     ];
+
     currentlyHoveredSentMessageAndFileIndices: Array<number> = [-1, -1];
     currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];
     @Output() notifyParentToAcceptRequestedConvo:EventEmitter<string> = new EventEmitter();
+    @Output() emitDataToParent: EventEmitter<any[][]> = new EventEmitter();
+
     blob = new Blob(['Hello, world!'], { type: 'text/plain' });
 
     file = new File([this.blob], 'hello.txt', { type: 'text/plain' });
@@ -36,11 +39,6 @@ export class RequestedMessagesOfAChat {
 
     file3 = new File([this.blob3], 'hello3.txt', { type: 'text/plain' });
 
-    replies: Array<number> = [
-    //    -1,
-    //    0,
-    //    -1
-    ];
     reactions: Array<Array<string>> = [
     //    ["❤️"],
     //    [],
@@ -67,8 +65,25 @@ export class RequestedMessagesOfAChat {
     //    [-1, -1],
    //     [-1, -1]
     ];
+    messageFileReactions: Array<Array<any>> = [
+        //    [],
+        //    [],
+       //     [],
+       //     []
+    ];
+    messageFileReactionUsernames: Array<Array<any>> = [
+    //    [],
+    //   [],
+    //    [],
+    //     []
+    ];
     @Input() groupMessageRecipientsInfo: string[][] = [];
     @Input() convoTitle:string = "";
+
+    ngOnInit() {
+        this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
+        this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames]);
+    }
     
 
     getWidthAndHorizontalStartOfSection() {
@@ -165,6 +180,34 @@ export class RequestedMessagesOfAChat {
         fullNames += ", & " +  this.groupMessageRecipientsInfo[this.groupMessageRecipientsInfo.length-1][1];
         
         return fullNames;
+    }
+
+    isMessageReply(messageIndex: number) {
+        return this.messages[messageIndex].length==3 && (<string[]>this.messages[messageIndex][1])[0]==='Reply';
+    }
+
+    getMessageRepliedToText(messageIndex: number) {
+        return (<string[]>this.messages[messageIndex][1])[1];
+    }
+
+    getOriginalReplyMessage(messageIndex: number) {
+        return (<string[]>this.messages[messageIndex][1])[2];
+    }
+
+    getMessageReply(messageIndex: number) {
+        return (<string[]>this.messages[messageIndex][1])[3];
+    }
+
+    isForwardedMessage(messageIndex: number) {
+        return this.messages[messageIndex].length==3 && (<string[]>this.messages[messageIndex][1])[0]==='Forward';
+    }
+
+    getForwardedAMessageInConvoWithText(messageIndex: number) {
+        return (<string[]>this.messages[messageIndex][1])[1];
+    }
+
+    getForwardedMessage(messageIndex: number) {
+        return (<string[]>this.messages[messageIndex][1])[2];
     }
 
 }

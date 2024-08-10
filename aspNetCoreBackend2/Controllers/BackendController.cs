@@ -164,7 +164,7 @@ public class BackendController : ControllerBase
             convo.convoTitle = editedConvo.convoTitle;
             convo.members = editedConvo.members;
             convo.convoInitiator = editedConvo.convoInitiator;
-            convo.latestMessageId = editedConvo.latestMessageId;
+            convo.latestMessage = editedConvo.latestMessage;
             convo.promotedUsers = editedConvo.promotedUsers;
             convo.isMuted = editedConvo.isMuted;
             convo.hasUnreadMessage = editedConvo.hasUnreadMessage;

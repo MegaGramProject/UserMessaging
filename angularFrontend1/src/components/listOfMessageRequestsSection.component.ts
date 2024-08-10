@@ -29,6 +29,8 @@ export class ListOfMessageRequestsSection {
             const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
             const fetchedRequestedConvosOfUser = response.data;
             for(let convo of fetchedRequestedConvosOfUser) {
+                convo['latestMessage'] = JSON.parse(convo['latestMessage']);
+                convo['latestMessage'][1]+= "Z";
                 convo['promotedUsers'] = JSON.parse(convo['promotedUsers']);
                 convo['convoInitiator'] = JSON.parse(convo['convoInitiator']);
                 convo['members'] = JSON.parse(convo['members']);
@@ -41,23 +43,24 @@ export class ListOfMessageRequestsSection {
                         if(convo['isRequested'][i]==1) {
                             if(convo['members'].length==2) {
                                 if(convo['members'][0][0]!=='rishavry') {
-                                    this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][0][0], convo['members'][0][1],
+                                    this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
                                     ]);
                                 }
                                 else {
-                                    this.listOfRequestedConvos.push([convo['latestMessageId'], convo['members'][1][0], convo['members'][1][1],
+                                    this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
                                     ]);
                                 }
                             }
                             else {
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
-                                this.listOfRequestedConvos.push([convo['latestMessageId'], convo['convoInitiator'][0], convo['convoInitiator'][1],
+                                this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted']])
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
+                                ]);
                             }
                             break;
                         }
@@ -67,6 +70,12 @@ export class ListOfMessageRequestsSection {
                     }
                 }
             }
+            this.listOfRequestedConvos = this.listOfRequestedConvos.sort((a, b) => {
+                const dateA = a[15].getTime();
+                const dateB = b[15].getTime();
+    
+                return dateB - dateA;
+            });
             this.emitListOfRequestedConvosToParent.emit(this.listOfRequestedConvos);
         } catch (error) {
             console.error('Error fetching conversations:', error);
@@ -122,6 +131,38 @@ export class ListOfMessageRequestsSection {
 
     showMessagesOfThisRequestedGroupConvo(groupMessagesRecipientInfo: string[][]) {
         this.notifyParentToShowMessagesOfThisRequestedGroupConvo.emit(groupMessagesRecipientInfo);
+    }
+
+    formatTimeSinceSent(date: any): string {
+        const now = new Date();
+        const seconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+    
+        let interval = seconds / 31536000;
+        
+        if (interval > 1) {
+            return Math.floor(interval) + 'y';
+        }
+        interval = seconds / 2592000;
+        if (interval > 1) {
+            return Math.floor(interval) + 'mo';
+        }
+        interval = seconds / 604800;
+        if (interval > 1) {
+            return Math.floor(interval) + 'w';
+        }
+        interval = seconds / 86400;
+        if (interval > 1) {
+            return Math.floor(interval) + 'd';
+        }
+        interval = seconds / 3600;
+        if (interval > 1) {
+            return Math.floor(interval) + 'h';
+        }
+        interval = seconds / 60;
+        if (interval > 1) {
+            return Math.floor(interval) + 'm';
+        }
+        return Math.floor(seconds) + 's';
     }
 
 

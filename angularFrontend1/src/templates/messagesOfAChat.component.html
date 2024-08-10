@@ -128,9 +128,32 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                         <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                     </div>
-                    <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]===authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
-                    cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
-                    <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                    <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
+                    cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
+                    <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                    z-index: 10;">
+                        <p style="color:gray">Most Popular</p>
+                        <p style="letter-spacing: 1em; font-size:1.4em">
+                            <span (click)="addReaction(i, '😀')" style="cursor:pointer;">😀</span>
+                            <span (click)="addReaction(i, '😂')" style="cursor:pointer;">😂</span>
+                            <span (click)="addReaction(i, '😁')" style="cursor:pointer;">😁</span>
+                            <span (click)="addReaction(i, '😍')" style="cursor:pointer;">😍</span>
+                            <span (click)="addReaction(i, '🤩')" style="cursor:pointer;">🤩</span>
+                            <span (click)="addReaction(i, '😡')" style="cursor:pointer;">😡</span>
+                            <span (click)="addReaction(i, '🙄')" style="cursor:pointer;">🙄</span>
+                            <span (click)="addReaction(i, '😭')" style="cursor:pointer;">😭</span>
+                            <span (click)="addReaction(i, '😱')" style="cursor:pointer;">😱</span>
+                            <span (click)="addReaction(i, '🤡')" style="cursor:pointer;">🤡</span>
+                            <span (click)="addReaction(i, '🖕')" style="cursor:pointer;">🖕</span>
+                            <span (click)="addReaction(i, '🙌')" style="cursor:pointer;">🙌</span>
+                            <span (click)="addReaction(i, '🫠')" style="cursor:pointer;">🫠</span>
+                            <span (click)="addReaction(i, '💯')" style="cursor:pointer;">💯</span>
+                            <span (click)="addReaction(i, '🌹')" style="cursor:pointer;">🌹</span>
+                            <span (click)="addReaction(i, '😏')" style="cursor:pointer;">😏</span>
+                        </p>
+                    </div>
+
+                    <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
                     z-index: 10;">
                         <p style="color:gray">Most Popular</p>
                         <p style="letter-spacing: 1em; font-size:1.4em">
@@ -153,7 +176,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         </p>
                     </div>
         
-                    <div *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+                    <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
                     top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
                     display: flex; flex-direction: column; z-index: 10;">
         
@@ -180,6 +203,31 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                             <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
+                    </div>
+
+                    <div *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:50%;
+                    top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
+                    display: flex; flex-direction: column; z-index: 10;">
+
+                        <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                        border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                            <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                        </div>
+
+                        <p style="text-align: center; cursor: pointer; color: darkblue; font-size: 0.9em;">{{message[0]}}</p>
+
+                        <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                        align-items: center; justify-content: space-between;">
+                            <p style="font-size: 0.9em;">Forward</p>
+                            <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                        </div>
+
+                        <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                        align-items: center; justify-content: space-between;">
+                            <p style="font-size: 0.9em;">Copy</p>
+                            <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                        </div>
+
                     </div>
         
                 </div>
@@ -217,8 +265,8 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                                 <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                             </div>
-                            <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]===authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
-                            cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
+                            <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
+                            cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
                             <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
                             z-index: 10;">
                                 <p style="color:gray">Most Popular</p>
@@ -241,6 +289,29 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                     <span (click)="addReaction(i, '😏')" style="cursor:pointer;">😏</span>
                                 </p>
                             </div>
+
+                            <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
+                    z-index: 10;">
+                        <p style="color:gray">Most Popular</p>
+                        <p style="letter-spacing: 1em; font-size:1.4em">
+                            <span (click)="addReaction(i, '😀')" style="cursor:pointer;">😀</span>
+                            <span (click)="addReaction(i, '😂')" style="cursor:pointer;">😂</span>
+                            <span (click)="addReaction(i, '😁')" style="cursor:pointer;">😁</span>
+                            <span (click)="addReaction(i, '😍')" style="cursor:pointer;">😍</span>
+                            <span (click)="addReaction(i, '🤩')" style="cursor:pointer;">🤩</span>
+                            <span (click)="addReaction(i, '😡')" style="cursor:pointer;">😡</span>
+                            <span (click)="addReaction(i, '🙄')" style="cursor:pointer;">🙄</span>
+                            <span (click)="addReaction(i, '😭')" style="cursor:pointer;">😭</span>
+                            <span (click)="addReaction(i, '😱')" style="cursor:pointer;">😱</span>
+                            <span (click)="addReaction(i, '🤡')" style="cursor:pointer;">🤡</span>
+                            <span (click)="addReaction(i, '🖕')" style="cursor:pointer;">🖕</span>
+                            <span (click)="addReaction(i, '🙌')" style="cursor:pointer;">🙌</span>
+                            <span (click)="addReaction(i, '🫠')" style="cursor:pointer;">🫠</span>
+                            <span (click)="addReaction(i, '💯')" style="cursor:pointer;">💯</span>
+                            <span (click)="addReaction(i, '🌹')" style="cursor:pointer;">🌹</span>
+                            <span (click)="addReaction(i, '😏')" style="cursor:pointer;">😏</span>
+                        </p>
+                    </div>
                 
                             <div *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
                             top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
@@ -269,6 +340,31 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                     <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
                 
+                            </div>
+
+                            <div *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:50%;
+                            top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
+                            display: flex; flex-direction: column; z-index: 10;">
+
+                                <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                                border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                                    <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                                </div>
+
+                                <p style="text-align: center; cursor: pointer; color: darkblue; font-size: 0.9em;">{{message[0]}}</p>
+
+                                <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                                align-items: center; justify-content: space-between;">
+                                    <p style="font-size: 0.9em;">Forward</p>
+                                    <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                </div>
+
+                                <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                                align-items: center; justify-content: space-between;">
+                                    <p style="font-size: 0.9em;">Copy</p>
+                                    <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                </div>
+
                             </div>
                 
                         </div>
@@ -424,7 +520,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 {{ message[1] }}
             </p>
             <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]===authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
-            cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
+            cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
             <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
             z-index: 10;">
                 <p style="color:gray">Most Popular</p>
@@ -500,7 +596,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </div>
             
             <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]!==authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
-            cursor: pointer; background-color: #ebebeb;">{{reactions[i][0]}}</p>
+            cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
             <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute;
             left:50%; top:120%; background-color: white; z-index: 10;">
                 <p style="color:gray">Most Popular</p>
@@ -555,6 +651,11 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
         </div>
     </div>
+    </div>
+
+    <div (click)="scrollToBottom()" *ngIf="myScrollContainer?.nativeElement && myScrollContainer.nativeElement.scrollTop + myScrollContainer.nativeElement.clientHeight < myScrollContainer.nativeElement.scrollHeight"
+    style="height: 4em; width: 4em; position: relative; top: 86%; width: 100%;">
+    <img src="scrollDownArrow.png" style="height: 2.5em; width: 2.5em; border-radius: 1.3em; object-fit: contain; cursor: pointer; position: absolute; left: 50%;">
     </div>
 
     <div style="position: absolute;  top:92%; left:1.5%; width: 100%;">
