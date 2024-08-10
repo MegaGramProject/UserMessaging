@@ -76,7 +76,7 @@ export class MessagesOfAChat {
     currentlyShownOptionsPanel:number = -1;
     @Output() notifyParentToShowMessageReactions: EventEmitter<Array<Array<string>>> = new EventEmitter();
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
-    @Output() notifyParentToUpdateLatestMessageInConvo: EventEmitter<string> = new EventEmitter();
+    @Output() notifyParentToUpdateLatestMessageInConvo: EventEmitter<any[]> = new EventEmitter();
     @Output() notifyParentToDeleteConvo: EventEmitter<string> = new EventEmitter();
     audioContext: AudioContext | null = null;
     sourceNode: MediaStreamAudioSourceNode | null = null;
@@ -109,7 +109,7 @@ export class MessagesOfAChat {
     @Input() promotedUsernames!:string[];
     @Input() convoId!:any;
     @Input() hasConvoBeenAdded!: boolean;
-    @Output() notifyParentToAddConvoToDatabase: EventEmitter<string> = new EventEmitter();
+    @Output() notifyParentToAddConvoToDatabase: EventEmitter<any[]> = new EventEmitter();
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -216,7 +216,10 @@ export class MessagesOfAChat {
 
     async sendMessage() {
         if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit("You: " + this.messageToSend + " • 1m");
+            this.notifyParentToAddConvoToDatabase.emit(["You: " + this.messageToSend, new Date()]);
+        }
+        else {
+            this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messageToSend, new Date()]);
         }
         const newMessageId = uuidv4();
         if(this.messageIndexToReplyTo!==-1) {
@@ -252,7 +255,6 @@ export class MessagesOfAChat {
             }
         }
         else {
-            this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
             const responseForSendingRegularMessage = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -269,7 +271,7 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
         }
-        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + this.messageToSend + " • 1m");
+        this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -301,7 +303,10 @@ export class MessagesOfAChat {
 
     async sendHeart() {
         if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit("add the selected convo");
+            this.notifyParentToAddConvoToDatabase.emit(["You: ❤️", new Date()]);
+        }
+        else {
+            this.notifyParentToUpdateLatestMessageInConvo.emit(["You: ❤️", new Date()]);
         }
         const newMessageId = uuidv4();
         this.messages.push([this.authenticatedUsername, "❤️", new Date(), newMessageId]);
@@ -320,7 +325,6 @@ export class MessagesOfAChat {
         if(!responseForSendingHeart.ok) {
             throw new Error('Network response not ok');
         }
-        this.notifyParentToUpdateLatestMessageInConvo.emit("You: ❤️ • 1m");
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -503,30 +507,24 @@ export class MessagesOfAChat {
             else {
                 if(this.messages[index-1][0]===this.authenticatedUsername) {
                     if(this.messages[index-1].length>3) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + this.messages[index-1][1] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messages[index-1][1], this.messages[index-1][2]]);
                     }
                     else if(this.isMessageReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + (<string[]>this.messages[index-1][1])[3] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + (<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
                     }
                     else if(this.isForwardedMessage(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit("You: " + (<string[]>this.messages[index-1][1])[2] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + (<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
                     }
                 }
                 else {
                     if(this.messages[index-1].length>3) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit(this.messages[index-1][1] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][1], this.messages[index-1][2]]);
                     }
                     else if(this.isMessageReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit((<string[]>this.messages[index-1][1])[3] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([(<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
                     }
                     else if(this.isForwardedMessage(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit((<string[]>this.messages[index-1][1])[2] + " • "
-                        + this.formatTimeSinceSent(this.messages[index-1][2]));
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([(<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
                     }
                 }
             }

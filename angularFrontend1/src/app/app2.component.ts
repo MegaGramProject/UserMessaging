@@ -258,11 +258,12 @@ import { Note } from '../note.model';
         return arr.reduce((acc, val) => acc.concat(val), []).sort();
     }
 
-    groupConvoIsNew(groupMessageMembers: string[][]) {
+    groupConvoIsNotFoundInRequestedConvos(groupMessageMembers: string[][]) {
         const flattenedAndSortedMembers = this.flattenAndSort(groupMessageMembers);
         let twoConvosAreEqual;
         let convoInListOfConvos;
-        for(let convo of this.listOfConvos) {
+        for(let i=0; i<this.listOfRequestedConvos.length; i++) {
+            let convo = this.listOfRequestedConvos[i];
             twoConvosAreEqual = true;
             if(convo[1]!==this.authenticatedUsername) {
                 convoInListOfConvos = this.flattenAndSort([convo[1], convo[2],  this.flattenAndSort(convo[5])]);
@@ -272,18 +273,49 @@ import { Note } from '../note.model';
             }
             if(convoInListOfConvos.length!==flattenedAndSortedMembers.length) {
                 twoConvosAreEqual = false;
-                break;
             }
             else {
-                for(let i=0; i< flattenedAndSortedMembers.length; i++) {
-                    if(flattenedAndSortedMembers[i]!==convoInListOfConvos[i]) {
+                for(let j=0; j < flattenedAndSortedMembers.length; j++) {
+                    if(flattenedAndSortedMembers[j]!==convoInListOfConvos[j]) {
                         twoConvosAreEqual = false;
                         break;
                     }
                 }
             }
             if(twoConvosAreEqual) {
-                return false;
+                return i;
+            }
+            
+        }
+        return true;
+    }
+
+    groupConvoIsNew(groupMessageMembers: string[][]) {
+        const flattenedAndSortedMembers = this.flattenAndSort(groupMessageMembers);
+        let twoConvosAreEqual;
+        let convoInListOfConvos;
+        for(let i=0; i<this.listOfConvos.length; i++) {
+            let convo = this.listOfConvos[i];
+            twoConvosAreEqual = true;
+            if(convo[1]!==this.authenticatedUsername) {
+                convoInListOfConvos = this.flattenAndSort([convo[1], convo[2],  this.flattenAndSort(convo[5])]);
+            }
+            else {
+                convoInListOfConvos = this.flattenAndSort(convo[5]);
+            }
+            if(convoInListOfConvos.length!==flattenedAndSortedMembers.length) {
+                twoConvosAreEqual = false;
+            }
+            else {
+                for(let j=0; j < flattenedAndSortedMembers.length; j++) {
+                    if(flattenedAndSortedMembers[j]!==convoInListOfConvos[j]) {
+                        twoConvosAreEqual = false;
+                        break;
+                    }
+                }
+            }
+            if(twoConvosAreEqual) {
+                return i;
             }
             
         }
@@ -323,7 +355,7 @@ import { Note } from '../note.model';
 
                 for(let i=0; i<this.listOfConvos.length; i++) {
                     let convo = this.listOfConvos[i];
-                    if(convo[1]===selectedUsers[0][0]) {
+                    if(convo[1]===selectedUsers[0][0] && convo[5].length==0) {
                         await this.updateSelectedConvo(i);
                         if(convo[13][convo[11]] == 1) {
                             convo[13][convo[11]] = 0;
@@ -334,7 +366,7 @@ import { Note } from '../note.model';
                                 convoTitle: this.selectedConvoTitle,
                                 members: JSON.stringify(this.getMembersOfSelectedConvo()),
                                 convoInitiator: JSON.stringify([convo[1], convo[2]]),
-                                latestMessageId: convo[0],
+                                latestMessage: JSON.stringify([convo[16], convo[15]]),
                                 promotedUsers: JSON.stringify(convo[7]),
                                 isMuted: JSON.stringify(convo[9]),
                                 hasUnreadMessage: JSON.stringify(convo[10]),
@@ -349,34 +381,45 @@ import { Note } from '../note.model';
                         return;
                     }
                 }
-    ;        }
+        }
         }
         else if(selectedUsers.length>1) {
-            if (this.groupConvoIsNew(selectedUsers)) {
-                const array1: number[] = [0];
-                const array2: number[] = new Array(selectedUsers.length).fill(1)
-                this.listOfConvos.push(["Message #4 • 5w", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", [], uuidv4(), new Array(selectedUsers.length+1).fill(0),
-                array1.concat(array2), 0, new Array(selectedUsers.length+1).fill(0), false]);
-    
-                await this.updateSelectedConvo(this.listOfConvos.length-1);
-
-                this.showMessagesOfThisGroupConvo(selectedUsers);
+            let x = this.groupConvoIsNew(selectedUsers);
+            if (typeof x === 'boolean') {
+                let y = this.groupConvoIsNotFoundInRequestedConvos(selectedUsers);
+                if(typeof y === 'boolean') {
+                    this.listOfConvos.push(["", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", [], uuidv4(), new Array(selectedUsers.length+1).fill(0),
+                    new Array(selectedUsers.length+1).fill(0), 0, new Array(selectedUsers.length+1).fill(0), false]);
+        
+                    await this.updateSelectedConvo(this.listOfConvos.length-1);
+                    
+                    let thisUser = [[this.authenticatedUsername, "Rishav Ray"]];
+                    this.showMessagesOfThisGroupConvo(thisUser.concat(selectedUsers));
+                }
+                else {
+                    let requestedConvo = this.listOfRequestedConvos[y];
+                    this.selectedConvo = y;
+                    this.selectedConvoTitle = requestedConvo[6];
+                    this.selectedConvoId = requestedConvo[8];
+                    this.displayListOfMessageRequestsSection = true;
+                    await this.acceptRequestedConvo();
+                    this.displayListOfMessageRequestsSection = false;
+                    this.showMessagesOfThisGroupConvo(selectedUsers);
+                    await this.updateSelectedConvo(this.listOfConvos.length-1);
+                }
             }
             else {
-                this.showMessagesOfThisGroupConvo(selectedUsers);
-                for(let i=0; i<this.listOfConvos.length; i++) {
-                    let convo = this.listOfConvos[i];
-                    if(convo[1]===selectedUsers[0][0]) {
-                        if(convo[8]!==this.selectedConvo) {
-                            await this.updateSelectedConvo(i);
-                            return;
-                        }
-                    }
+                let convo = this.listOfConvos[x];
+                let thisUser = []
+                if(convo[1]==this.authenticatedUsername) {
+                    thisUser.push([convo[1], convo[2]]);
                 }
-                
+                this.showMessagesOfThisGroupConvo(thisUser.concat(selectedUsers));
+                await this.updateSelectedConvo(x);
             }
         }
     }
+    
 
 
     receiveListOfConvos(listOfConvos: any[][]) {
@@ -395,8 +438,62 @@ import { Note } from '../note.model';
         this.requestedMessageData = requestedMessageData;
     }
 
-    updateLatestMessageInConvo(latestMessageInfo: string) {
-        this.listOfConvos[this.selectedConvo][0] = latestMessageInfo;
+    formatTimeSinceSent(date: Date): string {
+        const now = new Date();
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+        let interval = seconds / 31536000;
+        
+        if (interval > 1) {
+            return Math.floor(interval) + 'y';
+        }
+        interval = seconds / 2592000;
+        if (interval > 1) {
+            return Math.floor(interval) + 'mo';
+        }
+        interval = seconds / 604800;
+        if (interval > 1) {
+            return Math.floor(interval) + 'w';
+        }
+        interval = seconds / 86400;
+        if (interval > 1) {
+            return Math.floor(interval) + 'd';
+        }
+        interval = seconds / 3600;
+        if (interval > 1) {
+            return Math.floor(interval) + 'h';
+        }
+        interval = seconds / 60;
+        if (interval > 1) {
+            return Math.floor(interval) + 'm';
+        }
+        return Math.floor(seconds) + 's';
+    }
+
+    async updateLatestMessageInConvo(latestMessageInfo: any[]) {
+        const data = {
+            convoTitle: this.selectedConvoTitle,
+            members: JSON.stringify(this.getMembersOfSelectedConvo()),
+            convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
+            latestMessage: JSON.stringify([latestMessageInfo[0], latestMessageInfo[1]]),
+            promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
+            isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
+            hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
+            isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+        };
+        const response = await fetch("http://localhost:8012/editConvo/" + this.selectedConvoId, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        this.listOfConvos[this.selectedConvo][0] = latestMessageInfo[0] + " · " + this.formatTimeSinceSent(latestMessageInfo[1]);
+        this.listOfConvos[this.selectedConvo][16] = latestMessageInfo[0];
+        this.listOfConvos[this.selectedConvo][15] = latestMessageInfo[1];
+
     }
 
     async deleteConvo(convoRecipient: string) {
@@ -451,7 +548,7 @@ import { Note } from '../note.model';
                 convoTitle: this.selectedConvoTitle,
                 members: JSON.stringify(this.getMembersOfSelectedConvo()),
                 convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
-                latestMessageId: this.listOfConvos[this.selectedConvo][0],
+                latestMessage: JSON.stringify([this.listOfConvos[this.selectedConvo][16], this.listOfConvos[this.selectedConvo][15]]),
                 promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
                 isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
                 hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
@@ -515,7 +612,7 @@ import { Note } from '../note.model';
             convoTitle: this.selectedConvoTitle,
             members: JSON.stringify(this.getMembersOfSelectedConvo()),
             convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
-            latestMessageId: this.listOfConvos[this.selectedConvo][0],
+            latestMessage: JSON.stringify([this.listOfConvos[this.selectedConvo][16], this.listOfConvos[this.selectedConvo][15]]),
             promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
@@ -654,7 +751,7 @@ import { Note } from '../note.model';
             convoTitle: this.selectedConvoTitle,
             members: JSON.stringify(this.getMembersOfSelectedConvo()),
             convoInitiator: JSON.stringify([this.listOfRequestedConvos[this.selectedConvo][1], this.listOfRequestedConvos[this.selectedConvo][2]]),
-            latestMessageId: this.listOfRequestedConvos[this.selectedConvo][0],
+            latestMessage: JSON.stringify([this.listOfRequestedConvos[this.selectedConvo][16], this.listOfRequestedConvos[this.selectedConvo][15]]),
             promotedUsers: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][10]),
@@ -728,6 +825,7 @@ import { Note } from '../note.model';
                 this.selectedConvoId = this.listOfConvos[this.selectedConvo][8];
                 this.isSelectedConvoMuted = this.listOfConvos[this.selectedConvo][4];
                 this.hasSelectedConvoBeenAdded = this.listOfConvos[this.selectedConvo][14];
+                this.listOfConvos[this.selectedConvo][0] = this.listOfConvos[this.selectedConvo][16] + " · " + this.formatTimeSinceSent(this.listOfConvos[this.selectedConvo][15]);
                 for(let messageDataPart of this.messageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
@@ -740,6 +838,7 @@ import { Note } from '../note.model';
                 this.selectedConvoId = this.listOfRequestedConvos[this.selectedConvo][8];
                 this.isSelectedConvoMuted = this.listOfRequestedConvos[this.selectedConvo][4];
                 this.hasSelectedConvoBeenAdded = this.listOfRequestedConvos[this.selectedConvo][14];
+                this.listOfRequestedConvos[this.selectedConvo][0] = this.listOfRequestedConvos[this.selectedConvo][16] + " · " + this.formatTimeSinceSent(this.listOfRequestedConvos[this.selectedConvo][15]);
                 for(let messageDataPart of this.requestedMessageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
@@ -864,7 +963,7 @@ import { Note } from '../note.model';
             convoTitle: newConvoTitle,
             members: JSON.stringify(this.getMembersOfSelectedConvo()),
             convoInitiator: JSON.stringify([this.listOfConvos[this.selectedConvo][1], this.listOfConvos[this.selectedConvo][2]]),
-            latestMessageId: this.listOfConvos[this.selectedConvo][0],
+            latestMessage: JSON.stringify([this.listOfConvos[this.selectedConvo][16], this.listOfConvos[this.selectedConvo][15]]),
             promotedUsers: JSON.stringify(this.listOfConvos[this.selectedConvo][7]),
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
@@ -1180,7 +1279,7 @@ import { Note } from '../note.model';
         this.showMessagesOfConvo([noteReplyInfo[2], noteReplyInfo[3]]);
     }
 
-    async addConvoToDatabase(latestMessageOfConvoToAdd: string) {
+    async addConvoToDatabase(latestMessageOfConvoToAdd: any[]) {
         let convoToAdd = this.listOfConvos[this.selectedConvo];
         const response = await fetch('http://localhost:8012/addConvo', {
             method: 'POST',
@@ -1190,7 +1289,7 @@ import { Note } from '../note.model';
                 convoTitle: this.selectedConvoTitle,
                 members: JSON.stringify(this.getMembersOfSelectedConvo()),
                 convoInitiator: JSON.stringify([this.authenticatedUsername, "Rishav Ray"]),
-                latestMessageId: latestMessageOfConvoToAdd,
+                latestMessage: JSON.stringify(latestMessageOfConvoToAdd),
                 promotedUsers: JSON.stringify(convoToAdd[7]),
                 isMuted: JSON.stringify(convoToAdd[9]),
                 hasUnreadMessage: JSON.stringify(convoToAdd[10]),
@@ -1203,6 +1302,8 @@ import { Note } from '../note.model';
         }
         this.listOfConvos[this.selectedConvo][14] = true;
         this.hasSelectedConvoBeenAdded = true;
+        this.listOfConvos[this.selectedConvo][0] = latestMessageOfConvoToAdd[0] + " • 1m";
+        
     }
 
 

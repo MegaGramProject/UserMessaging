@@ -45,13 +45,13 @@ export class ListOfMessageRequestsSection {
                                 if(convo['members'][0][0]!=='rishavry') {
                                     this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
                                     ]);
                                 }
                                 else {
                                     this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
                                     ]);
                                 }
                             }
@@ -59,7 +59,7 @@ export class ListOfMessageRequestsSection {
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
                                 this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1])
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
                                 ]);
                             }
                             break;
