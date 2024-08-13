@@ -72,6 +72,23 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </div>
             </div>
 
+            <div *ngIf="isConvoTitle(i)">
+                <p style="text-align: center; color: gray; font-size: 0.8em;">{{getConvoTitleFromAndTo(i)}}</p>
+            </div>
+
+            <div *ngIf="isVideoOrAudioMessage(i)">
+                <p *ngIf="getVideoOrAudioMessage(i)==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started an audio call</p>
+                <p *ngIf="getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the audio-call</p>
+
+                <p *ngIf="getVideoOrAudioMessage(i)==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started a video chat</p>
+                <p *ngIf="getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the video chat</p>
+            </div>
+
+            <div *ngIf="isMemberAdditionOrRemoval(i)">
+                <p *ngIf="getMemberAdditionOrRemoval(i).startsWith('added')" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}} to this group</p>
+                <p *ngIf="getMemberAdditionOrRemoval(i).startsWith('removed')" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}} from this group</p>
+            </div>
+
             <div *ngIf="messageFileImages[i].length>0" style="display: flex; flex-direction: column; gap: 0.3em;">
                 <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
                     <img (click)="downloadFile([i, j])" *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">

@@ -30,7 +30,9 @@ export class ListOfMessageRequestsSection {
             const fetchedRequestedConvosOfUser = response.data;
             for(let convo of fetchedRequestedConvosOfUser) {
                 convo['latestMessage'] = JSON.parse(convo['latestMessage']);
-                convo['latestMessage'][1]+= "Z";
+                if(convo['latestMessage'][1].charAt(convo['latestMessage'][1].length - 1)!=='Z'){
+                    convo['latestMessage'][1]+= "Z";
+                }
                 convo['promotedUsers'] = JSON.parse(convo['promotedUsers']);
                 convo['convoInitiator'] = JSON.parse(convo['convoInitiator']);
                 convo['members'] = JSON.parse(convo['members']);
@@ -42,24 +44,28 @@ export class ListOfMessageRequestsSection {
                     if(convo['members'][i][0]===this.authenticatedUsername) {
                         if(convo['isRequested'][i]==1) {
                             if(convo['members'].length==2) {
-                                if(convo['members'][0][0]!=='rishavry') {
+                                if(convo['members'][0][0]!==this.authenticatedUsername) {
                                     this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
+                                    convo['convoInitiator'], convo['members']
                                     ]);
                                 }
                                 else {
                                     this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
+                                    convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
+                                    convo['convoInitiator'], convo['members']
                                     ]);
                                 }
                             }
                             else {
+                                let unfilteredConvoMembers = convo['members'];
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
                                 this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
-                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0]
+                                convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
+                                convo['convoInitiator'], unfilteredConvoMembers
                                 ]);
                             }
                             break;

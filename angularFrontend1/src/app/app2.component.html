@@ -22,7 +22,8 @@
     [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
-    [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"></MessagesOfAChat>
+    [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
+    [selectedConvoInitator]="selectedConvoInitator"></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
     [listOfNotes1]="listOfNotes1"></CreateNewNote>
@@ -40,7 +41,7 @@
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
     (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"
-    [messagesAreMuted]="isSelectedConvoMuted"></ConvoDetailsPanel>
+    [messagesAreMuted]="isSelectedConvoMuted" [selectedConvoInitator]="selectedConvoInitator"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection [authenticatedUsername]="authenticatedUsername"
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
@@ -70,7 +71,7 @@
     
     <MessageReactionsPopup *ngIf="showMessageReactionsPopup" [messageReactionsInfo]="messageReactionsInfo"
     (notifyParentToExitMessageReactionsPopup)="closeMessageReactionsPopup()" [authenticatedUsername]="authenticatedUsername"
-    [blockedUsernames]="blockedUsernames"></MessageReactionsPopup>
+    [blockedUsernames]="blockedUsernames" [convoId]="selectedConvoId"></MessageReactionsPopup>
     
     <DeleteChatPopup *ngIf="displayDeleteChatPopup" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToCancelDeleteChat)="cancelDeleteChat()" (notifyParentToDeleteChat)="deleteChat()"></DeleteChatPopup>

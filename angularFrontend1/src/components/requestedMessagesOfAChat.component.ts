@@ -210,4 +210,28 @@ export class RequestedMessagesOfAChat {
         return (<string[]>this.messages[messageIndex][1])[2];
     }
 
+    isConvoTitle(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Convo-Title';
+    }
+
+    getConvoTitleFromAndTo(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
+    isVideoOrAudioMessage(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Video-Chat/Audio-Chat';
+    }
+
+    getVideoOrAudioMessage(messageIndex: number) {
+        return (<Array<any>>this.messages)[messageIndex][1][1];
+    }
+
+    isMemberAdditionOrRemoval(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Add-Member/Remove-Member';
+    }
+
+    getMemberAdditionOrRemoval(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
 }

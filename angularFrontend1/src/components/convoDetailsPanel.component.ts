@@ -27,6 +27,7 @@ export class ConvoDetailsPanel {
     @Output() notifyParentToShowPromoteUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToDemoteUser: EventEmitter<any> = new EventEmitter();
     @Input() isRequestedConvosSectionDisplayed!: boolean;
+    @Input() selectedConvoInitator!: string[];
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -62,7 +63,7 @@ export class ConvoDetailsPanel {
     }
 
     showUserSettingsPopup(groupMessageMember: string[]){
-        if(this.doesUserHaveConvoPerks()) {
+        if(this.doesUserHaveConvoPerks(this.authenticatedUsername)) {
             this.notifyParentToShowUserSettingsPopup.emit(groupMessageMember);
         }
         else {
@@ -70,37 +71,17 @@ export class ConvoDetailsPanel {
         }
     }
 
-    doesUserHaveConvoPerks() {
+    
+    doesUserHaveConvoPerks(username: string) {
         if(this.isRequestedConvosSectionDisplayed) {
             return false;
         }
-        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]==this.authenticatedUsername) || (this.promotedUsernames.includes(this.authenticatedUsername))
-        || (this.doesUserHaveConvoPerksInNonGroup());
-    }
-
-    
-    doesUserHaveConvoPerksInNonGroup() {
-        if(this.groupMessageRecipientsInfo.length==0) {
-            for(let message of this.messages) {
-                if(message[0]===this.authenticatedUsername) {
-                    return true;
-                }
-                else if(message[0]===this.messageRecipientInfo[0]) {
-                    return false;
-                }
-            }
-        }
-        return false;
+        return this.selectedConvoInitator[0]===username || this.promotedUsernames.includes(username);
     }
 
 
     showAddMembersPopup() {
         this.notifyParentToShowAddMemberPopup.emit("show add members popup");
-    }
-
-    thisUserIsPromoted(username: string) {
-        return (this.groupMessageRecipientsInfo.length>0 && this.groupMessageRecipientsInfo[0][0]===username) || (this.promotedUsernames.includes(username)) ||
-        (this.groupMessageRecipientsInfo.length==0 && !this.doesUserHaveConvoPerksInNonGroup());
     }
 
     takeUserToThisUsersPage(username: string) {

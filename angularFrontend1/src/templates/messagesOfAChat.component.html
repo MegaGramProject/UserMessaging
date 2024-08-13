@@ -48,18 +48,17 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <div *ngIf="isVideoOrAudioMessage(i)">
                 <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started an audio call</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started an audio call</p>
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended an audio-call</p>
-                <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended an audio-call</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended the audio-call</p>
+                <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the audio-call</p>
 
                 <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started a video chat</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started a video chat</p>
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended a video chat</p>
-                <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended a video chat</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended the video chat</p>
+                <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the video chat</p>
             </div>
 
             <div *ngIf="isConvoTitle(i)">
-                <p *ngIf="message[0]===authenticatedUsername" style="text-align: center; color: gray; font-size: 0.8em;">You changed the conversation-title from {{getConvoTitleFromAndTo(i)}}</p>
-                <p *ngIf="message[0]!==authenticatedUsername" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} changed the conversation-title from {{getConvoTitleFromAndTo(i)}}</p>
+                <p style="text-align: center; color: gray; font-size: 0.8em;">{{getConvoTitleFromAndTo(i)}}</p>
             </div>
 
             <div *ngIf="isMemberAdditionOrRemoval(i)">
