@@ -1,0 +1,44 @@
+input MessageReactionFilterInput {
+    convoId: ID
+    messageId: ID
+    username: String
+}
+
+type MessageReaction {
+    convoId: ID!
+    messageId: ID!
+    username: String!
+    fullName: String!
+    reaction: String!
+}
+
+input MessageReactionInput {
+    convoId: ID!
+    messageId: ID!
+    username: String!
+    fullName: String!
+    reaction: String!
+}
+
+input RemoveMessageReactionInput {
+    messageId: ID!
+    username: String!
+    reaction: String!
+}
+
+
+type Query {
+    getAllMessageReactions(
+        filter: MessageReactionFilterInput
+    ): [MessageReaction!]! @field(resolver: "App\\GraphQL\\Queries\\MessageReactionQuery@getAllMessageReactions")
+}
+
+type Mutation {
+  addMessageReaction(
+    newReaction: MessageReactionInput
+  ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@addMessageReaction")
+  
+  removeMessageReaction(
+    reactionToRemove: RemoveMessageReactionInput
+  ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@removeMessageReaction")
+}

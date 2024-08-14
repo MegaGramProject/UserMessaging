@@ -76,23 +76,34 @@ import { Note } from '../note.model';
     isSelectedConvoMuted!:boolean;
     hasSelectedConvoBeenAdded!: boolean;
     selectedConvoInitator!:string[];
+    authenticatedFullName!: string;
 
-    ngOnInit() {
+    async ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
         /*
         if(this.username!==null) {
-            this.authenticateUser(<string>this.username);
+            await this.authenticateUser(<string>this.username);
             if(this.authenticatedUsername!.length>0) {
                 localStorage.setItem("defaultUsername", this.authenticatedUsername!);
             }
         }
         else {
             if(localStorage.getItem("defaultUsername")) {
-                this.authenticateUser(<string>localStorage.getItem("defaultUsername"));
+                await this.authenticateUser(<string>localStorage.getItem("defaultUsername"));
             }
         }
         */
         this.authenticatedUsername = <string>this.username;
+        /*
+        const response = await fetch('http://localhost:8001/getFullName/'+this.authenticatedUsername);
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        const fullNameOfAuthenticatedUser = await response.text();
+    
+        this.authenticatedFullName = fullNameOfAuthenticatedUser;
+        */
+        this.authenticatedFullName = "Rishav Ray";
     }
 
     async authenticateUser(username: string) {
@@ -389,12 +400,12 @@ import { Note } from '../note.model';
             if (typeof x === 'boolean') {
                 let y = this.groupConvoIsNotFoundInRequestedConvos(selectedUsers);
                 if(typeof y === 'boolean') {
-                    this.listOfConvos.push(["", this.authenticatedUsername, "Rishav Ray", false, false, selectedUsers, "", [], newConvoId, new Array(selectedUsers.length+1).fill(0),
+                    this.listOfConvos.push(["", this.authenticatedUsername, this.authenticatedFullName, false, false, selectedUsers, "", [], newConvoId, new Array(selectedUsers.length+1).fill(0),
                     new Array(selectedUsers.length+1).fill(0), 0, new Array(selectedUsers.length+1).fill(0), new Array(selectedUsers.length+1).fill(0), false, new Date(), "", [this.authenticatedUsername, 'Rishav Ray']]);
 
                     await this.updateSelectedConvo(this.listOfConvos.length-1);
                     
-                    let thisUser = [[this.authenticatedUsername, "Rishav Ray"]];
+                    let thisUser = [[this.authenticatedUsername, this.authenticatedFullName]];
                     this.showMessagesOfThisGroupConvo(thisUser.concat(selectedUsers));
                 }
                 else {
@@ -1369,7 +1380,7 @@ import { Note } from '../note.model';
             return false;
         }
         if(member===this.authenticatedUsername) {
-            return "Rishav Ray";
+            return this.authenticatedFullName;
         }
         for(let m=0; m<this.listOfConvos[this.selectedConvo][5].length; m++) {
             if (this.listOfConvos[this.selectedConvo][5][m][0]===member) {
@@ -1760,7 +1771,7 @@ import { Note } from '../note.model';
                 convoId: convoToAdd[8],
                 convoTitle: this.selectedConvoTitle,
                 members: JSON.stringify(this.getMembersOfSelectedConvo()),
-                convoInitiator: JSON.stringify([this.authenticatedUsername, "Rishav Ray"]),
+                convoInitiator: JSON.stringify([this.authenticatedUsername, this.authenticatedFullName]),
                 latestMessage: JSON.stringify(latestMessageOfConvoToAdd),
                 promotedUsers: JSON.stringify(convoToAdd[7]),
                 isMuted: JSON.stringify(convoToAdd[9]),
