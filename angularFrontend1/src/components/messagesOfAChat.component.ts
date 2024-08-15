@@ -111,6 +111,7 @@ export class MessagesOfAChat {
     @Input() hasConvoBeenAdded!: boolean;
     @Output() notifyParentToAddConvoToDatabase: EventEmitter<any[]> = new EventEmitter();
     @Input() selectedConvoInitator!:string[];
+    @Input() authenticatedFullName!:string;
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -447,18 +448,29 @@ export class MessagesOfAChat {
 
     async addReaction(index: number, reaction: string) {
         const messageId = this.getMessageId(index);
-        const response = await fetch('http://localhost:8013/addReaction/'+this.convoId+'/'+messageId, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                username: this.authenticatedUsername,
-                fullName: 'Rishav Ray',
-                reaction: reaction
+        const response = await fetch('http://localhost:8013/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query: `
+                mutation {
+                    addMessageReaction(
+                        newReaction: {
+                            convoId: "${this.convoId}",
+                            messageId: "${messageId}"
+                            reaction: "${reaction}",
+                            username: "${this.authenticatedUsername}",
+                            fullName: "${this.authenticatedFullName}"
+                        }
+                    )
+                }
+            `
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
+        const data = await response.json();
         this.reactions[index].push(reaction);
         this.reactionUsernames[index].push(this.authenticatedUsername);
     }

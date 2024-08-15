@@ -23,7 +23,8 @@
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
     [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
     [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
-    [selectedConvoInitator]="selectedConvoInitator"></MessagesOfAChat>
+    [selectedConvoInitator]="selectedConvoInitator" [authenticatedFullName]="authenticatedFullName"
+    ></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
     [listOfNotes1]="listOfNotes1"></CreateNewNote>

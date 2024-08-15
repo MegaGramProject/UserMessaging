@@ -21,14 +21,23 @@ export class MessageReactionsPopup {
 
     async removeReaction(index: number) {
         if(this.messageReactionsInfo[1][index]===this.authenticatedUsername) {
-            const response = await fetch('http://localhost:8013/removeReaction/'+this.convoId+'/'+ this.messageReactionsInfo[2], {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    reactionToRemove:  this.messageReactionsInfo[0][index],
-                    reactionUsernameToRemove: this.messageReactionsInfo[1][index]
+            const response = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                    mutation {
+                        removeMessageReaction(
+                            reactionToRemove: {
+                                messageId: "${this.messageReactionsInfo[2]}"
+                                username: "${this.authenticatedUsername}",
+                                reaction: "${this.messageReactionsInfo[0][index]}",
+                            }
+                        )
+                    }
+                `
                 })
-            })
+            });
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }

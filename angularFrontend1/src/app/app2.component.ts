@@ -77,6 +77,9 @@ import { Note } from '../note.model';
     hasSelectedConvoBeenAdded!: boolean;
     selectedConvoInitator!:string[];
     authenticatedFullName!: string;
+    messageIdToReactionsMapping!: { [key: string]: any[] };
+    messageIdsOfSelectedConvo!: string[];
+
 
     async ngOnInit() {
         this.username = this.route.snapshot.paramMap.get('username');
@@ -354,8 +357,13 @@ import { Note } from '../note.model';
                         return;
                     }
                 }
+                let thisUser = [this.authenticatedUsername, this.authenticatedFullName];
+                let membersOfThisConvo = [thisUser];
+                for(let selectedUser of selectedUsers) {
+                    membersOfThisConvo.push(selectedUser);
+                }
                 this.listOfConvos.push(["", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", [], newConvoId, [0, 0], [0, 0], 0,
-            [0, 0], [0, 0], false, new Date(), "", [this.authenticatedUsername, 'Rishav Ray']]);
+            [0, 0], [0, 0], false, new Date(), "", thisUser, membersOfThisConvo ]);
 
                 await this.updateSelectedConvo(this.listOfConvos.length-1);
 
@@ -400,8 +408,14 @@ import { Note } from '../note.model';
             if (typeof x === 'boolean') {
                 let y = this.groupConvoIsNotFoundInRequestedConvos(selectedUsers);
                 if(typeof y === 'boolean') {
+                    let thisAuthUser = [this.authenticatedUsername, this.authenticatedFullName];
+                    let membersOfThisConvo = [thisAuthUser];
+                    for(let selectedUser of selectedUsers) {
+                        membersOfThisConvo.push(selectedUser);
+                    }
                     this.listOfConvos.push(["", this.authenticatedUsername, this.authenticatedFullName, false, false, selectedUsers, "", [], newConvoId, new Array(selectedUsers.length+1).fill(0),
-                    new Array(selectedUsers.length+1).fill(0), 0, new Array(selectedUsers.length+1).fill(0), new Array(selectedUsers.length+1).fill(0), false, new Date(), "", [this.authenticatedUsername, 'Rishav Ray']]);
+                    new Array(selectedUsers.length+1).fill(0), 0, new Array(selectedUsers.length+1).fill(0), new Array(selectedUsers.length+1).fill(0), false, new Date(), "", thisAuthUser,
+                    membersOfThisConvo]);
 
                     await this.updateSelectedConvo(this.listOfConvos.length-1);
                     
@@ -892,7 +906,7 @@ import { Note } from '../note.model';
                     }
                 }
             }
-    
+
 
             const response = await fetch('http://localhost:8012/getMessagesForConvo/'+this.selectedConvoId);
             if(!response.ok) {
@@ -901,10 +915,11 @@ import { Note } from '../note.model';
 
     
             const messages = await response.json();
-
+            this.messageIdsOfSelectedConvo = [];
 
             for(let message of messages) {
                 message['message'] = JSON.parse(message['message']);
+                this.messageIdsOfSelectedConvo.push(message['messageId']);
                 if(message['message'][0]==='Regular-Message') {
                     if(!this.displayListOfMessageRequestsSection) {
                         this.messageData[0].push([message['sender'], message['message'][1], new Date(message['messageSentAt']+"Z"), message['messageId']]);
@@ -1075,6 +1090,58 @@ import { Note } from '../note.model';
                     }
                 }
             
+            }
+
+            const response2 = await fetch('http://localhost:8013/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `
+                        query {
+                            getAllMessageReactions (
+                                filter: {
+                                    convoId: "${this.selectedConvoId}"
+                                }
+                            ) {
+                                convoId
+                                messageId
+                                username
+                                fullName
+                                reaction
+                            }
+                        }
+                    `
+                })
+            });
+            this.messageIdToReactionsMapping = {};
+            let messageReactionsForSelectedConvo = await response2.json();
+            messageReactionsForSelectedConvo = messageReactionsForSelectedConvo['data']['getAllMessageReactions'];
+
+            for (let messageReaction of messageReactionsForSelectedConvo) {
+                const messageId = messageReaction['messageId'];
+
+                if (!(messageId in this.messageIdToReactionsMapping)) {
+                    this.messageIdToReactionsMapping[messageId] = [messageReaction];
+                } else {
+                    this.messageIdToReactionsMapping[messageId].push(messageReaction);
+                }
+            }
+
+            let reactionsForMessage;
+            let reactionUsernamesForMessage;
+            let messageIdOfCurrentMessage;
+            for(let i=0; i<this.messageData[0].length; i++) {
+                reactionsForMessage = [];
+                reactionUsernamesForMessage = [];
+                messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+                if(messageIdOfCurrentMessage in this.messageIdToReactionsMapping) {
+                    for(let messageReaction of this.messageIdToReactionsMapping[messageIdOfCurrentMessage]) {
+                        reactionsForMessage.push(messageReaction['reaction']);
+                        reactionUsernamesForMessage.push(messageReaction['username']);
+                    }
+                }
+                this.messageData[1][i] = reactionsForMessage;
+                this.messageData[2][i] = reactionUsernamesForMessage;
             }
             
     }
