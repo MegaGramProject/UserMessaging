@@ -111,11 +111,11 @@ export class MessagesOfAChat {
     @Output() notifyParentToAddConvoToDatabase: EventEmitter<any[]> = new EventEmitter();
     @Input() selectedConvoInitator!:string[];
     @Input() authenticatedFullName!:string;
+    @Input() profilePhotoString:string = "profileIcon.png";
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
         this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames, [this.myScrollContainer, this.cdRef]]);
-
     }
 
 
@@ -202,11 +202,36 @@ export class MessagesOfAChat {
     ngOnChanges(changes: SimpleChanges) {
         if (changes['messageRecipientInfo'] && changes['messageRecipientInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
+            this.getProfilePhoto(this.selectedConvoInitator[0]);
         }
         else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
+            this.getProfilePhoto(this.selectedConvoInitator[0]);
         }
     }
+
+    async getProfilePhoto(username:string) {
+        console.log(username);
+        const response = await fetch('http://localhost:8003/getProfilePhoto/'+username);
+        if(!response.ok) {
+            return;
+        }
+        const buffer = await response.arrayBuffer();
+        const base64Flag = 'data:image/jpeg;base64,';
+        const imageStr = this.arrayBufferToBase64(buffer);
+        this.profilePhotoString = base64Flag + imageStr;
+    }
+
+    arrayBufferToBase64(buffer: ArrayBuffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
+
 
     scrollToBottom(): void {
     try {

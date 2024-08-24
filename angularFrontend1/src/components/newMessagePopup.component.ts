@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -12,11 +12,10 @@ import { FormsModule } from '@angular/forms';
 export class NewMessagePopup {
     textareaInput!:string;
     usersSelected:string[][] = [];
-    usersToChooseFrom:string[][] = [["rishavry", "Rishav Ray"], ["rishavry2", "Rishav Ray2"], ["rishavry3", "Rishav Ray3"],
-    ["rishavry4", "Rishav Ray4"], ["rishavry5", "Rishav Ray5"], ["rishavry6", "Rishav Ray6"], ["rishavry7", "Rishav Ray7"]];
+    usersToChooseFrom:string[][] = [];
     filteredUserResults:string[][] = [];
     @Output() notifyParentToExitNewMessagePopup: EventEmitter<any> = new EventEmitter();
-    checkboxStates: { [key: string]: boolean } = {"rishavry":false, "rishavry2":false, "rishavry3":false, "rishavry4":false, "rishavry5":false, "rishavry6":false, "rishavry7":false};
+    checkboxStates: { [key: string]: boolean } = {};
     @Output() notifyParentToStartMessagingSelectedUsers: EventEmitter<string[][]> = new EventEmitter();
     @Input() isForwarding!:boolean;
     @Input() messageToForward!:string;
@@ -27,6 +26,22 @@ export class NewMessagePopup {
     @Input() fileToForward!:any[];
     @Input() isAddingNewMembers!:boolean;
     @Output() notifyParentToAddNewMemberToConvo: EventEmitter<any[]> = new EventEmitter();
+    @Input() blockedUsernames!:string[];
+    userProfileIcons: { [username: string]: string } = {};
+
+    async ngOnInit() {
+        const response = await fetch('http://localhost:8001/getUsernamesAndFullNamesOfAll');
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        const listOfUsers = await response.json();
+
+        this.usersToChooseFrom = (<string[][]>listOfUsers).filter(x=> !this.blockedUsernames.includes(x[0]));
+        for(let user of this.usersToChooseFrom) {
+            this.checkboxStates[user[0]] = false;
+            this.getProfilePhotoOfUser(user[0]);
+        }
+    }
 
     getChatButtonStyle() {
         return this.usersSelected.length == 0 ?
@@ -93,5 +108,32 @@ export class NewMessagePopup {
         else {
             this.notifyParentToAddNewMemberToConvo.emit(this.usersSelected);
         }
+    }
+
+    async getProfilePhotoOfUser(username: string) {
+        try {
+            const response = await fetch('http://localhost:8003/getProfilePhoto/'+username);
+            if(!response.ok) {
+                this.userProfileIcons[username] = "profileIcon.png";
+                return;
+            }
+            const buffer = await response.arrayBuffer();
+            const base64Flag = 'data:image/jpeg;base64,';
+            const imageStr = this.arrayBufferToBase64(buffer);
+            this.userProfileIcons[username] = base64Flag + imageStr;
+        }
+        catch {
+            this.userProfileIcons[username] = "profileIcon.png";
+        }
+    }
+
+    arrayBufferToBase64(buffer: ArrayBuffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
     }
 }

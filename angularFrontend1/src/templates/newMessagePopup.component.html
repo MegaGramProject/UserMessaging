@@ -25,7 +25,7 @@ width: 35em; height: 37em; border-radius: 12px;">
 
             <div (click)="selectUsername($event, result)" class="hoverableElement" style="display:flex; align-items: center; width:96%; gap:1em; position: relative; cursor:pointer;
             border-radius:7px; padding-left: 0.4em;">
-                <img src="profileIcon.png" style="height: 2.6em; width: 2.6em; object-fit: contain;">
+                <img [src]="userProfileIcons[result[0]]" style="height: 2.6em; width: 2.6em; object-fit: contain;">
                 <div style="display: flex; flex-direction: column; align-items: start;">
                     <p style="margin-bottom:-0.4em;">{{ result[1] }}</p>
                     <p style="color:gray;">{{ result[0] }}</p>

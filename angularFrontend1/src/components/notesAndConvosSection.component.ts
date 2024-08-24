@@ -63,7 +63,6 @@ export class NotesAndConvosSection {
             }
             let userBlockings = await response0.json();
             userBlockings = userBlockings['data']['getAllUserBlockings'];
-
             for(let i=0; i<userBlockings.length; i++) {
                 if(userBlockings[i]['blocker']===this.authenticatedUsername) {
                     userBlockings[i] = userBlockings[i]['blockee'];

@@ -26,9 +26,10 @@ border-style: solid; border-color: lightgray; border-top: none; border-bottom: n
 
         <div (click)="takeUserToThisUsersPage(messageRecipientInfo[0])" *ngIf="messageRecipientInfo.length>0" class="hoverableElement" style="display: flex; cursor: pointer; align-items: center; gap: 1em; width: 90%;
         border-radius:8px; padding-left: 0.5em;">
-            <img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
+            <img [src]="convoMemberProfileIcons[messageRecipientInfo[0]]" style="height: 3em; width: 3em; object-fit: contain;">
             <div style="display: flex; flex-direction: column; margin-top:1em;">
-                <b style="margin-bottom: 0em;">{{ messageRecipientInfo[0] }} <img *ngIf="doesUserHaveConvoPerks(messageRecipientInfo[0])" src="promotedUserStarSymbol.png" style="height: 1.2em; width: 1.2em; object-fit: contain;"></b>
+                <b style="margin-bottom: 0em;">{{ messageRecipientInfo[0] }}<img *ngIf="doesUserHaveConvoPerks(messageRecipientInfo[0])" src="promotedUserStarSymbol.png" style="height: 1.2em; width: 1.2em; object-fit: contain;">
+                    <span *ngIf="isUserRequested(messageRecipientInfo[0])" style="font-weight:100; color: gray; font-size: 0.85em; margin-left: 1.7em;">(requested)</span></b>
                 <p>{{ messageRecipientInfo[1] }}</p>
             </div>
         </div>
@@ -36,10 +37,12 @@ border-style: solid; border-color: lightgray; border-top: none; border-bottom: n
         <div *ngFor="let groupMessageMember of groupMessageRecipientsInfo;">
             <div (click)="showUserSettingsPopup(groupMessageMember)" *ngIf="groupMessageMember[0]!==authenticatedUsername" class="hoverableElement" style="display: flex; cursor: pointer; align-items: center; gap: 1em; width: 90%;
             border-radius:8px; padding-left: 0.5em;">
-                <img src="profileIcon.png" style="height: 3em; width: 3em; object-fit: contain;">
+                <img [src]="convoMemberProfileIcons[groupMessageMember[0]]" style="height: 3em; width: 3em; object-fit: contain;">
                 <div style="display: flex; flex-direction: column; margin-top:1em;">
-                    <b style="margin-bottom: 0em;">{{ groupMessageMember[0] }} <span *ngIf="blockedUsernames.includes(groupMessageMember[0])" style="font-weight:100; color: gray; font-size: 0.85em; margin-left: 1.7em;">(blocked)</span>
-                    <img *ngIf="doesUserHaveConvoPerks(groupMessageMember[0])" src="promotedUserStarSymbol.png" style="height: 1.2em; width: 1.2em; object-fit: contain;"></b>
+                    <b style="margin-bottom: 0em;">{{ groupMessageMember[0] }}
+                    <span *ngIf="blockedUsernames.includes(groupMessageMember[0])" style="font-weight:100; color: gray; font-size: 0.85em; margin-left: 1.7em;">(blocked)</span>
+                    <span *ngIf="isUserRequested(groupMessageMember[0])" style="font-weight:100; color: gray; font-size: 0.85em; margin-left: 1.7em;">(requested)</span>
+                    </b>
                     <p>{{ groupMessageMember[1] }}</p>
                 </div>
             </div>

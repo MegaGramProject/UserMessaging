@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 
 @Component({
     selector: 'ConvoDetailsPanel',
@@ -28,6 +28,9 @@ export class ConvoDetailsPanel {
     @Output() notifyParentToDemoteUser: EventEmitter<any> = new EventEmitter();
     @Input() isRequestedConvosSectionDisplayed!: boolean;
     @Input() selectedConvoInitator!: string[];
+    convoMemberProfileIcons: { [username: string]: string } = {};
+    @Input() membersOfSelectedConvo!: string[][];
+    @Input() isRequestedOfSelectedConvo!:any[];
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -38,6 +41,46 @@ export class ConvoDetailsPanel {
             this.messagesAreMuted = true;
             this.toggleMutedMessageIconInConvo.emit("toggle muted message icon");
         }
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['messageRecipientInfo'] && changes['messageRecipientInfo'].currentValue.length>0) {
+            this.convoMemberProfileIcons = {};
+            this.getProfilePhotoOfUser(this.messageRecipientInfo[0]);
+        }
+        else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
+            this.convoMemberProfileIcons = {};
+            for(let member of this.groupMessageRecipientsInfo) {
+                this.getProfilePhotoOfUser(member[0]);
+            }
+        }
+    }
+
+    async getProfilePhotoOfUser(username: string) {
+        try {
+            const response = await fetch('http://localhost:8003/getProfilePhoto/'+username);
+            if(!response.ok) {
+                this.convoMemberProfileIcons[username] = "profileIcon.png";
+                return;
+            }
+            const buffer = await response.arrayBuffer();
+            const base64Flag = 'data:image/jpeg;base64,';
+            const imageStr = this.arrayBufferToBase64(buffer);
+            this.convoMemberProfileIcons[username] = base64Flag + imageStr;
+        }
+        catch {
+            this.convoMemberProfileIcons[username] = "profileIcon.png";
+        }
+    }
+
+    arrayBufferToBase64(buffer: ArrayBuffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
     }
 
     showDeleteChatPopup() {
@@ -94,6 +137,18 @@ export class ConvoDetailsPanel {
 
     demoteUser()  {
         this.notifyParentToDemoteUser.emit("demote this user");
+    }
+
+    isUserRequested(username: string) {
+        for(let i=0; i<this.membersOfSelectedConvo.length; i++) {
+            if (this.membersOfSelectedConvo[i][0]===username) {
+                if(this.isRequestedOfSelectedConvo[i]==0) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        return;
     }
 
 }

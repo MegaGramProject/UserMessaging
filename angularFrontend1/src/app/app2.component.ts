@@ -80,6 +80,8 @@ import { Note } from '../note.model';
     messageIdsOfSelectedConvo!: string[];
     userBlockings!: string[];
     userFollowings!: any[];
+    membersOfSelectedConvo!: string[][];
+    isRequestedOfSelectedConvo!:any[];
 
 
     async ngOnInit() {
@@ -338,6 +340,21 @@ import { Note } from '../note.model';
         return true;
     }
 
+    getIsRequestedForNewGroupConvo(membersOfThisNewGroupConvo: string[][]) {
+        let output = [0];
+        this.isRequestingConvoWithRecipient = true;
+        for(let i=1; i<membersOfThisNewGroupConvo.length; i++) {
+            if(this.userFollowings.filter(x=>x['follower']===membersOfThisNewGroupConvo[i][0]).length==0) {
+                output.push(1);
+            }
+            else {
+                output.push(0);
+                this.isRequestingConvoWithRecipient = false;
+            }
+        }
+        return output;
+    }
+
     async startMessagingSelectedUsers(selectedUsers: string[][]) {
         this.showNewMessagePopup = false;
         selectedUsers = selectedUsers.filter(x=>x[0]!==this.authenticatedUsername);
@@ -422,8 +439,9 @@ import { Note } from '../note.model';
                     for(let selectedUser of selectedUsers) {
                         membersOfThisConvo.push(selectedUser);
                     }
+                    const isRequested = this.getIsRequestedForNewGroupConvo(membersOfThisConvo);
                     this.listOfConvos.push(["", this.authenticatedUsername, this.authenticatedFullName, false, false, selectedUsers, "", [], newConvoId, new Array(selectedUsers.length+1).fill(0),
-                    new Array(selectedUsers.length+1).fill(0), 0, new Array(selectedUsers.length+1).fill(0), new Array(selectedUsers.length+1).fill(0), false, new Date(), "", thisAuthUser,
+                    new Array(selectedUsers.length+1).fill(0), 0, isRequested, new Array(selectedUsers.length+1).fill(0), false, new Date(), "", thisAuthUser,
                     membersOfThisConvo]);
 
                     await this.updateSelectedConvo(this.listOfConvos.length-1);
@@ -926,6 +944,8 @@ import { Note } from '../note.model';
                 this.hasSelectedConvoBeenAdded = this.listOfConvos[this.selectedConvo][14];
                 this.selectedConvoInitator = this.listOfConvos[this.selectedConvo][17];
                 this.listOfConvos[this.selectedConvo][0] = this.listOfConvos[this.selectedConvo][16] + " · " + this.formatTimeSinceSent(this.listOfConvos[this.selectedConvo][15]);
+                this.membersOfSelectedConvo = this.listOfConvos[this.selectedConvo][18];
+                this.isRequestedOfSelectedConvo = this.listOfConvos[this.selectedConvo][12];
                 for(let messageDataPart of this.messageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
@@ -941,6 +961,8 @@ import { Note } from '../note.model';
                 this.hasSelectedConvoBeenAdded = this.listOfRequestedConvos[this.selectedConvo][14];
                 this.selectedConvoInitator = this.listOfRequestedConvos[this.selectedConvo][17];
                 this.listOfRequestedConvos[this.selectedConvo][0] = this.listOfRequestedConvos[this.selectedConvo][16] + " · " + this.formatTimeSinceSent(this.listOfRequestedConvos[this.selectedConvo][15]);
+                this.membersOfSelectedConvo = this.listOfRequestedConvos[this.selectedConvo][18];
+                this.isRequestedOfSelectedConvo = this.listOfRequestedConvos[this.selectedConvo][12];
                 for(let messageDataPart of this.requestedMessageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
@@ -1339,7 +1361,7 @@ import { Note } from '../note.model';
         let newMessageId;
         if(this.groupMessageRecipientsInfo.length>0) {
             for(let user of selectedUsers) {
-                if(!this.userIsAlreadyInGroup(user)) {
+                if(!this.userIsAlreadyInGroup(user) && this.userFollowings.filter(x=>x['follower']===user[0]).length>0) {
                     this.listOfConvos[this.selectedConvo][5].push(user);
                     this.listOfConvos[this.selectedConvo][18].push(user);
                     //isMuted for new user
@@ -1379,12 +1401,53 @@ import { Note } from '../note.model';
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
                 }
+                else if(!this.userIsAlreadyInGroup(user) && this.userFollowings.filter(x=>x['follower']===user[0]).length==0) {
+                    this.listOfConvos[this.selectedConvo][5].push(user);
+                    this.listOfConvos[this.selectedConvo][18].push(user);
+                    //isMuted for new user
+                    this.listOfConvos[this.selectedConvo][9].push(0);
+                    //hasUnreadMessage for new user
+                    this.listOfConvos[this.selectedConvo][10].push(0);
+                     //isRequested for new user
+                    this.listOfConvos[this.selectedConvo][12].push(1);
+                    //isDeleted for new user
+                    this.listOfConvos[this.selectedConvo][13].push(0);
+
+                    this.groupMessageRecipientsInfo.push(user);
+
+                    newMessageId = uuidv4();
+                    responseForSendingMessage = await fetch('http://localhost:8012/addMessage', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            messageId: newMessageId,
+                            convoId: this.selectedConvoId,
+                            message: JSON.stringify(["Add-Member/Remove-Member", "requested " + user[0]]),
+                            sender: this.authenticatedUsername,
+                            messageSentAt: new Date()
+                        })
+                    });
+                    
+                    if(!responseForSendingMessage.ok) {
+                        throw new Error('Network response not ok');
+                    }
+
+                    this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
+                    this.messageData[1].push([-1, -1]);
+                    this.messageData[2].push([]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([]);
+                    this.messageData[7].push([]);
+
+                }
             }
         }
         else {
             let isNewUserAdded = false;
             for(let user of selectedUsers) {
-                if(!this.userIsAlreadyInGroup(user)) {
+                if(!this.userIsAlreadyInGroup(user) && this.userFollowings.filter(x=>x['follower']===user[0]).length>0) {
                     this.listOfConvos[this.selectedConvo][5].push(user);
                     this.listOfConvos[this.selectedConvo][18].push(user);
                     //isMuted for new user
@@ -1416,6 +1479,57 @@ import { Note } from '../note.model';
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0], newMessageId], new Date()]);
+                    this.messageData[1].push([-1, -1]);
+                    this.messageData[2].push([]);
+                    this.messageData[3].push([]);
+                    this.messageData[4].push([]);
+                    this.messageData[5].push([]);
+                    this.messageData[6].push([]);
+                    this.messageData[7].push([]);
+
+                    if(!isNewUserAdded) {
+                        if(this.selectedConvoInitator[0] !== this.listOfConvos[this.selectedConvo][1]) {
+                            this.listOfConvos[this.selectedConvo][5].push(this.messageRecipientInfo);
+                            this.listOfConvos[this.selectedConvo][1] = this.selectedConvoInitator[0];
+                            this.listOfConvos[this.selectedConvo][2] = this.selectedConvoInitator[1];
+                        }
+                        this.messageRecipientInfo = [];
+                        this.groupMessageRecipientsInfo.unshift(this.selectedConvoInitator);
+                        isNewUserAdded = true;
+                    }
+                }
+                else if(!this.userIsAlreadyInGroup(user) && this.userFollowings.filter(x=>x['follower']===user[0]).length==0) {
+                    this.listOfConvos[this.selectedConvo][5].push(user);
+                    this.listOfConvos[this.selectedConvo][18].push(user);
+                    //isMuted for new user
+                    this.listOfConvos[this.selectedConvo][9].push(0);
+                    //hasUnreadMessage for new user
+                    this.listOfConvos[this.selectedConvo][10].push(0);
+                     //isRequested for new user
+                    this.listOfConvos[this.selectedConvo][12].push(1);
+                    //isDeleted for new user
+                    this.listOfConvos[this.selectedConvo][13].push(0);
+
+                    this.groupMessageRecipientsInfo.push(user);
+
+                    newMessageId = uuidv4();
+                    responseForSendingMessage = await fetch('http://localhost:8012/addMessage', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            messageId: newMessageId,
+                            convoId: this.selectedConvoId,
+                            message: JSON.stringify(["Add-Member/Remove-Member", "requested " + user[0]]),
+                            sender: this.authenticatedUsername,
+                            messageSentAt: new Date()
+                        })
+                    });
+                    
+                    if(!responseForSendingMessage.ok) {
+                        throw new Error('Network response not ok');
+                    }
+
+                    this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
                     this.messageData[1].push([-1, -1]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);

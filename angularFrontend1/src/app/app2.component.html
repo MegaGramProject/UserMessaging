@@ -43,7 +43,8 @@
     [blockedUsernames]="userBlockings" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
     (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"
-    [messagesAreMuted]="isSelectedConvoMuted" [selectedConvoInitator]="selectedConvoInitator"></ConvoDetailsPanel>
+    [messagesAreMuted]="isSelectedConvoMuted" [selectedConvoInitator]="selectedConvoInitator"
+    [membersOfSelectedConvo]="membersOfSelectedConvo" [isRequestedOfSelectedConvo]="isRequestedOfSelectedConvo"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection [authenticatedUsername]="authenticatedUsername"
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"
@@ -69,7 +70,8 @@
     (notifyParentToForwardMessageToSelectedUsers)="forwardMessageToSelectedUsers($event)"
     [convoMemberOfForwardedMessage]="[messageRecipientInfo]" [convoMembersOfForwardedMessage]="groupMessageRecipientsInfo" [fileToForward]="fileToForward"
     (notifyParentToForwardFileToSelectedUsers)="forwardFileToSelectedUsers($event)"
-    [isAddingNewMembers]="isAddingNewMembers" (notifyParentToAddNewMemberToConvo)="addNewMemberToConvo($event)"></NewMessagePopup>
+    [isAddingNewMembers]="isAddingNewMembers" (notifyParentToAddNewMemberToConvo)="addNewMemberToConvo($event)"
+    [blockedUsernames]="userBlockings"></NewMessagePopup>
     
     <MessageReactionsPopup *ngIf="showMessageReactionsPopup" [messageReactionsInfo]="messageReactionsInfo"
     (notifyParentToExitMessageReactionsPopup)="closeMessageReactionsPopup()" [authenticatedUsername]="authenticatedUsername"

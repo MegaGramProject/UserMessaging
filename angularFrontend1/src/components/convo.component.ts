@@ -22,6 +22,32 @@ export class Convo {
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any[][]> = new EventEmitter();
     @Input() convoTitle:any = "";
     @Input() convoId:any = "";
+    profilePhotoString:string = "profileIcon.png";
+
+    ngOnInit() {
+        this.getProfilePhoto();
+    }
+
+    async getProfilePhoto() {
+        const response = await fetch('http://localhost:8003/getProfilePhoto/'+this.username);
+        if(!response.ok) {
+            return;
+        }
+        const buffer = await response.arrayBuffer();
+        const base64Flag = 'data:image/jpeg;base64,';
+        const imageStr = this.arrayBufferToBase64(buffer);
+        this.profilePhotoString = base64Flag + imageStr;
+    }
+
+    arrayBufferToBase64(buffer: ArrayBuffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
 
 
     selectConvo() {
