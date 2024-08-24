@@ -22,7 +22,7 @@ export class ConvoDetailsPanel {
     @Input() messages!:Array<Array<Object>>;
     @Output() notifyParentToShowUserSettingsPopup: EventEmitter<string[]> = new EventEmitter();
     @Output() notifyParentToShowAddMemberPopup: EventEmitter<string> = new EventEmitter();
-    @Input() blockedUsernames:string[] = [];
+    @Input() blockedUsernames!:string[];
     @Input() promotedUsernames!:string[];
     @Output() notifyParentToShowPromoteUserPopup: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToDemoteUser: EventEmitter<any> = new EventEmitter();

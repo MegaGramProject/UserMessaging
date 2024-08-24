@@ -684,7 +684,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </div>
             </div>
 
-            <textarea *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" [(ngModel)]="messageToSend" placeholder={{textareaPlaceholder}} style="font-family: Arial; width:96%;
+            <textarea *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" [(ngModel)]="messageToSend" [placeholder]="getTextareaPlaceholder()" style="font-family: Arial; width:96%;
             border-radius:2em; font-size: 1em; border-color:lightgray; padding-left:1em; padding-top:1em;"></textarea>
             <img (click)="toggleAudio()" *ngIf="audioContext!==null && !isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="pauseIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;">

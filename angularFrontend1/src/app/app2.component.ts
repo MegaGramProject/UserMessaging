@@ -69,7 +69,6 @@ import { Note } from '../note.model';
     isAddingNewMembers:boolean = false;
     displayUserSettingsPopup:boolean = false;
     userSettingsPopupGroupMessageMember!:string[];
-    blockedUsernames:string[]=[];
     selectedConvoPromotedUsernames:string[] = [];
     displayPromoteUserPopup:boolean = false;
     listOfNotes1!:Note[];
@@ -79,6 +78,8 @@ import { Note } from '../note.model';
     authenticatedFullName!: string;
     messageIdToReactionsMapping!: { [key: string]: any[] };
     messageIdsOfSelectedConvo!: string[];
+    userBlockings!: string[];
+    userFollowings!: any[];
 
 
     async ngOnInit() {
@@ -362,8 +363,16 @@ import { Note } from '../note.model';
                 for(let selectedUser of selectedUsers) {
                     membersOfThisConvo.push(selectedUser);
                 }
-                this.listOfConvos.push(["", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", [], newConvoId, [0, 0], [0, 0], 0,
-            [0, 0], [0, 0], false, new Date(), "", thisUser, membersOfThisConvo ]);
+                if(this.userFollowings.filter(x=>x['follower']===selectedUsers[0][0]).length>0) {
+                    this.listOfConvos.push(["", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", [], newConvoId, [0, 0], [0, 0], 0,
+                    [0, 0], [0, 0], false, new Date(), "", thisUser, membersOfThisConvo ]);
+                    this.isRequestingConvoWithRecipient = false;
+                }
+                else {
+                    this.listOfConvos.push(["", selectedUsers[0][0], selectedUsers[0][1], false, false, [], "", [], newConvoId, [0, 0], [0, 0], 0,
+                    [0, 1], [0, 0], false, new Date(), "", thisUser, membersOfThisConvo ]);
+                    this.isRequestingConvoWithRecipient = true;
+                }
 
                 await this.updateSelectedConvo(this.listOfConvos.length-1);
 
@@ -483,6 +492,14 @@ import { Note } from '../note.model';
 
     receiveRequestedMessageData(requestedMessageData: any[][]) {
         this.requestedMessageData = requestedMessageData;
+    }
+
+    receiveUserBlockings(userBlockings: string[]) {
+        this.userBlockings = userBlockings;
+    }
+
+    receiveUserFollowings(userFollowings: any[]) {
+        this.userFollowings = userFollowings;
     }
 
     formatTimeSinceSent(date: Date): string {
@@ -640,22 +657,35 @@ import { Note } from '../note.model';
     this.displayBlockUserPopup = false;
     }
 
-    blockUser() {
-    // code for blocking user
-    if(!this.displayListOfMessageRequestsSection) {
-            this.listOfConvos.splice(this.selectedConvo, 1);
-            this.messageRecipientInfo = [];
-            this.groupMessageRecipientsInfo = [];
-            this.displayBlockUserPopup = false;
-            this.showConvoDetailsPanel = false;
-    }
-    else {
-            this.listOfRequestedConvos.splice(this.selectedConvo,1);
-            this.messageRecipientInfo = [];
-            this.groupMessageRecipientsInfo = [];
-            this.displayBlockUserPopup = false;
-            this.showConvoDetailsPanel = false;
+    async blockUser() {
+        const response = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                mutation {
+                    addUserBlocking(newUserBlocking: { blocker: "${this.authenticatedUsername}" blockee: "${this.messageRecipientInfo[0]}" })
+                }
+                `
+                })
+            });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
         }
+        if(!this.displayListOfMessageRequestsSection) {
+                this.listOfConvos.splice(this.selectedConvo, 1);
+                this.messageRecipientInfo = [];
+                this.groupMessageRecipientsInfo = [];
+                this.displayBlockUserPopup = false;
+                this.showConvoDetailsPanel = false;
+        }
+        else {
+                this.listOfRequestedConvos.splice(this.selectedConvo,1);
+                this.messageRecipientInfo = [];
+                this.groupMessageRecipientsInfo = [];
+                this.displayBlockUserPopup = false;
+                this.showConvoDetailsPanel = false;
+            }
     }
 
     async toggleMutedMessageIconInConvo() {
@@ -875,10 +905,20 @@ import { Note } from '../note.model';
         this.showMessagesOfAChat = true;
     }
 
+    areYouRequestingConvoWithRecipient(): boolean {
+        for(let i=0; i<this.listOfConvos[this.selectedConvo][12].length; i++) {
+            if(this.listOfConvos[this.selectedConvo][12][i]==0 && this.listOfConvos[this.selectedConvo][18][i][0]!==this.authenticatedUsername) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     async updateSelectedConvo(convoIndex:number) {
             this.selectedConvo = convoIndex;
             if(!this.displayListOfMessageRequestsSection) {
+                this.isRequestingConvoWithRecipient = this.areYouRequestingConvoWithRecipient();
                 this.selectedConvoTitle = this.listOfConvos[this.selectedConvo][6];
                 this.selectedConvoPromotedUsernames = this.listOfConvos[this.selectedConvo][7];
                 this.selectedConvoId = this.listOfConvos[this.selectedConvo][8];
@@ -893,6 +933,7 @@ import { Note } from '../note.model';
                 }
             }
             else {
+                this.isRequestingConvoWithRecipient = false;
                 this.selectedConvoTitle = this.listOfRequestedConvos[this.selectedConvo][6];
                 this.selectedConvoPromotedUsernames = this.listOfRequestedConvos[this.selectedConvo][7];
                 this.selectedConvoId = this.listOfRequestedConvos[this.selectedConvo][8];
@@ -1557,13 +1598,41 @@ import { Note } from '../note.model';
         this.displayUserSettingsPopup = false;
     }
 
-    blockUserFromUserSettingsPopup() {
-        this.blockedUsernames.push(this.userSettingsPopupGroupMessageMember[0]);
+    async blockUserFromUserSettingsPopup() {
+        const response = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                mutation {
+                    addUserBlocking(newUserBlocking: { blocker: "${this.authenticatedUsername}" blockee: "${this.userSettingsPopupGroupMessageMember[0]}" })
+                }
+                `
+                })
+            });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        this.userBlockings.push(this.userSettingsPopupGroupMessageMember[0]);
         this.displayUserSettingsPopup = false;
     }
 
-    unblockUserFromUserSettingsPopup() {
-        this.blockedUsernames.splice(this.blockedUsernames.indexOf(this.userSettingsPopupGroupMessageMember[0]),1);
+    async unblockUserFromUserSettingsPopup() {
+        const response = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                mutation {
+                    removeUserBlocking(userBlockingToRemove: { blocker: "${this.authenticatedUsername}" blockee: "${this.userSettingsPopupGroupMessageMember[0]}" })
+                }
+                `
+                })
+            });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        this.userBlockings.splice(this.userBlockings.indexOf(this.userSettingsPopupGroupMessageMember[0]),1);
         this.displayUserSettingsPopup = false;
     }
 

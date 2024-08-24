@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import axios from 'axios';
 import { Convo } from './convo.component';
 import { Note } from './note.component';
-import { group } from 'console';
-import axios from 'axios';
 
 
 @Component({
@@ -34,6 +33,8 @@ export class NotesAndConvosSection {
     @Output() notifyParentToShowListOfMessageRequestsSection: EventEmitter<string> = new EventEmitter();
     selectedConvo!:number;
     @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
+    @Output() emitUserBlockingsToParent: EventEmitter<string[]> = new EventEmitter();
+    @Output() emitUserFollowingsToParent: EventEmitter<any[]> = new EventEmitter();
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -43,6 +44,36 @@ export class NotesAndConvosSection {
     
     async ngOnInit() {
         try {
+            const response0 = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                query {
+                    getAllUserBlockings(filter: { username: "${this.authenticatedUsername}" }) {
+                        blocker
+                        blockee
+                    }
+                }
+                `
+                })
+            });
+            if(!response0.ok) {
+                throw new Error('Network response not ok');
+            }
+            let userBlockings = await response0.json();
+            userBlockings = userBlockings['data']['getAllUserBlockings'];
+
+            for(let i=0; i<userBlockings.length; i++) {
+                if(userBlockings[i]['blocker']===this.authenticatedUsername) {
+                    userBlockings[i] = userBlockings[i]['blockee'];
+                }
+                else {
+                    userBlockings[i] = userBlockings[i]['blocker'];
+                }
+            }
+            
+
             const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
             const fetchedConvosOfUser = response.data;
             for(let convo of fetchedConvosOfUser) {
@@ -61,14 +92,14 @@ export class NotesAndConvosSection {
                     if(convo['members'][i][0]===this.authenticatedUsername) {
                         if(convo['isRequested'][i]==0) {
                             if(convo['members'].length==2) {
-                                if(convo['members'][0][0]!==this.authenticatedUsername) {
+                                if(convo['members'][0][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][0][0])) {
                                     this.listOfConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                     convo['convoInitiator'], convo['members']
                                     ]);
                                 }
-                                else {
+                                else if(convo['members'][1][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][1][0])) {
                                     this.listOfConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
@@ -101,6 +132,27 @@ export class NotesAndConvosSection {
                 return dateB - dateA;
             });
             this.emitListOfConvosToParent.emit(this.listOfConvos);
+            this.emitUserBlockingsToParent.emit(userBlockings);
+            const response2 = await fetch('http://localhost:8013/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `
+                    query {
+                        getAllUserFollowings(filter: { username: "${this.authenticatedUsername}" }) {
+                            follower
+                            followee
+                        }
+                    }
+                    `
+                    })
+                });
+            if(!response2.ok) {
+                throw new Error('Network response not ok');
+            }
+            let userFollowings = await response2.json();
+            userFollowings = userFollowings['data']['getAllUserFollowings'];
+            this.emitUserFollowingsToParent.emit(userFollowings);
         } catch (error) {
             console.error('Error fetching conversations:', error);
         }

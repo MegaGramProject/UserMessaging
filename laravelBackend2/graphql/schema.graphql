@@ -26,19 +26,74 @@ input RemoveMessageReactionInput {
     reaction: String!
 }
 
+type UserBlocking {
+    blocker: String!
+    blockee: String!
+}
+
+input UserBlockingInput {
+    blocker: String!
+    blockee: String!
+}
+
+input UserBlockingFilterInput {
+    username: String!
+}
+
+type UserFollowing {
+    follower: String!
+    followee: String!
+}
+
+input UserFollowingInput {
+    follower: String!
+    followee: String!
+}
+
+input UserFollowingFilterInput {
+    username: String!
+}
+
 
 type Query {
     getAllMessageReactions(
         filter: MessageReactionFilterInput
     ): [MessageReaction!]! @field(resolver: "App\\GraphQL\\Queries\\MessageReactionQuery@getAllMessageReactions")
+
+    getAllUserBlockings(
+        filter: UserBlockingFilterInput
+    ): [UserBlocking!]! @field(resolver: "App\\GraphQL\\Queries\\UserBlockingQuery@getAllUserBlockings")
+
+    getAllUserFollowings(
+        filter: UserFollowingFilterInput
+    ): [UserFollowing!]! @field(resolver: "App\\GraphQL\\Queries\\UserFollowingQuery@getAllUserFollowings")
+
 }
 
 type Mutation {
-  addMessageReaction(
-    newReaction: MessageReactionInput
-  ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@addMessageReaction")
-  
-  removeMessageReaction(
-    reactionToRemove: RemoveMessageReactionInput
-  ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@removeMessageReaction")
+    addMessageReaction(
+        newReaction: MessageReactionInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@addMessageReaction")
+    
+    removeMessageReaction(
+        reactionToRemove: RemoveMessageReactionInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MessageReactionMutation@removeMessageReaction")
+
+    addUserBlocking(
+        newUserBlocking: UserBlockingInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserBlockingMutation@addUserBlocking")
+    
+    removeUserBlocking(
+        userBlockingToRemove: UserBlockingInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserBlockingMutation@removeUserBlocking")
+
+    addUserFollowing(
+        newUserFollowing: UserFollowingInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserFollowingMutation@addUserFollowing")
+    
+    removeUserFollowing(
+        userFollowingToRemove: UserFollowingInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserFollowingMutation@removeUserFollowing")
+    
+
 }

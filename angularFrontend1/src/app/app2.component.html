@@ -8,7 +8,8 @@
     (notifyParentToShowListOfMessageRequestsSection)="showListOfMessageRequestsSection()"
     [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
     (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
-    (notifyParentToSendNoteReply)="sendNoteReply($event)"></NotesAndConvosSection>
+    (notifyParentToSendNoteReply)="sendNoteReply($event)" (emitUserBlockingsToParent)="receiveUserBlockings($event)"
+    (emitUserFollowingsToParent)="receiveUserFollowings($event)"></NotesAndConvosSection>
     
     <MessagesOfAChat [hasConvoBeenAdded]="hasSelectedConvoBeenAdded" *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
@@ -21,7 +22,7 @@
     [isRequestingConvoWithRecipient]="isRequestingConvoWithRecipient"
     [groupMessageRecipientsInfo]="groupMessageRecipientsInfo"
     [convoTitle]="selectedConvoTitle" (notifyParentToUpdateConvoTitle)="updateConvoTitle($event)"
-    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
+    [blockedUsernames]="userBlockings" [promotedUsernames]="selectedConvoPromotedUsernames"
     [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
     [selectedConvoInitator]="selectedConvoInitator" [authenticatedFullName]="authenticatedFullName"
     ></MessagesOfAChat>
@@ -39,7 +40,7 @@
     [authenticatedUsername]="authenticatedUsername"
     [messages]="messageData[0]" (notifyParentToShowLeaveGroupPopup)="showLeaveGroupPopup()"
     (notifyParentToShowAddMemberPopup)="showAddMembersPopup()" (notifyParentToShowUserSettingsPopup)="showUserSettingsPopup($event)"
-    [blockedUsernames]="blockedUsernames" [promotedUsernames]="selectedConvoPromotedUsernames"
+    [blockedUsernames]="userBlockings" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
     (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"
     [messagesAreMuted]="isSelectedConvoMuted" [selectedConvoInitator]="selectedConvoInitator"></ConvoDetailsPanel>
@@ -72,7 +73,7 @@
     
     <MessageReactionsPopup *ngIf="showMessageReactionsPopup" [messageReactionsInfo]="messageReactionsInfo"
     (notifyParentToExitMessageReactionsPopup)="closeMessageReactionsPopup()" [authenticatedUsername]="authenticatedUsername"
-    [blockedUsernames]="blockedUsernames" [convoId]="selectedConvoId"></MessageReactionsPopup>
+    [blockedUsernames]="userBlockings" [convoId]="selectedConvoId"></MessageReactionsPopup>
     
     <DeleteChatPopup *ngIf="displayDeleteChatPopup" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToCancelDeleteChat)="cancelDeleteChat()" (notifyParentToDeleteChat)="deleteChat()"></DeleteChatPopup>
@@ -85,7 +86,7 @@
     
     <UserSettingsPopup *ngIf="displayUserSettingsPopup" [messageMember]="userSettingsPopupGroupMessageMember"
     (notifyParentToClosePopup)="closeUserSettingsPopup()" (notifyParentToRemoveUserFromConvo)="removeMemberFromConvo()"
-    (notifyParentToBlockUser)="blockUserFromUserSettingsPopup()" [blockedUsernames]="blockedUsernames"
+    (notifyParentToBlockUser)="blockUserFromUserSettingsPopup()" [blockedUsernames]="userBlockings"
     (notifyParentToUnblockUser)="unblockUserFromUserSettingsPopup()"
     (notifyParentToPromoteUser)="promoteUserFromSettingsPopup()" [promotedUsernames]="selectedConvoPromotedUsernames"
     (notifyParentToDemoteUser)="demoteUserFromSettingsPopup()"

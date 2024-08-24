@@ -1,0 +1,37 @@
+{
+    "sqltools.connections": [
+        {
+            "mssqlOptions": {
+                "appName": "SQLTools",
+                "useUTC": true,
+                "encrypt": true
+            },
+            "previewLimit": 50,
+            "server": "35.225.71.255",
+            "port": 1433,
+            "driver": "MSSQL",
+            "name": "megagram-428802:us-central1:megagram-mssql",
+            "database": "Megagram",
+            "username": "rishavry",
+            "password": "WINwin1$$$"
+        },
+        {
+            "oracleOptions": {
+                "privilege": "Normal",
+                "thickMode": false,
+                "autoCommit": false,
+                "lowerCase": false,
+                "limitPrefetchRows": false
+            },
+            "previewLimit": 50,
+            "server": "megagram-oracle.ch4ku88ucq83.us-east-2.rds.amazonaws.com",
+            "port": 1521,
+            "askForPassword": true,
+            "driver": "Oracle",
+            "name": "oracleSQLConnection",
+            "username": "rishavry",
+            "database": "ORCL"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

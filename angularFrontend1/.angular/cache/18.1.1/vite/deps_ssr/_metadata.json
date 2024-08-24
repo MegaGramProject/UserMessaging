@@ -1,55 +1,61 @@
 {
-  "hash": "127a2484",
-  "configHash": "3b84f170",
+  "hash": "6663edc9",
+  "configHash": "6cab7a10",
   "lockfileHash": "4c2ee1e3",
-  "browserHash": "c71b47d8",
+  "browserHash": "aba50767",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "39ecd2d0",
+      "fileHash": "8bf320e9",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "739bd75f",
+      "fileHash": "09cc90da",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "d8ab4ba0",
+      "fileHash": "70389255",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "ea2a6f1b",
+      "fileHash": "5786cbb4",
       "needsInterop": false
     },
     "@angular/platform-server": {
       "src": "../../../../../node_modules/@angular/platform-server/fesm2022/platform-server.mjs",
       "file": "@angular_platform-server.js",
-      "fileHash": "e22b465c",
+      "fileHash": "b88f458f",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "9f1bea64",
+      "fileHash": "c5707b0a",
       "needsInterop": false
     },
     "axios": {
       "src": "../../../../../node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "c037ce32",
+      "fileHash": "0906efa3",
+      "needsInterop": false
+    },
+    "tslib": {
+      "src": "../../../../../node_modules/tslib/tslib.es6.mjs",
+      "file": "tslib.js",
+      "fileHash": "862b5e82",
       "needsInterop": false
     },
     "uuid": {
       "src": "../../../../../node_modules/uuid/dist/esm-node/index.js",
       "file": "uuid.js",
-      "fileHash": "fa0681b1",
+      "fileHash": "e0276210",
       "needsInterop": false
     }
   },
