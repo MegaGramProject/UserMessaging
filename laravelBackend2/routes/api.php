@@ -1,12 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MessageReactionController;
-use App\Http\Middleware\CustomCorsMiddleware;
+use Illuminate\Http\Request;
+use App\Http\Controllers\UserMessagingFilesController;
 
 
-
-Route::middleware([CustomCorsMiddleware::class])->group(function () {
-    Route::get('/getAllMessageReactions', [MessageReactionController::class, 'index']);
-});
+Route::post('/sendFilesWithMessage', [UserMessagingFilesController::class, 'sendFilesWithMessage']);
+Route::delete('/deleteFilesWithMessage', [UserMessagingFilesController::class, 'deleteFilesWithMessage']);
+Route::get('/getAllFilesForConvo/{convoId}', [UserMessagingFilesController::class, 'getAllFilesForConvo']);

@@ -2,15 +2,15 @@
 
 return [
 
-    'paths' => ['/graphql'], // Adjust the paths to include your GraphQL endpoint
+    'paths' => ['/graphql', 'api/sendFilesWithMessage', 'api/getAllFilesForConvo/*', 'api/deleteFilesWithMessage'],
 
-    'allowed_methods' => ['*'], // Allows all methods (GET, POST, PUT, DELETE, etc.)
+    'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:8011'], // Allows all origins (e.g., '*', 'https://example.com')
+    'allowed_origins' => ['http://localhost:8011'],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'], // Allows all headers
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 

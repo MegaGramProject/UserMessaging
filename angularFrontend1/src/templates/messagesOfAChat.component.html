@@ -582,7 +582,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <div style="position: relative;">
 
             <div style="display: flex; align-items: center; gap: 1em;">
-                <img *ngIf="message[0]!==authenticatedUsername" src="profileIcon.png" style="height: 2.5em; width: 2.5em;
+                <img *ngIf="message[0]!==authenticatedUsername" [src]="getMessageSenderProfileIcon(message[0])" style="height: 2.5em; width: 2.5em;
                 cursor: pointer; object-fit: contain;">
                 <p (dblclick)="onDoubleClickingMessage(i)" *ngIf="message[0]!==authenticatedUsername && message[1]!=='\u2764\ufe0f'" [ngStyle]="{
                         'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',

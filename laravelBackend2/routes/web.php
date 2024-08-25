@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\MessageReaction;
-use App\Http\Middleware\CustomCorsMiddleware;
+use Illuminate\Http\Request;
+use App\Http\Controllers\UserMessagingFilesController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -14,3 +16,4 @@ Route::get('/getAllMessageReactions', function () {
 
     return response()->json($messageReactions, 200);
 });
+

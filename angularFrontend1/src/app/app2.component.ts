@@ -1206,7 +1206,59 @@ import { Note } from '../note.model';
                 this.messageData[1][i] = reactionsForMessage;
                 this.messageData[2][i] = reactionUsernamesForMessage;
             }
-            
+
+            const response3 = await fetch('http://localhost:8013/api/getAllFilesForConvo/'+this.selectedConvoId);
+            if(!response3.ok) {
+                throw new Error('Network response not ok');
+            }
+            const allFilesForConvo = await response3.json();
+            allFilesForConvo.sort((a:any, b:any) =>  a['position'] - b['position']);
+
+            let filesForMessage;
+            let fileImagesForMessage:string[];
+            let uint8Array;
+            let blob;
+            let fileObject;
+            let fileUrl;
+            const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+
+            for(let i=0; i<this.messageData[0].length; i++) {
+                messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+                filesForMessage = [];
+                fileImagesForMessage = [];
+                for(let fileForConvo of allFilesForConvo) {
+                    if(fileForConvo['messageId']===messageIdOfCurrentMessage) {
+                        uint8Array = this.base64ToUint8Array(fileForConvo['fileAsString']);
+                        blob = new Blob([uint8Array], { type: fileForConvo['mimeType'] });
+                        fileObject = new File([blob], fileForConvo['fileName'], { type: fileForConvo['mimeType'] });
+                        filesForMessage.push(fileObject);
+
+                        if(acceptedTypes.includes(fileForConvo['mimeType'])) {
+                            fileUrl = URL.createObjectURL(fileObject);
+                            fileImagesForMessage.push(fileUrl);
+                        }
+                        else {
+                            fileImagesForMessage.push("default file image");
+                        }
+                        this.messageData[6][i].push([]);
+                        this.messageData[7][i].push([]);
+                    }
+                }
+                this.messageData[3][i] = filesForMessage;
+                this.messageData[4][i] = fileImagesForMessage;
+            }
+    }
+
+    base64ToUint8Array(base64:string) {
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+    
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+    
+        return bytes;
     }
 
     getMembersOfSelectedConvo() {

@@ -111,7 +111,8 @@ export class MessagesOfAChat {
     @Output() notifyParentToAddConvoToDatabase: EventEmitter<any[]> = new EventEmitter();
     @Input() selectedConvoInitator!:string[];
     @Input() authenticatedFullName!:string;
-    @Input() profilePhotoString:string = "profileIcon.png";
+    userProfileIcons: { [username: string]: string } = {};
+    profilePhotoString!:string;
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -199,27 +200,39 @@ export class MessagesOfAChat {
     }
 
 
-    ngOnChanges(changes: SimpleChanges) {
+    async ngOnChanges(changes: SimpleChanges) {
         if (changes['messageRecipientInfo'] && changes['messageRecipientInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
-            this.getProfilePhoto(this.selectedConvoInitator[0]);
+            this.userProfileIcons = {};
+            await this.getProfilePhoto(this.messageRecipientInfo[0]);
+            this.profilePhotoString = this.userProfileIcons[this.messageRecipientInfo[0]];
         }
         else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
-            this.getProfilePhoto(this.selectedConvoInitator[0]);
+            this.userProfileIcons = {};
+            for(let member of this.groupMessageRecipientsInfo) {
+                await this.getProfilePhoto(member[0]);
+            }
+            this.profilePhotoString = this.userProfileIcons[this.selectedConvoInitator[0]];
         }
+        
     }
 
     async getProfilePhoto(username:string) {
-        console.log(username);
-        const response = await fetch('http://localhost:8003/getProfilePhoto/'+username);
-        if(!response.ok) {
-            return;
+        try {
+            const response = await fetch('http://localhost:8003/getProfilePhoto/'+username);
+            if(!response.ok) {
+                this.userProfileIcons[username] = "profileIcon.png"
+                return;
+            }
+            const buffer = await response.arrayBuffer();
+            const base64Flag = 'data:image/jpeg;base64,';
+            const imageStr = this.arrayBufferToBase64(buffer);
+            this.userProfileIcons[username] = base64Flag + imageStr;
         }
-        const buffer = await response.arrayBuffer();
-        const base64Flag = 'data:image/jpeg;base64,';
-        const imageStr = this.arrayBufferToBase64(buffer);
-        this.profilePhotoString = base64Flag + imageStr;
+        catch {
+            this.userProfileIcons[username] = "profileIcon.png"
+        }
     }
 
     arrayBufferToBase64(buffer: ArrayBuffer) {
@@ -298,6 +311,26 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
         }
+
+        if(this.filesToSend.length>0) {
+            const formData = new FormData();
+    
+            formData.append('convoId', this.convoId);
+            formData.append('messageId', newMessageId);
+            this.filesToSend.forEach((file, index) => {
+                formData.append(`${index}`, file);
+            });
+    
+            const responseForSendingFilesOfMessage = await fetch('http://localhost:8013/api/sendFilesWithMessage', {
+                method: 'POST',
+                body: formData
+            });
+    
+            if(!responseForSendingFilesOfMessage.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
         this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
         this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
@@ -562,6 +595,18 @@ export class MessagesOfAChat {
             messageId = <string>this.messages[index][3];
         }
 
+        const response2 = await fetch('http://localhost:8013/api/deleteFilesWithMessage', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                messageId: messageId
+            })
+        });
+
+        if(!response2.ok) {
+            throw new Error('Network response not ok');
+        }
+
         const response = await fetch('http://localhost:8012/deleteMessage/'+messageId, {
             method: 'DELETE'
         });
@@ -569,6 +614,7 @@ export class MessagesOfAChat {
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
+
         
         this.messages.splice(index, 1);
         this.reactions.splice(index, 1);
@@ -993,6 +1039,11 @@ export class MessagesOfAChat {
     getForwardedMessage(messageIndex: number) {
         return (<string>(<Array<any>>this.messages)[messageIndex][1][2]);
     }
+
+    getMessageSenderProfileIcon(username: any): string {
+        return this.userProfileIcons[username as string];
+    }
+    
 
 
 
