@@ -55,14 +55,49 @@ class UserMessagingFilesController extends Controller
         return response()->json(['message' => 'File(s) uploaded successfully'], 200);
     }
 
-
-    public function deleteFilesWithMessage(Request $request) {
+    public function deleteSingleFileFromMessage(Request $request, int $filePosition) {
         $request->validate([
             'messageId' => 'required|string',
         ]);
 
         $messageId = $request->input('messageId');
 
+        $projectId = 'megagram-428802';
+        $bucketName = 'megagram-usermessaging-filessent';
+        putenv("GOOGLE_APPLICATION_CREDENTIALS=/Users/rishavr/Downloads/megagram-428802-476264306d3b.json");
+
+    
+        $storage = new StorageClient([
+            'projectId' => $projectId,
+        ]);
+
+
+        $bucket = $storage->bucket($bucketName);
+
+        $objects = $bucket->objects();
+
+        foreach ($objects as $object) {
+            $metadata = $object->info();
+
+            if ($metadata['metadata']['messageId'] === $messageId &&  $metadata['metadata']['position'] == $filePosition){
+                $object->delete();
+            }
+            else if($metadata['metadata']['messageId'] === $messageId &&  $metadata['metadata']['position'] > $filePosition) {
+                $newPosition = $metadata['metadata']['position'] - 1;
+
+                $object->update([
+                    'metadata' => [
+                        'position' => $newPosition,
+                    ]
+                ]);
+            }
+        }
+        return response()->json(['message' => 'File deleted successfully'], 200);
+    }
+
+
+    public function deleteFilesWithMessage(Request $request) {
+        $messageId = $request->input('messageId');
 
         $projectId = 'megagram-428802';
         $bucketName = 'megagram-usermessaging-filessent';

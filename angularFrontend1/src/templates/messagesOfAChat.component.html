@@ -372,16 +372,16 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </div>
 
 
-            <div *ngIf="fileReplies[i][0]!==-1 && fileReplies[i][1]!==-1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+            <div *ngIf="fileReplies[i].length>1 && message.length>3" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
             border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
             [ngStyle]="{
                 'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
                 'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
                 'border-right': message[0] !== authenticatedUsername ? 'none' : 'auto',
             }">
-                <p *ngIf="message[0]===authenticatedUsername">You replied to {{messages[fileReplies[i][0]][0]}}</p>
-                <p *ngIf="message[0]!==authenticatedUsername">{{messageRecipientInfo[0]}} replied to {{messages[fileReplies[i][0]][0]}}</p>
-                <img (click)="downloadFile(fileReplies[i])" [src]="messageFileImages[fileReplies[i][0]][fileReplies[i][1]]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
+                <p *ngIf="message[0]===authenticatedUsername">You replied to {{fileReplies[i][1]}}</p>
+                <p *ngIf="message[0]!==authenticatedUsername">{{message[0]}} replied to {{fileReplies[i][1]}}</p>
+                <img (click)="downloadFileDirectly(fileReplies[i][0])" [src]="fileReplies[i][3]" style="height: 7em; width: 7em; object-fit: contain; cursor: pointer;">
             </div>
 
             <div *ngIf="messageFileImages[i].length>0 && message.length>3" style="display: flex; flex-direction: column; gap: 0.3em;"

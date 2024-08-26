@@ -2,7 +2,7 @@
 
 return [
 
-    'paths' => ['/graphql', 'api/sendFilesWithMessage', 'api/getAllFilesForConvo/*', 'api/deleteFilesWithMessage'],
+    'paths' => ['/graphql', 'api/sendFilesWithMessage', 'api/getAllFilesForConvo/*', 'api/deleteFilesWithMessage', 'api/deleteSingleFileFromMessage/*'],
 
     'allowed_methods' => ['*'],
 

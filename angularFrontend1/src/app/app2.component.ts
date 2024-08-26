@@ -776,7 +776,7 @@ import { Note } from '../note.model';
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([-1, -1]);
+        this.messageData[5].push([null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
         const responseForSendingForwardedMessage = await fetch('http://localhost:8012/addMessage', {
@@ -805,7 +805,7 @@ import { Note } from '../note.model';
         this.messageData[2].push([]);
         this.messageData[3].push([forwardMessageInfo[0][0]]);
         this.messageData[4].push([forwardMessageInfo[0][1]]);
-        this.messageData[5].push([-1, -1]);
+        this.messageData[5].push([null]);
         this.messageData[6].push([[]]);
         this.messageData[7].push([[]]);
     }
@@ -970,13 +970,17 @@ import { Note } from '../note.model';
                 }
             }
 
+            const response0 = await fetch('http://localhost:8014/getAllFilesThatWereRepliedToInConvo/'+this.selectedConvoId);
+            if(!response0.ok) {
+                throw new Error('Network response not ok');
+            }
+            const repliedToFilesInConvo = await response0.json();
 
             const response = await fetch('http://localhost:8012/getMessagesForConvo/'+this.selectedConvoId);
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }
 
-    
             const messages = await response.json();
             this.messageIdsOfSelectedConvo = [];
 
@@ -990,7 +994,7 @@ import { Note } from '../note.model';
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([-1, -1]);
+                        this.messageData[5].push([null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
@@ -1000,7 +1004,7 @@ import { Note } from '../note.model';
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([-1, -1]);
+                        this.requestedMessageData[5].push([null]);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
                     }
@@ -1013,7 +1017,7 @@ import { Note } from '../note.model';
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([-1, -1]);
+                        this.messageData[5].push([null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
@@ -1024,7 +1028,7 @@ import { Note } from '../note.model';
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([-1, -1]);
+                        this.requestedMessageData[5].push([null]);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
                     }
@@ -1037,7 +1041,7 @@ import { Note } from '../note.model';
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([-1, -1]);
+                    this.messageData[5].push([null]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
                 }
@@ -1048,7 +1052,7 @@ import { Note } from '../note.model';
                     this.requestedMessageData[2].push([]);
                     this.requestedMessageData[3].push([]);
                     this.requestedMessageData[4].push([]);
-                    this.requestedMessageData[5].push([-1, -1]);
+                    this.requestedMessageData[5].push(<any>null);
                     this.requestedMessageData[6].push([]);
                     this.requestedMessageData[7].push([]);
                 }
@@ -1061,7 +1065,7 @@ import { Note } from '../note.model';
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([-1, -1]);
+                        this.messageData[5].push([null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
@@ -1072,7 +1076,7 @@ import { Note } from '../note.model';
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([-1, -1]);
+                        this.requestedMessageData[5].push(<any>null);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
 
@@ -1087,7 +1091,7 @@ import { Note } from '../note.model';
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([-1, -1]);
+                        this.messageData[5].push([null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
@@ -1098,7 +1102,7 @@ import { Note } from '../note.model';
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([-1, -1]);
+                        this.requestedMessageData[5].push(<any>null);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
                     }
@@ -1112,7 +1116,7 @@ import { Note } from '../note.model';
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([-1, -1]);
+                        this.messageData[5].push([null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
@@ -1123,7 +1127,7 @@ import { Note } from '../note.model';
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([-1, -1]);
+                        this.requestedMessageData[5].push(<any>null);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
                     }
@@ -1131,22 +1135,50 @@ import { Note } from '../note.model';
 
                 else if(message['message'][0]==='Add-Member/Remove-Member') {
                     if(!this.displayListOfMessageRequestsSection) {
-                        this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", message['message'][1], message['messageId']],  new Date(message['messageSentAt']+"Z")]);
-                        this.messageData[1].push([-1, -1]);
+                        this.messageData[0].push([message['sender'], ["Add-Member/Remove-Member", message['message'][1], message['messageId']],  new Date(message['messageSentAt']+"Z")]);
+                        this.messageData[1].push([]);
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
                         this.messageData[4].push([]);
-                        this.messageData[5].push([]);
+                        this.messageData[5].push([<any>null]);
                         this.messageData[6].push([]);
                         this.messageData[7].push([]);
                     }
                     else {
-                        this.requestedMessageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", message['message'][1], message['messageId']],  new Date(message['messageSentAt']+"Z")]);
-                        this.requestedMessageData[1].push([-1, -1]);
+                        this.requestedMessageData[0].push([message['sender'], ["Add-Member/Remove-Member", message['message'][1], message['messageId']],  new Date(message['messageSentAt']+"Z")]);
+                        this.requestedMessageData[1].push([]);
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
                         this.requestedMessageData[4].push([]);
-                        this.requestedMessageData[5].push([]);
+                        this.requestedMessageData[5].push([<any>null]);
+                        this.requestedMessageData[6].push([]);
+                        this.requestedMessageData[7].push([]);
+
+                    }
+                }
+                else if(message['message'][0]==='File-Reply') {
+                    let fileInConvo = repliedToFilesInConvo[message['message'][2]];
+                    let uint8Array = this.base64ToUint8Array(fileInConvo['content']);
+                    let blob = new Blob([uint8Array], { type: fileInConvo['content_type'] });
+                    let fileInConvoAsObject = new File([blob], fileInConvo['filename'], { type: fileInConvo['content_type'] });
+
+                    if(!this.displayListOfMessageRequestsSection) {
+                        this.messageData[0].push([message['sender'], message['message'][3],  new Date(message['messageSentAt']+"Z"), message['messageId']]);
+                        this.messageData[1].push([]);
+                        this.messageData[2].push([]);
+                        this.messageData[3].push([]);
+                        this.messageData[4].push([]);
+                        this.messageData[5].push([fileInConvoAsObject, message['message'][1], message['message'][2], this.getImageForFileReply(fileInConvoAsObject)]);
+                        this.messageData[6].push([]);
+                        this.messageData[7].push([]);
+                    }
+                    else {
+                        this.requestedMessageData[0].push([message['sender'], message['message'][3],  new Date(message['messageSentAt']+"Z"), message['messageId']]);
+                        this.requestedMessageData[1].push([]);
+                        this.requestedMessageData[2].push([]);
+                        this.requestedMessageData[3].push([]);
+                        this.requestedMessageData[4].push([]);
+                        this.requestedMessageData[5].push([fileInConvoAsObject, message['message'][1], message['message'][2], this.getImageForFileReply(fileInConvoAsObject)]);
                         this.requestedMessageData[6].push([]);
                         this.requestedMessageData[7].push([]);
 
@@ -1246,6 +1278,49 @@ import { Note } from '../note.model';
                 }
                 this.messageData[3][i] = filesForMessage;
                 this.messageData[4][i] = fileImagesForMessage;
+            }
+
+            const response4 = await fetch('http://localhost:8014/getAllMessageFileReactionsForConvo/'+this.selectedConvoId);
+            if(!response4.ok) {
+                throw new Error('Network response not ok');
+            }
+            const allMessageFileReactionsForConvo = await response4.json();
+
+            type MessageFileReactionMappings = Record<string, Array<Record<string, string>>>;
+            const messageFileReactionMappings: MessageFileReactionMappings = {};
+            
+            let key;
+            let reactionsForFile;
+            filesForMessage = [];
+
+            for(let convoFileReaction of allMessageFileReactionsForConvo) {
+                key = [convoFileReaction['messageId'], convoFileReaction['position']].toString();
+                if (!(key in messageFileReactionMappings)) {
+                    messageFileReactionMappings[key] = [{
+                        reaction: convoFileReaction['reaction'],
+                        reactionUsername: convoFileReaction['reactionUsername']
+                    }];
+                } else {
+                    messageFileReactionMappings[key].push({
+                        reaction: convoFileReaction['reaction'],
+                        reactionUsername: convoFileReaction['reactionUsername']
+                    });
+                }
+            }
+
+            for(let i=0; i<this.messageData[0].length; i++) {
+                messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+                filesForMessage = this.messageData[3][i];
+                for(let j=0; j<filesForMessage.length; j++) {
+                    key = [messageIdOfCurrentMessage, j].toString();
+                    reactionsForFile = messageFileReactionMappings[key];
+                    if(reactionsForFile) {
+                        for(let reactionForFile of reactionsForFile) {
+                            this.messageData[6][i][j].push(reactionForFile['reaction']);
+                            this.messageData[7][i][j].push(reactionForFile['reactionUsername']);
+                        }
+                    }
+                }
             }
     }
 
@@ -1407,6 +1482,16 @@ import { Note } from '../note.model';
         this.showNewMessagePopup = true;
     }
 
+    getImageForFileReply(file: any) {
+        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+        if (acceptedTypes.includes(file.type)) {
+            return URL.createObjectURL(file);
+        }
+        else {
+            return "default file image";
+        }
+    }
+
     async addNewMemberToConvo(selectedUsers: any[]) {
         this.showNewMessagePopup = false;
         let responseForSendingMessage;
@@ -1445,11 +1530,11 @@ import { Note } from '../note.model';
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0], newMessageId], new Date()]);
-                    this.messageData[1].push([-1, -1]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
+                    this.messageData[5].push([<any>null]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
                 }
@@ -1485,11 +1570,11 @@ import { Note } from '../note.model';
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
-                    this.messageData[1].push([-1, -1]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
+                    this.messageData[5].push([<any>null]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
 
@@ -1531,11 +1616,11 @@ import { Note } from '../note.model';
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0], newMessageId], new Date()]);
-                    this.messageData[1].push([-1, -1]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
+                    this.messageData[5].push([null]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
 
@@ -1582,11 +1667,11 @@ import { Note } from '../note.model';
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
-                    this.messageData[1].push([-1, -1]);
+                    this.messageData[1].push([]);
                     this.messageData[2].push([]);
                     this.messageData[3].push([]);
                     this.messageData[4].push([]);
-                    this.messageData[5].push([]);
+                    this.messageData[5].push([<any>null]);
                     this.messageData[6].push([]);
                     this.messageData[7].push([]);
 
@@ -1753,11 +1838,11 @@ import { Note } from '../note.model';
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "removed " + this.userSettingsPopupGroupMessageMember[0], newMessageId], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
 
@@ -1844,11 +1929,11 @@ import { Note } from '../note.model';
 
         this.displayUserSettingsPopup = false;
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
     }
@@ -1901,11 +1986,11 @@ import { Note } from '../note.model';
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
         this.displayUserSettingsPopup = false;
@@ -1963,11 +2048,11 @@ import { Note } from '../note.model';
 
 
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "promoted " + this.messageRecipientInfo[0]], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
         this.displayPromoteUserPopup = false;
@@ -2022,11 +2107,11 @@ import { Note } from '../note.model';
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.messageRecipientInfo[0]], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
         this.selectedConvoPromotedUsernames = [];
@@ -2038,11 +2123,11 @@ import { Note } from '../note.model';
 
     sendNoteReply(noteReplyInfo: string[]) {
         this.messageData[0].push([this.authenticatedUsername, ["Note-Reply", noteReplyInfo], new Date()]);
-        this.messageData[1].push([-1, -1]);
+        this.messageData[1].push([]);
         this.messageData[2].push([]);
         this.messageData[3].push([]);
         this.messageData[4].push([]);
-        this.messageData[5].push([]);
+        this.messageData[5].push([<any>null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
         for(let i=0; i<this.listOfConvos.length; i++) {

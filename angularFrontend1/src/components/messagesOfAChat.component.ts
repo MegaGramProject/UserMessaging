@@ -46,11 +46,11 @@ export class MessagesOfAChat {
     //    [],
     //    []
     ];
-    fileReplies: Array<Array<number>> = [
-    //    [-1, -1],
-   //     [-1, -1],
-   //     [-1, -1],
-   //     [-1, -1],
+    fileReplies: Array<Array<any>> = [
+    //   [fileObj1, "fileSender1"],
+   //    [fileObj2, "fileSender2"],
+   //    [fileObj3, "fileSender3"],
+   //    [fileObj4, "fileSender4"],
     ];
     messageFileReactions: Array<Array<any>> = [
     //    [],
@@ -155,7 +155,7 @@ export class MessagesOfAChat {
 
     showMessageReactionsPopup(index: number) {
         const messageId = <string>this.getMessageId(index);
-        this.notifyParentToShowMessageReactions.emit([this.reactions[index], this.reactionUsernames[index], [messageId]]);
+        this.notifyParentToShowMessageReactions.emit([this.reactions[index], this.reactionUsernames[index], [messageId], ['-1']]);
     }
     
     displayIconsOfTextarea() {
@@ -293,7 +293,45 @@ export class MessagesOfAChat {
             if(!responseForSendingReplyMessage.ok) {
                 throw new Error('Network response not ok');
             }
+            this.fileReplies.push([null]);
         }
+        else if(this.fileIndexToReplyTo[0]!==-1) {
+            const fileToReplyToId = uuidv4();
+
+            const formData = new FormData();
+    
+            formData.append('convoId', this.convoId);
+            formData.append('fileToReplyTo', this.messageFiles[this.fileIndexToReplyTo[0]][this.fileIndexToReplyTo[1]]);
+
+            const responseForStoringFileToReplyTo = await fetch('http://localhost:8014/addFileToReplyTo/'+fileToReplyToId, {
+                method: 'POST',
+                body: formData
+            });
+
+            if(!responseForStoringFileToReplyTo.ok) {
+                throw new Error('Network response not ok');
+            }
+            
+            const responseForSendingFileReplyMessage = await fetch('http://localhost:8012/addMessage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    messageId: newMessageId,
+                    convoId: this.convoId,
+                    message: JSON.stringify(["File-Reply", this.messages[this.fileIndexToReplyTo[0]][0], fileToReplyToId, this.messageToSend]),
+                    sender: this.authenticatedUsername,
+                    messageSentAt: new Date()
+                })
+            });
+            
+            if(!responseForSendingFileReplyMessage.ok) {
+                throw new Error('Network response not ok');
+            }
+
+            this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
+            this.fileReplies.push([this.messageFiles[this.fileIndexToReplyTo[0]][this.fileIndexToReplyTo[1]], this.messages[this.fileIndexToReplyTo[0]][0], fileToReplyToId, this.getImageForFileReply(this.messageFiles[this.fileIndexToReplyTo[0]][this.fileIndexToReplyTo[1]])]);
+        }
+
         else {
             const responseForSendingRegularMessage = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
@@ -310,6 +348,8 @@ export class MessagesOfAChat {
             if(!responseForSendingRegularMessage.ok) {
                 throw new Error('Network response not ok');
             }
+            this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
+            this.fileReplies.push([null]);
         }
 
         if(this.filesToSend.length>0) {
@@ -317,6 +357,7 @@ export class MessagesOfAChat {
     
             formData.append('convoId', this.convoId);
             formData.append('messageId', newMessageId);
+
             this.filesToSend.forEach((file, index) => {
                 formData.append(`${index}`, file);
             });
@@ -331,8 +372,6 @@ export class MessagesOfAChat {
             }
         }
 
-        this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
-        this.fileReplies.push(this.fileIndexToReplyTo);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push(this.filesToSend);
@@ -376,7 +415,7 @@ export class MessagesOfAChat {
         if(!responseForSendingHeart.ok) {
             throw new Error('Network response not ok');
         }
-        this.fileReplies.push(this.fileIndexToReplyTo);
+        this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push(this.filesToSend);
@@ -486,7 +525,21 @@ export class MessagesOfAChat {
         this.reactionUsernames[index].push(this.authenticatedUsername);
     }
 
-    addFileReaction(messageIndex: number, fileIndex: number, reaction: string) {
+    async addFileReaction(messageIndex: number, fileIndex: number, reaction: string) {
+        const response = await fetch('http://localhost:8014/addUserMessagingFileReaction', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                convoId: this.convoId,
+                messageId: this.getMessageId(messageIndex),
+                position: fileIndex,
+                reaction: reaction,
+                reactionUsername: this.authenticatedUsername
+            })
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
         this.messageFileReactions[messageIndex][fileIndex].push(reaction);
         this.messageFileReactionUsernames[messageIndex][fileIndex].push(this.authenticatedUsername);
     }
@@ -567,6 +620,9 @@ export class MessagesOfAChat {
                     else if(this.isForwardedMessage(index-1)) {
                         this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + (<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
                     }
+                    else if(this.isFileReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messages[index-1][1], this.messages[index-1][2]]);
+                    }
                 }
                 else {
                     if(this.messages[index-1].length>3) {
@@ -577,6 +633,9 @@ export class MessagesOfAChat {
                     }
                     else if(this.isForwardedMessage(index-1)) {
                         this.notifyParentToUpdateLatestMessageInConvo.emit([(<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
+                    }
+                    else if(this.isFileReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][1], this.messages[index-1][2]]);
                     }
                 }
             }
@@ -595,7 +654,17 @@ export class MessagesOfAChat {
             messageId = <string>this.messages[index][3];
         }
 
-        const response2 = await fetch('http://localhost:8013/api/deleteFilesWithMessage', {
+        if(this.isFileReply(index)) {
+            const fileToReplyToId = this.fileReplies[index][2];
+            const removeFileThatWasRepliedTo = await fetch('http://localhost:8014/removeFileThatWasRepliedTo/'+fileToReplyToId, {
+                method: 'DELETE'
+            });
+            if(!removeFileThatWasRepliedTo.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
+        const response0 = await fetch('http://localhost:8013/api/deleteFilesWithMessage', {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -603,7 +672,7 @@ export class MessagesOfAChat {
             })
         });
 
-        if(!response2.ok) {
+        if(!response0.ok) {
             throw new Error('Network response not ok');
         }
 
@@ -627,7 +696,18 @@ export class MessagesOfAChat {
         this.currentlyShownOptionsPanel = -1;
     }
 
-    deleteFile(messageIndex: number, fileIndex: number) {
+    async deleteFile(messageIndex: number, fileIndex: number) {
+        const messageIdOfFile = this.getMessageId(messageIndex);
+        const response = await fetch('http://localhost:8013/api/deleteSingleFileFromMessage' + '/' + fileIndex, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                messageId: messageIdOfFile
+            })
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
         this.messageFiles[messageIndex].splice(fileIndex, 1);
         this.messageFileImages[messageIndex].splice(fileIndex, 1);
         this.messageFileReactions[messageIndex].splice(fileIndex, 1);
@@ -750,6 +830,27 @@ export class MessagesOfAChat {
         URL.revokeObjectURL(url);
     }
 
+    downloadFileDirectly(file: any) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    getImageForFileReply(file: any) {
+        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+        if (acceptedTypes.includes(file.type)) {
+            return URL.createObjectURL(file);
+        }
+        else {
+            return "default file image";
+        }
+    }
+
 
     showReactionPanelForMessageFiles(messageIndex: number, fileIndex: number) {
         if(this.currentlyShownReactionPanelForMessageFiles[0]==messageIndex &&  this.currentlyShownReactionPanelForMessageFiles[1]==fileIndex) {
@@ -766,7 +867,9 @@ export class MessagesOfAChat {
 
 
     showFileReactionsPopup(messageIndex: number, fileIndex: number) {
-        this.notifyParentToShowMessageReactions.emit([this.messageFileReactions[messageIndex][fileIndex], this.messageFileReactionUsernames[messageIndex][fileIndex]]);
+        const messageId = <string>this.getMessageId(messageIndex);
+        this.notifyParentToShowMessageReactions.emit([this.messageFileReactions[messageIndex][fileIndex], this.messageFileReactionUsernames[messageIndex][fileIndex],
+        [messageId], [fileIndex.toString()]]);
     }
 
     setCurrentlyShownOptionsPanel(messageIndex: number, fileIndex: number) {
@@ -801,7 +904,7 @@ export class MessagesOfAChat {
 
         let currentDateTime = new Date();
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Started", newMessageId], currentDateTime]);
-        this.fileReplies.push([-1, -1]);
+        this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push([]);
@@ -831,7 +934,7 @@ export class MessagesOfAChat {
         }
 
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Audio-Call Ended", newMessageId], newDateTime]);
-        this.fileReplies.push([-1, -1]);
+        this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push([]);
@@ -841,6 +944,10 @@ export class MessagesOfAChat {
 
         this.cdRef.detectChanges();
         this.scrollToBottom();
+    }
+
+    ngAfterContentChecked(): void {
+        this.cdRef.detectChanges();
     }
 
     async startVideoCall() {
@@ -865,7 +972,7 @@ export class MessagesOfAChat {
 
         let currentDateTime = new Date();
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Started"], currentDateTime]);
-        this.fileReplies.push([-1, -1]);
+        this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push([]);
@@ -896,7 +1003,7 @@ export class MessagesOfAChat {
         }
 
         this.messages.push([this.authenticatedUsername, ["Video-Chat/Audio-Chat", "Video-Chat Ended"], newDateTime]);
-        this.fileReplies.push([-1, -1]);
+        this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push([]);
@@ -948,7 +1055,7 @@ export class MessagesOfAChat {
             if(this.convoTitleBeforeEditing!==this.convoTitle) {
                 this.notifyParentToUpdateConvoTitle.emit([this.authenticatedUsername, ["Convo-Title", this.convoTitleBeforeEditing + " to " + this.convoTitle], new Date(), this.convoTitle]);
                 this.messages.push([this.authenticatedUsername, ["Convo-Title", "You changed the title of this conversation from " + this.convoTitleBeforeEditing + " to " + this.convoTitle], new Date()]);
-                this.fileReplies.push([-1, -1]);
+                this.fileReplies.push([null]);
                 this.reactions.push([]);
                 this.reactionUsernames.push([]);
                 this.messageFiles.push([]);
@@ -1043,12 +1150,10 @@ export class MessagesOfAChat {
     getMessageSenderProfileIcon(username: any): string {
         return this.userProfileIcons[username as string];
     }
-    
 
-
-
-    
-
+    isFileReply(messageIndex: number) {
+        return this.messages[messageIndex].length > 3 && this.fileReplies[messageIndex].length == 4;
+    }
 
 
 }
