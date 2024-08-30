@@ -3,22 +3,21 @@ border-left: none; border-top: none; border-bottom: none; border-color: lightgra
 flex-direction: column; padding-left: 2em; padding-right: 2em;">
 
 <div style="display: flex; align-items: center; margin-top: 2em; position: relative; width: 100%;">
-<b (click)="takeUserToLogin()" style="font-size: 1.4em; cursor: pointer;">rishavry</b>
+<b (click)="takeUserToLogin()" style="font-size: 1.4em; cursor: pointer;">{{authenticatedUsername}}</b>
 <img (click)="toggleExpansion()" src="dropdownV.png" style="cursor: pointer; height: 1.4em; width: 1.4em; margin-left: 0.5em; object-fit: contain;">
 <img (click)="showNewMessagePopup()" src="sendNewMessageIcon.png" style="cursor: pointer; height: 2.4em; width: 2.4em; object-fit: contain; position: absolute;
 top: -20%; left: 90%;">
 </div>
 
 <div style="display: flex; margin-top: 1em; width: 100%; height: 14%; align-items: center; gap:1.7em;">
-<Note (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
-<Note [isOwnAccount]="false" [noteText]="'First note!'" [username]="'rishavry2'" [fullName]="'Rishav Ray2'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"
-(notifyParentToSendNoteReply)="tellParentToSendNoteReply($event)"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Second note!'" [username]="'rishavry3'" [fullName]="'Rishav Ray3'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"
-(notifyParentToSendNoteReply)="tellParentToSendNoteReply($event)"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Third note!'" [username]="'rishavry4'" [fullName]="'Rishav Ray4'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"
-(notifyParentToSendNoteReply)="tellParentToSendNoteReply($event)"></Note>
-<Note [isOwnAccount]="false" [noteText]="'Fourth note!'" [username]="'rishavry5'" [fullName]="'Rishav Ray5'" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"
-(notifyParentToSendNoteReply)="tellParentToSendNoteReply($event)"></Note>
+    <Note [username]="authenticatedUsername" (notifyParentToCreateNewNote)="showCreateNewNote()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)"></Note>
+    
+    <div *ngFor="let user of usersThatYouFollow; let i = index;">
+        <Note *ngIf="latestUnexpiredNotesListOfUsersYouFollow[i]!==null" [isOwnAccount]="false" [noteText]="latestUnexpiredNotesListOfUsersYouFollow[i].substring(0,30) + '...'"
+        [username]="user" [fullName]="user" (notifyParentToCreateNewNote)="showCreateNewNote()"
+        (notifyParentToShowNoteSection)="handleShowNoteSectionNotfication($event)" (notifyParentToSendNoteReply)="tellParentToSendNoteReply($event)"></Note>
+    </div>
+
 </div>
 
 <div style="display: flex; align-items: center; width:100%; margin-top: 3em; position: relative;">

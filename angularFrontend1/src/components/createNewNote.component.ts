@@ -19,7 +19,8 @@ export class CreateNewNote {
     isChecked1: boolean = true;
     isChecked2: boolean = false;
     newNoteText: string = "";
-    @Input() listOfNotes1!:Note[];
+    @Input() listOfNotes1ForUser!:Note[];
+    @Input() authenticatedUsername!:string;
 
 
     exitCreateNewNote() {
@@ -27,8 +28,20 @@ export class CreateNewNote {
     }
 
 
-    onShareClick() {
-        this.listOfNotes1.push({text: this.newNoteText, createdAt: new Date()});
+    async onShareClick() {
+        const response = await fetch('http://localhost:8015/addUserNote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                poster: this.authenticatedUsername,
+                noteText: this.newNoteText,
+                noteCreatedAt: new Date()
+            })
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        this.listOfNotes1ForUser.push({text: this.newNoteText, createdAt: new Date(), editedAt: null, noteId: ""});
         this.newNoteText = "";
     }
 

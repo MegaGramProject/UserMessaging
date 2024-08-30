@@ -113,6 +113,7 @@ export class MessagesOfAChat {
     @Input() authenticatedFullName!:string;
     userProfileIcons: { [username: string]: string } = {};
     profilePhotoString!:string;
+    @Output() notifyParentToShowDeleteMessagePopup: EventEmitter<any[]> = new EventEmitter();
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -255,11 +256,14 @@ export class MessagesOfAChat {
     }
 
     async sendMessage() {
+        if(this.messageToSend.trimStart().toLowerCase().startsWith('file-forward from convo ft.')) {
+            return;
+        }
         if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit(["You: " + this.messageToSend, new Date()]);
+            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": " + this.messageToSend, new Date()]);
         }
         else {
-            this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messageToSend, new Date()]);
+            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": " + this.messageToSend, new Date()]);
         }
         const newMessageId = uuidv4();
         if(this.messageIndexToReplyTo!==-1) {
@@ -275,6 +279,10 @@ export class MessagesOfAChat {
             else if(this.isForwardedMessage(this.messageIndexToReplyTo)) {
                 message = ["Reply", <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[2], this.messageToSend];
                 this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + <string>this.messages[this.messageIndexToReplyTo][0], (<string[]>this.messages[this.messageIndexToReplyTo][1])[2], this.messageToSend], new Date()]);
+            }
+            else if(this.isNoteReply(this.messageIndexToReplyTo)) {
+                message = ["Reply", <string>this.messages[this.messageIndexToReplyTo][0], (<any[]>this.messages[this.messageIndexToReplyTo][1])[1][0], this.messageToSend];
+                this.messages.push([this.authenticatedUsername, ["Reply", "replied to " + <string>this.messages[this.messageIndexToReplyTo][0], (<any[]>this.messages[this.messageIndexToReplyTo][1])[1][0], this.messageToSend], new Date()]);
             }
 
             const responseForSendingReplyMessage = await fetch('http://localhost:8012/addMessage', {
@@ -393,10 +401,10 @@ export class MessagesOfAChat {
 
     async sendHeart() {
         if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit(["You: ❤️", new Date()]);
+            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": ❤️" , new Date()]);
         }
         else {
-            this.notifyParentToUpdateLatestMessageInConvo.emit(["You: ❤️", new Date()]);
+            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": ❤️" , new Date()]);
         }
         const newMessageId = uuidv4();
         this.messages.push([this.authenticatedUsername, "❤️", new Date(), newMessageId]);
@@ -492,6 +500,12 @@ export class MessagesOfAChat {
         }
         else if(this.isForwardedMessage(messageIndex)) {
             return (<string[]>message[1])[3];
+        }
+        else if(this.isNoteReply(messageIndex)) {
+            return (<any[]>message[1])[2];
+        }
+        else if(message.length==3) {
+            return (<string[]>message[1])[2];
         }
         return "";
     }
@@ -612,47 +626,41 @@ export class MessagesOfAChat {
             else {
                 if(this.messages[index-1][0]===this.authenticatedUsername) {
                     if(this.messages[index-1].length>3) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messages[index-1][1], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername + ": " + this.messages[index-1][1], this.messages[index-1][2]]);
                     }
                     else if(this.isMessageReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + (<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername + ": " + (<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
                     }
                     else if(this.isForwardedMessage(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + (<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername + ": " + (<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
                     }
                     else if(this.isFileReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit(["You: " + this.messages[index-1][1], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername + ": " + this.messages[index-1][1], this.messages[index-1][2]]);
+                    }
+                    else if(this.isNoteReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername  + ": " + (<any[]>this.messages[index-1][1])[1][0], this.messages[index-1][2]]);
                     }
                 }
                 else {
                     if(this.messages[index-1].length>3) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][1], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][0] + ": " + this.messages[index-1][1], this.messages[index-1][2]]);
                     }
                     else if(this.isMessageReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit([(<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][0] + ": " + (<string[]>this.messages[index-1][1])[3], this.messages[index-1][2]]);
                     }
                     else if(this.isForwardedMessage(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit([(<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][0] + ": " + (<string[]>this.messages[index-1][1])[2], this.messages[index-1][2]]);
                     }
                     else if(this.isFileReply(index-1)) {
-                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][1], this.messages[index-1][2]]);
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][0] + ": " + this.messages[index-1][1], this.messages[index-1][2]]);
+                    }
+                    else if(this.isNoteReply(index-1)) {
+                        this.notifyParentToUpdateLatestMessageInConvo.emit([this.messages[index-1][0] + ": " + (<any[]>this.messages[index-1][1])[1][0], this.messages[index-1][2]]);
                     }
                 }
             }
         }
-        let messageId:string = "";
 
-        if (Array.isArray(this.messages[index][1])) {
-            if((<string[]>this.messages[index][1])[0]==='Reply') {
-                messageId = (<string[]>this.messages[index][1])[4];
-            }
-            else {
-                messageId = (<string[]>this.messages[index][1])[3];
-            }
-        }
-        else {
-            messageId = <string>this.messages[index][3];
-        }
 
         if(this.isFileReply(index)) {
             const fileToReplyToId = this.fileReplies[index][2];
@@ -663,6 +671,8 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
         }
+
+        let messageId:string = this.getMessageId(index);
 
         const response0 = await fetch('http://localhost:8013/api/deleteFilesWithMessage', {
             method: 'DELETE',
@@ -681,6 +691,14 @@ export class MessagesOfAChat {
         });
 
         if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+
+        const response1 = await fetch('http://localhost:8012/deleteMessageReactionsOfMessage/'+messageId, {
+            method: 'DELETE'
+        });
+
+        if(!response1.ok) {
             throw new Error('Network response not ok');
         }
 
@@ -1095,6 +1113,13 @@ export class MessagesOfAChat {
         return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
     }
 
+    showDeleteMessagePopup(messageIndex: number) {
+        if(this.isConvoTitle(messageIndex) && this.messages[messageIndex][0]!==this.authenticatedUsername) {
+            return
+        }
+        this.notifyParentToShowDeleteMessagePopup.emit([messageIndex, this.getMessageId(messageIndex)]);
+    }
+
     isMemberPromotionOrDemotion(messageIndex: number) {
         return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Member-Promotion/Member-Demotion';
     }
@@ -1137,6 +1162,10 @@ export class MessagesOfAChat {
 
     isForwardedMessage(messageIndex: number) {
         return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Forward';
+    }
+
+    isForwardedFile(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='File-Forward';
     }
 
     getForwardedMessageFromConvoText(messageIndex: number) {

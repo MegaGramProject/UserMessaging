@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, EventEmitter, Output } from '@angular/core';
-import { Convo } from './convo.component';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import axios from 'axios';
+import { Convo } from './convo.component';
 
 @Component({
     selector: 'ListOfMessageRequestsSection',
@@ -23,9 +23,38 @@ export class ListOfMessageRequestsSection {
     @Output() notifyParentToShowMessagesOfThisRequestedGroupConvo: EventEmitter<string[][]> = new EventEmitter();
     @Input() authenticatedUsername!:string;
     @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
+    @Output() notifyParentToDeleteAllRequestedConvos: EventEmitter<string> = new EventEmitter();
 
     async ngOnInit() {
         try {
+            const response0 = await fetch('http://localhost:8013/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: `
+                query {
+                    getAllUserBlockings(filter: { username: "${this.authenticatedUsername}" }) {
+                        blocker
+                        blockee
+                    }
+                }
+                `
+                })
+            });
+            if(!response0.ok) {
+                throw new Error('Network response not ok');
+            }
+            let userBlockings = await response0.json();
+            userBlockings = userBlockings['data']['getAllUserBlockings'];
+            for(let i=0; i<userBlockings.length; i++) {
+                if(userBlockings[i]['blocker']===this.authenticatedUsername) {
+                    userBlockings[i] = userBlockings[i]['blockee'];
+                }
+                else {
+                    userBlockings[i] = userBlockings[i]['blocker'];
+                }
+            }
+
             const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
             const fetchedRequestedConvosOfUser = response.data;
             for(let convo of fetchedRequestedConvosOfUser) {
@@ -44,15 +73,15 @@ export class ListOfMessageRequestsSection {
                     if(convo['members'][i][0]===this.authenticatedUsername) {
                         if(convo['isRequested'][i]==1) {
                             if(convo['members'].length==2) {
-                                if(convo['members'][0][0]!==this.authenticatedUsername) {
-                                    this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
+                                if(convo['members'][0][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][0][0])) {
+                                    this.listOfRequestedConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                     convo['convoInitiator'], convo['members']
                                     ]);
                                 }
-                                else {
-                                    this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
+                                else if(convo['members'][1][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][1][0])) {
+                                    this.listOfRequestedConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                     convo['convoInitiator'], convo['members']
@@ -60,9 +89,10 @@ export class ListOfMessageRequestsSection {
                                 }
                             }
                             else {
+                                 //add code to ensure that all the members of the convo aren't blocked cuz if all are then do not add to listOfRequestedConvos
                                 let unfilteredConvoMembers = convo['members'];
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
-                                this.listOfRequestedConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['convoInitiator'][0], convo['convoInitiator'][1],
+                                this.listOfRequestedConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                 convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                 convo['convoInitiator'], unfilteredConvoMembers
@@ -88,6 +118,12 @@ export class ListOfMessageRequestsSection {
         }
     }
 
+    getLatestMessageOfConvo(latestMessageOfConvoInfo: any[]) {
+        if(latestMessageOfConvoInfo[0].startsWith(this.authenticatedUsername+":")) {
+            return "You: " + latestMessageOfConvoInfo[0].substring(this.authenticatedUsername.length+2) + " · " + this.formatTimeSinceSent(latestMessageOfConvoInfo[1]);
+        }
+        return latestMessageOfConvoInfo[0].substring(latestMessageOfConvoInfo[0].indexOf(":")+2) + " · " + this.formatTimeSinceSent(latestMessageOfConvoInfo[1]);
+    }
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -122,8 +158,7 @@ export class ListOfMessageRequestsSection {
     }
 
     deleteAllRequestedConvos() {
-        this.listOfRequestedConvos = [];
-        this.selectedConvo = -1;
+        this.notifyParentToDeleteAllRequestedConvos.emit('delete all requested convos');
     }
 
     updateSelectedConvo(convoIndex: any) {

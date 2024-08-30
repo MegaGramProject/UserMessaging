@@ -15,7 +15,7 @@ import { Note } from './note.component';
 export class NotesAndConvosSection {
     @Input() authenticatedUsername!:string;
     @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
-    @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToShowNoteSection: EventEmitter<string[]> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisConvo: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any> = new EventEmitter();
@@ -35,6 +35,8 @@ export class NotesAndConvosSection {
     @Output() notifyParentOfSelectedConvo: EventEmitter<number> = new EventEmitter();
     @Output() emitUserBlockingsToParent: EventEmitter<string[]> = new EventEmitter();
     @Output() emitUserFollowingsToParent: EventEmitter<any[]> = new EventEmitter();
+    usersThatYouFollow:string[] = [];
+    latestUnexpiredNotesListOfUsersYouFollow:string[] = [];
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -92,14 +94,14 @@ export class NotesAndConvosSection {
                         if(convo['isRequested'][i]==0) {
                             if(convo['members'].length==2) {
                                 if(convo['members'][0][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][0][0])) {
-                                    this.listOfConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][0][0], convo['members'][0][1],
+                                    this.listOfConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['members'][0][0], convo['members'][0][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                     convo['convoInitiator'], convo['members']
                                     ]);
                                 }
                                 else if(convo['members'][1][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][1][0])) {
-                                    this.listOfConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['members'][1][0], convo['members'][1][1],
+                                    this.listOfConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['members'][1][0], convo['members'][1][1],
                                     Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), [], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                     convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                     convo['convoInitiator'], convo['members']
@@ -107,9 +109,10 @@ export class NotesAndConvosSection {
                                 }
                             }
                             else {
+                                //add code to ensure that all the members of the convo aren't blocked cuz if all are then do not add to listOfConvos
                                 let unfilteredConvoMembers = convo['members'];
                                 convo['members'] = convo['members'].filter((x: string[]) => (x[0] !== this.authenticatedUsername) && (x[0]!==convo['convoInitiator'][0]));
-                                this.listOfConvos.push([convo['latestMessage'][0] + " · " + this.formatTimeSinceSent(convo['latestMessage'][1]), convo['convoInitiator'][0], convo['convoInitiator'][1],
+                                this.listOfConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['convoInitiator'][0], convo['convoInitiator'][1],
                                 Boolean(convo['hasUnreadMessage'][i]), Boolean(convo['isMuted'][i]), convo['members'], convo['convoTitle'], convo['promotedUsers'], convo['convoId'],
                                 convo['isMuted'], convo['hasUnreadMessage'], i, convo['isRequested'], convo['isDeleted'], true, new Date(convo['latestMessage'][1]), convo['latestMessage'][0],
                                 convo['convoInitiator'], unfilteredConvoMembers
@@ -152,10 +155,39 @@ export class NotesAndConvosSection {
             let userFollowings = await response2.json();
             userFollowings = userFollowings['data']['getAllUserFollowings'];
             this.emitUserFollowingsToParent.emit(userFollowings);
+
+            let usersThatYouFollow = [];
+            for(let userFollowing of userFollowings) {
+                if(userFollowing['follower']===this.authenticatedUsername) {
+                    usersThatYouFollow.push(userFollowing['followee']);
+                }
+            }
+
+            const response3 = await fetch('http://localhost:8015/getLatestUnexpiredNotesOfEachUser', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    listOfUsers: usersThatYouFollow
+                })
+            });
+            if(!response3.ok) {
+                throw new Error('network response not ok');
+            }
+            const latestUnexpiredNotesList = await response3.json();
+            this.usersThatYouFollow = usersThatYouFollow;
+            this.latestUnexpiredNotesListOfUsersYouFollow = latestUnexpiredNotesList;
+
         } catch (error) {
-            console.error('Error fetching conversations:', error);
+            console.error('Error fetching notes/convos:', error);
         }
 
+    }
+
+    getLatestMessageOfConvo(latestMessageOfConvoInfo: any[]) {
+        if(latestMessageOfConvoInfo[0].startsWith(this.authenticatedUsername+":")) {
+            return "You: " + latestMessageOfConvoInfo[0].substring(this.authenticatedUsername.length+2) + " · " + this.formatTimeSinceSent(latestMessageOfConvoInfo[1]);
+        }
+        return latestMessageOfConvoInfo[0].substring(latestMessageOfConvoInfo[0].indexOf(":")+2) + " · " + this.formatTimeSinceSent(latestMessageOfConvoInfo[1]);
     }
 
 
@@ -167,8 +199,8 @@ export class NotesAndConvosSection {
         this.notifyParentToCreateNewNote.emit('Show createNewNote');
     }
 
-    handleShowNoteSectionNotfication(username: string) {
-        this.notifyParentToShowNoteSection.emit(username);
+    handleShowNoteSectionNotfication(usernameAndFullName: string[]) {
+        this.notifyParentToShowNoteSection.emit(usernameAndFullName);
     }
 
     showMessagesOfConvo(messageRecipientInfo: Array<string>) {

@@ -54,6 +54,10 @@ input UserFollowingFilterInput {
     username: String!
 }
 
+input UserBlockingsInput {
+    blocker: String!
+    blockees: [String]!
+}
 
 type Query {
     getAllMessageReactions(
@@ -94,6 +98,10 @@ type Mutation {
     removeUserFollowing(
         userFollowingToRemove: UserFollowingInput
     ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserFollowingMutation@removeUserFollowing")
+
+    addUserBlockings(
+        newUserBlockings: UserBlockingsInput
+    ): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\UserBlockingMutation@addUserBlockings")
     
 
 }

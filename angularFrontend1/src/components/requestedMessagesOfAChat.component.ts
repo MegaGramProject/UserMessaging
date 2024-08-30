@@ -79,6 +79,8 @@ export class RequestedMessagesOfAChat {
     ];
     @Input() groupMessageRecipientsInfo: string[][] = [];
     @Input() convoTitle:string = "";
+    @Output() notifyParentToShowMessageReactions: EventEmitter<Array<Array<string>>> = new EventEmitter();
+    @Output() notifyParentToBlockUsersOfRequestedConvo: EventEmitter<string> = new EventEmitter();
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -118,9 +120,8 @@ export class RequestedMessagesOfAChat {
     }
 
 
-    blockUser() {
-        //code for blocking user
-        this.deleteRequestedConvo();
+    async blockUser() {
+        this.notifyParentToBlockUsersOfRequestedConvo.emit("block the user(s)");
     }
 
     deleteRequestedConvo() {
@@ -232,6 +233,64 @@ export class RequestedMessagesOfAChat {
 
     getMemberAdditionOrRemoval(messageIndex: number) {
         return (<string>(<Array<any>>this.messages)[messageIndex][1][1]);
+    }
+
+    isNoteReply(messageIndex: number) {
+        return this.messages[messageIndex].length == 3 && (<Array<any>>this.messages)[messageIndex][1][0]==='Note-Reply';
+    }
+
+    getNoteReplyOriginalUsername(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][2]);
+    }
+
+    getNoteReplyText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][0]);
+    }
+    
+    getNoteOriginalNoteText(messageIndex: number) {
+        return (<string>(<Array<any>>this.messages)[messageIndex][1][1][1]);
+    }
+
+    downloadFileDirectly(file: any) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    getMessageId(messageIndex: number) {
+        const message = this.messages[messageIndex];
+        if(message.length>3) {
+            return message[3];
+        }
+        else if(this.isMessageReply(messageIndex)) {
+            return (<string[]>message[1])[4];
+        }
+        else if(this.isForwardedMessage(messageIndex)) {
+            return (<string[]>message[1])[3];
+        }
+        else if(this.isNoteReply(messageIndex)) {
+            return (<any[]>message[1])[2];
+        }
+        else if(message.length==3) {
+            return (<string[]>message[1])[2];
+        }
+        return "";
+    }
+
+    showFileReactionsPopup(messageIndex: number, fileIndex: number) {
+        const messageId = <string>this.getMessageId(messageIndex);
+        this.notifyParentToShowMessageReactions.emit([this.messageFileReactions[messageIndex][fileIndex], this.messageFileReactionUsernames[messageIndex][fileIndex],
+        [messageId], [fileIndex.toString()]]);
+    }
+
+    showMessageReactionsPopup(index: number) {
+        const messageId = <string>this.getMessageId(index);
+        this.notifyParentToShowMessageReactions.emit([this.reactions[index], this.reactionUsernames[index], [messageId], ['-1']]);
     }
 
 }

@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 export class NewMessagePopup {
     textareaInput!:string;
     usersSelected:string[][] = [];
-    usersToChooseFrom:string[][] = [];
+    usersToChooseFrom:string[][] = [['rishavry3', 'Rishav Ray3'], ['rishavry7', 'Rishav Ray7'], ['rishavry4','Rishav Ray4'], ['rishavry6', 'Rishav Ray6']];
     filteredUserResults:string[][] = [];
     @Output() notifyParentToExitNewMessagePopup: EventEmitter<any> = new EventEmitter();
     checkboxStates: { [key: string]: boolean } = {};
@@ -99,9 +99,14 @@ export class NewMessagePopup {
                 }
             }
             else {
-                //make consistent with above logic
-                this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected,
-                this.convoMemberOfForwardedMessage.length>0 ? this.convoMemberOfForwardedMessage : this.convoMembersOfForwardedMessage]);
+                if(this.convoMemberOfForwardedMessage[0].length!==0) {
+                    this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected,
+                    this.convoMemberOfForwardedMessage]);
+                }
+                else {
+                    this.notifyParentToForwardFileToSelectedUsers.emit([this.fileToForward, this.usersSelected,
+                    this.convoMembersOfForwardedMessage]);
+                }
             }
         
         }

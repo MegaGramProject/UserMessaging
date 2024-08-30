@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 
@@ -17,7 +17,7 @@ export class Note {
     @Input() username: string = "rishavry";
     @Input() fullName: string = "Rishav Ray";
     @Output() notifyParentToCreateNewNote: EventEmitter<any> = new EventEmitter();
-    @Output() notifyParentToShowNoteSection: EventEmitter<any> = new EventEmitter();
+    @Output() notifyParentToShowNoteSection: EventEmitter<string[]> = new EventEmitter();
     @Output() notifyParentToSendNoteReply: EventEmitter<string[]> = new EventEmitter();
     isHoveringOnNoteProfileIcon:boolean = false;
     displayCreateNoteReply:boolean = false;
@@ -55,7 +55,7 @@ export class Note {
 
     showNoteSection() {
         if(!this.displayCreateNoteReply) {
-            this.notifyParentToShowNoteSection.emit(this.username);
+            this.notifyParentToShowNoteSection.emit([this.username, this.fullName]);
         }
         else {
             this.displayCreateNoteReply = false;

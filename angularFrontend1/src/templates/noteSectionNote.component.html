@@ -8,6 +8,9 @@ white-space: normal; overflow-wrap: break-word; margin-bottom:2em;">
 </textarea>
 <div style="display: flex; align-items: center;">
     <p style="font-size:0.85em; color: gray;">{{formatDate(noteCreatedAt)}}</p>
+    <p *ngIf="noteEditedAt!==null" style="font-size:0.85em; color: gray; margin-left: 1.2em;">(Edited)</p>
+    <p *ngIf="noteEditedAt!==null" style="font-size:0.85em; color: gray; margin-left: 0.7em;">{{formatDate(noteEditedAt)}}</p>
+    <img *ngIf="!noteIsOwn" src="replyArrow.png" (click)="notifyParentToReplyToThisNote()" style="height:1.2em; width: 1.2em; margin-left: 2em; object-fit: contain; cursor: pointer">
     <img *ngIf="noteIsOwn" (click)="toggleEditMode()" src="editIcon.png" style="height:1.2em; width: 1.2em; margin-left: 2em; object-fit: contain;
     cursor: pointer">
     <img *ngIf="noteIsOwn" (click)="askToConfirmDelete()" src="redTrashIcon.png" style="height:1.2em; width: 1.2em; object-fit: contain; cursor: pointer">

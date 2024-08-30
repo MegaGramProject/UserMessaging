@@ -25,13 +25,15 @@
     [blockedUsernames]="userBlockings" [promotedUsernames]="selectedConvoPromotedUsernames"
     [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
     [selectedConvoInitator]="selectedConvoInitator" [authenticatedFullName]="authenticatedFullName"
+    (notifyParentToShowDeleteMessagePopup)="showDeleteMessagePopup($event)"
     ></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
-    [listOfNotes1]="listOfNotes1"></CreateNewNote>
+    [listOfNotes1ForUser]="listOfNotes1ForUser" [authenticatedUsername]="authenticatedUsername"></CreateNewNote>
     
-    <NoteSection  [ngStyle]="noteSectionDynamicStyle()" [username]="noteSectionUsername" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"
-    (emitDataToParent)="receiveListOfNotes1($event)"></NoteSection>
+    <NoteSection [ngStyle]="noteSectionDynamicStyle()" [username]="noteSectionUsername" [fullName]="noteSectionFullName" [isOwnAccount]="noteSectionIsOwnAccount" (notifyParentToExitNoteSection)="exitNoteSection()"
+    (emitDataToParent)="receiveListOfNotes1ForUser($event)" [authenticatedUsername]="authenticatedUsername"
+    (notifyParentToSendNoteReply)="sendNoteReply($event)"></NoteSection>
     
     <ConvoDetailsPanel *ngIf="showConvoDetailsPanel" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowDeleteChatPopup)="showDeleteChatPopup()" (notifyParentToShowBlockUserPopup)="showBlockUserPopup()"
@@ -52,7 +54,7 @@
     (notifyParentToShowMessagesOfThisRequestedConvo)="showMessagesOfRequestedConvo($event)"
     (emitListOfRequestedConvosToParent)="receiveListOfRequestedConvos($event)"
     [ngStyle]="messageRequestsDynamicStyle()" (notifyParentToShowMessagesOfThisRequestedGroupConvo)="showMessagesOfRequestedGroupConvo($event)"
-    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"></ListOfMessageRequestsSection>
+    (notifyParentOfSelectedConvo)="updateSelectedConvo($event)" (notifyParentToDeleteAllRequestedConvos)="deleteAllRequestedConvos()"></ListOfMessageRequestsSection>
     
     <RequestedMessagesOfAChat [messageRecipientInfo]="messageRecipientInfo"
     [isExpanded]="requestedMessagesOfAChatIsExpanded" [convoDetailsPanelIsExpanded]="showConvoDetailsPanel"
@@ -60,7 +62,8 @@
     (notifyParentToDeleteRequestedConvo)="deleteRequestedConvo()" [authenticatedUsername]="authenticatedUsername"
     (notifyParentToAcceptRequestedConvo)="acceptRequestedConvo()" [ngStyle]="messageRequestsDynamicStyle()"
     [groupMessageRecipientsInfo]="groupMessageRecipientsInfo" [convoTitle]="selectedConvoTitle"
-    (emitDataToParent)="receiveRequestedMessageData($event)"></RequestedMessagesOfAChat>
+    (emitDataToParent)="receiveRequestedMessageData($event)"  (notifyParentToShowMessageReactions)="showMessageReactions($event)"
+    (notifyParentToBlockUsersOfRequestedConvo)="blockUsersFromRequestedConvo()"></RequestedMessagesOfAChat>
     
 </div>
     
@@ -96,3 +99,6 @@
 
     <PromoteUserPopup *ngIf="displayPromoteUserPopup" (notifyParentToCancelPromoteUser)="closePromoteUserPopup()"
     [messageRecipientInfo]="messageRecipientInfo" (notifyParentToPromoteUser)="promoteUserFromPromoteUserPopup()"></PromoteUserPopup>
+
+    <DeleteMessagePopup *ngIf="displayDeleteMessagePopup" (notifyParentToCancelDeleteMessage)="cancelDeleteMessagePopup()"
+    (notifyParentToDeleteMessage)="deleteMessageFromDeleteMessagePopup()"></DeleteMessagePopup>

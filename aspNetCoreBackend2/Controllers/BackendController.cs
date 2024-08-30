@@ -245,6 +245,28 @@ public class BackendController : ControllerBase
         return Ok(messages);
     }
 
+    [HttpDelete("deleteMessageReactionsOfMessage/{messageId}")]
+    public async Task<IActionResult> deleteMessageReactionsOfMessage (string messageId)
+    {
+
+        var messageReactions = await _megaDbContext.messageReactions
+        .Where(cl => cl.messageId==messageId)
+        .ToListAsync();
+
+    
+        foreach (var messageReaction in messageReactions)
+        {
+            _megaDbContext.messageReactions.Remove(messageReaction);
+        }
+
+        await _megaDbContext.SaveChangesAsync();
+
+        return Ok(true);
+
+    }
+
+
+
 
 
 

@@ -46,37 +46,39 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </div>
 
             <div *ngIf="isVideoOrAudioMessage(i)">
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started an audio call</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Started'" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You started an audio call</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started an audio call</p>
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended the audio-call</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You ended the audio-call</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Audio-Call Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the audio-call</p>
 
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">You started a video chat</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Started'" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You started a video chat</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Started'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} started a video chat</p>
-                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">You ended the video chat</p>
+                <p *ngIf="message[0]===authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You ended the video chat</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getVideoOrAudioMessage(i)==='Video-Chat Ended'" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} ended the video chat</p>
             </div>
 
             <div *ngIf="isConvoTitle(i)">
-                <p style="text-align: center; color: gray; font-size: 0.8em;">{{getConvoTitleFromAndTo(i)}}</p>
+                <p style="text-align: center; color: gray; font-size: 0.8em;" [ngStyle]="{ cursor: message[0] === authenticatedUsername ? 'pointer' : 'auto' }" (click)="showDeleteMessagePopup(i)">{{getConvoTitleFromAndTo(i)}}</p>
             </div>
 
             <div *ngIf="isMemberAdditionOrRemoval(i)">
-                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('added')" style="text-align: center; color: gray; font-size: 0.8em;">You {{getMemberAdditionOrRemoval(i)}} to this group</p>
-                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('removed')" style="text-align: center; color: gray; font-size: 0.8em;">You {{getMemberAdditionOrRemoval(i)}} from this group</p>
-                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('requested')" style="text-align: center; color: gray; font-size: 0.8em;">You {{getMemberAdditionOrRemoval(i)}} to join this group</p>
+                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('added')" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You {{getMemberAdditionOrRemoval(i)}} to this group</p>
+                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('removed')" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You {{getMemberAdditionOrRemoval(i)}} from this group</p>
+                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('requested')"  (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You {{getMemberAdditionOrRemoval(i)}} to join this group</p>
+                <p *ngIf="message[0]===authenticatedUsername && getMemberAdditionOrRemoval(i).endsWith('the request to join this group')"  (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You {{getMemberAdditionOrRemoval(i)}}</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('added')" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}} to this group</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('removed')" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}} from this group</p>
                 <p *ngIf="message[0]!==authenticatedUsername && getMemberAdditionOrRemoval(i).startsWith('requested')" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}} to join this group</p>
+                <p *ngIf="message[0]!==authenticatedUsername && getMemberAdditionOrRemoval(i).endsWith('the request to join this group')" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">{{message[0]}} {{getMemberAdditionOrRemoval(i)}}</p>
             </div>
 
             <div *ngIf="isMemberPromotionOrDemotion(i)">
-                <p *ngIf="message[0]===authenticatedUsername" style="text-align: center; color: gray; font-size: 0.8em;">You {{getMemberPromotionOrDemotion(i)}} in this convo</p>
+                <p *ngIf="message[0]===authenticatedUsername" (click)="showDeleteMessagePopup(i)" style="text-align: center; color: gray; font-size: 0.8em; cursor: pointer;">You {{getMemberPromotionOrDemotion(i)}} in this convo</p>
                 <p *ngIf="message[0]!==authenticatedUsername" style="text-align: center; color: gray; font-size: 0.8em;">{{message[0]}} {{getMemberPromotionOrDemotion(i)}} in this convo</p>
             </div>
 
-            <div *ngIf="isNoteReply(i)" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
-            border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px;"
+            <div *ngIf="isNoteReply(i)" (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; flex-direction: column; color: gray; font-size:0.85em; border-color: lightgray; border-style: solid;
+            border-top: none; border-bottom: none; padding-right: 1em; padding-left: 1em; border-width:3px; position: relative;"
             [ngStyle]="{
                 'align-items': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start',
                 'border-left': message[0] === authenticatedUsername ? 'none' : 'auto',
@@ -86,16 +88,127 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <p *ngIf="message[0]===authenticatedUsername">You replied to {{getNoteReplyOriginalUsername(i)}}'s note</p>
             <p *ngIf="message[0]!==authenticatedUsername">{{message[0]}} replied to {{getNoteReplyOriginalUsername(i)}}'s note</p>
             <p style="background-color:white; border-style: solid; border-color: lightgray; border-radius: 2em; padding: 0.5em 1em;">{{ getNoteOriginalNoteText(i) }}</p>
-            <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
-                'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
-                'color': message[0] === authenticatedUsername ? 'white' : 'black',
-                'border-radius': '2em',
-                'padding': '0.5em 1em',
-                'word-break': 'break-word',
-                'overflow-wrap': 'break-word'
-            }" style="max-width: 25em;">
-            {{ getNoteReplyText(i) }}
-            </p>
+            
+            <div style="display: flex; align-items: center; gap: 0.5em; position: relative;">
+                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
+                    'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
+                    'color': message[0] === authenticatedUsername ? 'white' : 'black',
+                    'border-radius': '2em',
+                    'padding': '0.5em 1em',
+                    'word-break': 'break-word',
+                    'overflow-wrap': 'break-word'
+                }" style="max-width: 25em; font-size:1.2em !important;">
+                {{ getNoteReplyText(i) }}
+                </p>
+                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
+                cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
+                <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                z-index: 10;">
+                    <p style="color:gray">Most Popular</p>
+                    <p style="letter-spacing: 1em; font-size:1.4em">
+                        <span (click)="addReaction(i, '😀')" style="cursor:pointer;">😀</span>
+                        <span (click)="addReaction(i, '😂')" style="cursor:pointer;">😂</span>
+                        <span (click)="addReaction(i, '😁')" style="cursor:pointer;">😁</span>
+                        <span (click)="addReaction(i, '😍')" style="cursor:pointer;">😍</span>
+                        <span (click)="addReaction(i, '🤩')" style="cursor:pointer;">🤩</span>
+                        <span (click)="addReaction(i, '😡')" style="cursor:pointer;">😡</span>
+                        <span (click)="addReaction(i, '🙄')" style="cursor:pointer;">🙄</span>
+                        <span (click)="addReaction(i, '😭')" style="cursor:pointer;">😭</span>
+                        <span (click)="addReaction(i, '😱')" style="cursor:pointer;">😱</span>
+                        <span (click)="addReaction(i, '🤡')" style="cursor:pointer;">🤡</span>
+                        <span (click)="addReaction(i, '🖕')" style="cursor:pointer;">🖕</span>
+                        <span (click)="addReaction(i, '🙌')" style="cursor:pointer;">🙌</span>
+                        <span (click)="addReaction(i, '🫠')" style="cursor:pointer;">🫠</span>
+                        <span (click)="addReaction(i, '💯')" style="cursor:pointer;">💯</span>
+                        <span (click)="addReaction(i, '🌹')" style="cursor:pointer;">🌹</span>
+                        <span (click)="addReaction(i, '😏')" style="cursor:pointer;">😏</span>
+                    </p>
+                </div>
+
+                <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
+                z-index: 10;">
+                    <p style="color:gray">Most Popular</p>
+                    <p style="letter-spacing: 1em; font-size:1.4em">
+                        <span (click)="addReaction(i, '😀')" style="cursor:pointer;">😀</span>
+                        <span (click)="addReaction(i, '😂')" style="cursor:pointer;">😂</span>
+                        <span (click)="addReaction(i, '😁')" style="cursor:pointer;">😁</span>
+                        <span (click)="addReaction(i, '😍')" style="cursor:pointer;">😍</span>
+                        <span (click)="addReaction(i, '🤩')" style="cursor:pointer;">🤩</span>
+                        <span (click)="addReaction(i, '😡')" style="cursor:pointer;">😡</span>
+                        <span (click)="addReaction(i, '🙄')" style="cursor:pointer;">🙄</span>
+                        <span (click)="addReaction(i, '😭')" style="cursor:pointer;">😭</span>
+                        <span (click)="addReaction(i, '😱')" style="cursor:pointer;">😱</span>
+                        <span (click)="addReaction(i, '🤡')" style="cursor:pointer;">🤡</span>
+                        <span (click)="addReaction(i, '🖕')" style="cursor:pointer;">🖕</span>
+                        <span (click)="addReaction(i, '🙌')" style="cursor:pointer;">🙌</span>
+                        <span (click)="addReaction(i, '🫠')" style="cursor:pointer;">🫠</span>
+                        <span (click)="addReaction(i, '💯')" style="cursor:pointer;">💯</span>
+                        <span (click)="addReaction(i, '🌹')" style="cursor:pointer;">🌹</span>
+                        <span (click)="addReaction(i, '😏')" style="cursor:pointer;">😏</span>
+                    </p>
+                </div>
+
+                <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+                    top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
+                    display: flex; flex-direction: column; z-index: 10;">
+        
+                        <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                        border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                            <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                        </div>
+        
+                        <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                        align-items: center; justify-content: space-between;">
+                            <p style="font-size: 0.9em;">Forward</p>
+                            <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                        </div>
+        
+                        <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                        align-items: center; justify-content: space-between;">
+                            <p style="font-size: 0.9em;">Copy</p>
+                            <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                        </div>
+        
+                        <div (click)="deleteMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                        align-items: center; justify-content: space-between;">
+                            <p style="font-size: 0.9em;">Unsend</p>
+                            <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                        </div>
+        
+                    </div>
+
+                <div *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:50%;
+                top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
+                display: flex; flex-direction: column; z-index: 10;">
+
+                    <div style="width:100%; border-style: solid; border-color: lightgray; border-top: none; border-left: none;
+                    border-right: none; display: flex; align-items: center; border-width:0.001em;">
+                        <p style="font-size:0.86em; color: gray; margin-left: 1em;">{{ formatDate(message[2]) }}</p>
+                    </div>
+
+                    <p style="text-align: center; cursor: pointer; color: darkblue; font-size: 0.9em;">{{message[0]}}</p>
+
+                    <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                    align-items: center; justify-content: space-between;">
+                        <p style="font-size: 0.9em;">Forward</p>
+                        <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                    </div>
+
+                    <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
+                    align-items: center; justify-content: space-between;">
+                        <p style="font-size: 0.9em;">Copy</p>
+                        <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                    </div>
+
+                </div>
+            </div>
+
             </div>
 
             
@@ -114,7 +227,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     <div style="display: flex; align-items: center; gap: 0.5em;">
                         <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                         <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                        <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
                         <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
                             'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                             'color': message[0] === authenticatedUsername ? 'white' : 'black',
@@ -125,7 +238,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         }" style="max-width: 25em;">
                         {{ getMessageReplyText(i) }}
                         </p>
-                        <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                        <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
                         <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                         <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                     </div>
@@ -234,6 +347,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </div>
             </div>
 
+
             <div *ngIf="isForwardedMessage(i)" (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; flex-direction: column; border-style: solid; border-color: lightgray; border-top: none; border-bottom: none;
                 border-width: 3px; padding-left: 1em; padding-right: 1em;"
                 [ngStyle]="{
@@ -251,7 +365,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                                 <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                                <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
                                 <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
                                     'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                                     'color': message[0] === authenticatedUsername ? 'white' : 'black',
@@ -262,7 +376,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 }" style="max-width: 25em;">
                                 {{ getForwardedMessage(i) }}
                                 </p>
-                                <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
                                 <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                                 <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                             </div>
@@ -391,7 +505,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     <div (mouseenter)="onFileImageMouseEnter(i, j)" (mouseleave)="onFileImageMouseLeave()" style="display: flex; align-items: center; gap: 0.3em; position: relative;">
                         <img (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                         <img (click)="replyToFile(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="!isRequestingConvoWithRecipient && message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 1.4em;">
+                        <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 1.4em;">
                         
                         <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
                         <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
@@ -506,7 +620,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             
             <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-            <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             
             <img *ngIf="message[0]===authenticatedUsername && message[1]==='\u2764\ufe0f'" src="redHeartIcon.png"  style="height:6em; width:6em; object-fit: contain;">
             <div style="position: relative;">
@@ -645,7 +759,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
             </div>
             </div>
-            <img (click)="showReactionPanel(i)" *ngIf="!isRequestingConvoWithRecipient && hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             </div>

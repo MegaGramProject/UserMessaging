@@ -26,4 +26,16 @@ class UserFollowingMutation
         return true;
 
     }
+
+    public static function addUserBlocking(string $user1, string $user2) {
+        UserFollowing::where('follower', $user1)
+        ->where('followee', $user2)
+        ->delete();
+
+        UserFollowing::where('follower', $user2)
+        ->where('followee', $user1)
+        ->delete();
+
+        return true;
+    }
 }
