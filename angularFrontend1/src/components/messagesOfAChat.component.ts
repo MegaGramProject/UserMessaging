@@ -814,9 +814,15 @@ export class MessagesOfAChat {
     async onTypingMessage() {
         this.mostRecentTimeAuthUserTypedInThisSession = new Date();
         if(this.isTypingText==="") {
+            const response = await fetch('http://localhost:8016/notifyOfUserTyping/'+this.authenticatedUsername + '/' + this.convoId, {
+                method: 'POST'
+            });
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
             this.isTypingText = this.authenticatedUsername + " is typing";
             const intervalId:any = setInterval(this.updateIsTypingText.bind(this), 250);
-            const intervalId2:any = setInterval(() => this.haveYouTypedInLastPoint4s(intervalId, intervalId2), 600);
+            const intervalId2:any = setInterval(async () => await this.haveYouTypedInLastPoint6s(intervalId, intervalId2), 800);
         }
     }
 
@@ -835,13 +841,19 @@ export class MessagesOfAChat {
         }
     }
 
-    haveYouTypedInLastPoint4s(intervalId: any, intervalId2:any) {
+    async haveYouTypedInLastPoint6s(intervalId: any, intervalId2:any) {
         if(this.mostRecentTimeAuthUserTypedInThisSession==null) {
             return;
         }
 
         const currDate:Date = new Date();
-        if (currDate.getTime() - (<Date>this.mostRecentTimeAuthUserTypedInThisSession).getTime() > 400) {
+        if (currDate.getTime() - (<Date>this.mostRecentTimeAuthUserTypedInThisSession).getTime() > 600) {
+            const response = await fetch('http://localhost:8016/notifyOfUserTyping/'+this.authenticatedUsername+'/null', {
+                method: 'POST'
+            });
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
             clearInterval(intervalId);
             clearInterval(intervalId2);
             this.isTypingText = "";

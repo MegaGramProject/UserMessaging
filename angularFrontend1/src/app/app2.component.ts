@@ -87,14 +87,12 @@ import { VisibilityService } from '../app/visibility.service';
     deleteMessagePopupMessageId:string = "";
     deleteMessagePopupMessageIndex:number = -1;
     isActive:boolean = true;
-    isIdle:boolean = false;
 
     constructor(private visibilityService: VisibilityService, private route: ActivatedRoute) { }
 
     async ngOnInit() {
         this.visibilityService.isActive$.subscribe(isActive => {
             this.isActive = isActive;
-            this.isIdle = !this.isActive;
         });
         this.username = this.route.snapshot.paramMap.get('username');
         /*
@@ -121,6 +119,26 @@ import { VisibilityService } from '../app/visibility.service';
         this.authenticatedFullName = fullNameOfAuthenticatedUser;
         */
         this.authenticatedFullName = "Rishav Ray";
+
+        
+        await this.notifyBackendOfActivityStatus();
+        setInterval(this.notifyBackendOfActivityStatus.bind(this), 5000);
+        
+    }
+
+    async notifyBackendOfActivityStatus() {
+        const response = await fetch('http://localhost:8016/notifyOfActivityStatus/'+this.authenticatedUsername, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                activityStatus: this.isActive ? 'active' : 'idle',
+                currDateTime: new Date()
+            })
+        });
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+    
     }
 
     async authenticateUser(username: string) {
