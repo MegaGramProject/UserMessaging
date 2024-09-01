@@ -20,7 +20,7 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
 import { UserSettingsPopup } from '../components/userSettingsPopup.component';
 import { Note } from '../note.model';
-
+import { VisibilityService } from '../app/visibility.service';
 
 
     @Component({
@@ -61,7 +61,6 @@ import { Note } from '../note.model';
     listOfRequestedConvos!: any[][];
     isRequestingConvoWithRecipient:boolean=false;
     username: string | null = '';
-    constructor(private route: ActivatedRoute) { }
     groupMessageRecipientsInfo:any[][]=[];
     selectedConvo:number = -1;
     selectedConvoTitle:any = "";
@@ -87,9 +86,16 @@ import { Note } from '../note.model';
     displayDeleteMessagePopup:boolean = false;
     deleteMessagePopupMessageId:string = "";
     deleteMessagePopupMessageIndex:number = -1;
+    isActive:boolean = true;
+    isIdle:boolean = false;
 
+    constructor(private visibilityService: VisibilityService, private route: ActivatedRoute) { }
 
     async ngOnInit() {
+        this.visibilityService.isActive$.subscribe(isActive => {
+            this.isActive = isActive;
+            this.isIdle = !this.isActive;
+        });
         this.username = this.route.snapshot.paramMap.get('username');
         /*
         if(this.username!==null) {

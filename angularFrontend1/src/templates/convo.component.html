@@ -1,6 +1,10 @@
 <div (click)="selectConvo()" class="hoverableElement" style="display: flex; width:100%; gap:1em; cursor: pointer;
 border-radius: 9px; padding-left: 1em; padding-top: 0.3em; position: relative;" [ngStyle]="getBackgroundColorBasedOnSelection()">
-<img [src]="profilePhotoString" style="height: 3em; width: 3em; object-fit: contain;">
+<div style="position: relative;">
+    <img [src]="profilePhotoString" style="height: 3em; width: 3em; object-fit: contain;">
+    <img *ngIf="isActive" src="activeGreenDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
+    <img *ngIf="isIdle" src="idleGrayDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
+</div>
 
 <div style="display: flex; flex-direction: column; align-items: start; margin-top:-0.4em; overflow-x: scroll;">
 <p *ngIf="convoTitle.length==0" style="font-size:0.77em; font-weight: semibold; margin-bottom: 0em;">{{getFullNamesOfAllConvoMembers()}}</p>

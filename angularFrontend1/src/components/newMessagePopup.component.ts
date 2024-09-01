@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 export class NewMessagePopup {
     textareaInput!:string;
     usersSelected:string[][] = [];
-    usersToChooseFrom:string[][] = [['rishavry3', 'Rishav Ray3'], ['rishavry7', 'Rishav Ray7'], ['rishavry4','Rishav Ray4'], ['rishavry6', 'Rishav Ray6']];
+    usersToChooseFrom:string[][] = [['rishavry', 'Rishav Ray'], ['rishavry3', 'Rishav Ray3'], ['rishavry7', 'Rishav Ray7'], ['rishavry4','Rishav Ray4'], ['rishavry6', 'Rishav Ray6']];
     filteredUserResults:string[][] = [];
     @Output() notifyParentToExitNewMessagePopup: EventEmitter<any> = new EventEmitter();
     checkboxStates: { [key: string]: boolean } = {};

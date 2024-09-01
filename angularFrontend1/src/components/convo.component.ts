@@ -23,6 +23,8 @@ export class Convo {
     @Input() convoTitle:any = "";
     @Input() convoId:any = "";
     profilePhotoString:string = "profileIcon.png";
+    isActive:boolean = false;
+    isIdle:boolean = true;
 
     ngOnInit() {
         this.getProfilePhoto();

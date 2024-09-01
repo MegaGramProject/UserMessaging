@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { v4 as uuidv4 } from 'uuid';
 
 
+
 @Component({
     selector: 'MessagesOfAChat',
     standalone: true,
@@ -98,7 +99,6 @@ export class MessagesOfAChat {
     currentlyShownOptionsPanelForMessageFiles:number[] = [-1, -1];
     @Output() notifyParentToShowForwardFilePopup: EventEmitter<Array<any>> = new EventEmitter();
     @Input() isRequestingConvoWithRecipient!:boolean;
-    constructor(private cdRef: ChangeDetectorRef) {}
     @Input() groupMessageRecipientsInfo: string[][] = [];
     @Input() convoTitle:any = "";
     isEditingConvoTitle:boolean= false;
@@ -114,6 +114,12 @@ export class MessagesOfAChat {
     userProfileIcons: { [username: string]: string } = {};
     profilePhotoString!:string;
     @Output() notifyParentToShowDeleteMessagePopup: EventEmitter<any[]> = new EventEmitter();
+    isActive:boolean = false;
+    isIdle:boolean = true;
+    isTypingText:string = "";
+    mostRecentTimeAuthUserTypedInThisSession:any = null;
+
+    constructor(private cdRef: ChangeDetectorRef) { }
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
@@ -804,6 +810,44 @@ export class MessagesOfAChat {
             this.filesToSend.push(file);
         }
     }
+
+    async onTypingMessage() {
+        this.mostRecentTimeAuthUserTypedInThisSession = new Date();
+        if(this.isTypingText==="") {
+            this.isTypingText = this.authenticatedUsername + " is typing";
+            const intervalId:any = setInterval(this.updateIsTypingText.bind(this), 250);
+            const intervalId2:any = setInterval(() => this.haveYouTypedInLastPoint4s(intervalId, intervalId2), 600);
+        }
+    }
+
+    updateIsTypingText() {
+        if(this.isTypingText===this.authenticatedUsername + " is typing") {
+            this.isTypingText = this.authenticatedUsername + " is typing."
+        }
+        else if(this.isTypingText===this.authenticatedUsername + " is typing.") {
+            this.isTypingText = this.authenticatedUsername + " is typing.."
+        }
+        else if(this.isTypingText===this.authenticatedUsername + " is typing..") {
+            this.isTypingText = this.authenticatedUsername + " is typing..."
+        }
+        else if(this.isTypingText===this.authenticatedUsername + " is typing...") {
+            this.isTypingText = this.authenticatedUsername + " is typing"
+        }
+    }
+
+    haveYouTypedInLastPoint4s(intervalId: any, intervalId2:any) {
+        if(this.mostRecentTimeAuthUserTypedInThisSession==null) {
+            return;
+        }
+
+        const currDate:Date = new Date();
+        if (currDate.getTime() - (<Date>this.mostRecentTimeAuthUserTypedInThisSession).getTime() > 400) {
+            clearInterval(intervalId);
+            clearInterval(intervalId2);
+            this.isTypingText = "";
+        }
+    }
+    
 
     removeFileToSend(index: number) {
         this.filesToSend.splice(index, 1);

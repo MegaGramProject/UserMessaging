@@ -17,13 +17,21 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     border-left: none; border-right: none; width: 100%; align-items: center; justify-content: space-between;
     padding-left: 1.5em; z-index: 10; background-color: white;">
         <div style="display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
-        <img [src]="profilePhotoString" style="height:2.5em; width:2.6em; object-fit: contain;">
-        <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length==0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{messageRecipientInfo[1]}}</b>
-        <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{getFullNamesOfAllConvoMembers()}}</b>
-        <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle.length>0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
-        <textarea [(ngModel)]="convoTitle" style="font-family: Arial;" *ngIf="isEditingConvoTitle"></textarea>
-        <button (click)="toggleEditConvoTitle('Cancel')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: red; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Cancel</button>
-        <button (click)="toggleEditConvoTitle('')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: darkgray; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Save</button>
+            <div style="position: relative">
+                <img [src]="profilePhotoString" style="height:2.5em; width:2.6em; object-fit: contain;">
+                <img *ngIf="isActive" src="activeGreenDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
+                <img *ngIf="isIdle" src="idleGrayDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: start; justify-content: center; margin-top:1.5em; margin-left: 1em;">
+                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length==0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{messageRecipientInfo[1]}}</b>
+                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{getFullNamesOfAllConvoMembers()}}</b>
+                <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle.length>0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
+                <p *ngIf="!isEditingConvoTitle && isActive" style="color: gray; font-size: 0.86em;">Active now</p>
+                <p *ngIf="!isEditingConvoTitle && isIdle" style="color: gray; font-size: 0.77em;">Idle (Megagram tab present but not focused)</p>
+            </div>
+            <textarea [(ngModel)]="convoTitle" style="font-family: Arial;" *ngIf="isEditingConvoTitle"></textarea>
+            <button (click)="toggleEditConvoTitle('Cancel')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: red; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Cancel</button>
+            <button (click)="toggleEditConvoTitle('')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: darkgray; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Save</button>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
@@ -768,9 +776,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     </div>
     </div>
 
-    <div (click)="scrollToBottom()" *ngIf="myScrollContainer?.nativeElement && myScrollContainer.nativeElement.scrollTop + myScrollContainer.nativeElement.clientHeight < myScrollContainer.nativeElement.scrollHeight"
-    style="height: 4em; width: 4em; position: relative; top: 86%; width: 100%;">
-    <img src="scrollDownArrow.png" style="height: 2.5em; width: 2.5em; border-radius: 1.3em; object-fit: contain; cursor: pointer; position: absolute; left: 50%;">
+    <div style="height: 4em; width: 4em; position: relative; top: 86%; width: 100%;">
+    <p style="color: gray; position: absolute; left: 10%;">{{isTypingText}}</p>
+    <img (click)="scrollToBottom()" src="scrollDownArrow.png" *ngIf="myScrollContainer?.nativeElement && myScrollContainer.nativeElement.scrollTop + myScrollContainer.nativeElement.clientHeight < myScrollContainer.nativeElement.scrollHeight" style="height: 2.5em; width: 2.5em; border-radius: 1.3em; object-fit: contain; cursor: pointer; position: absolute; left: 50%;">
     </div>
 
     <div style="position: absolute;  top:92%; left:1.5%; width: 100%;">
@@ -801,7 +809,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </div>
 
             <textarea *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" [(ngModel)]="messageToSend" [placeholder]="getTextareaPlaceholder()" style="font-family: Arial; width:96%;
-            border-radius:2em; font-size: 1em; border-color:lightgray; padding-left:1em; padding-top:1em;"></textarea>
+            border-radius:2em; font-size: 1em; border-color:lightgray; padding-left:1em; padding-top:1em;" (input)="onTypingMessage()"></textarea>
             <img (click)="toggleAudio()" *ngIf="audioContext!==null && !isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="pauseIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;">
             <img (click)="toggleAudio()" *ngIf="audioContext!==null && isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="playIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
