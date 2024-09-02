@@ -41,6 +41,7 @@ top: -20%; left: 90%;">
         (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
         [convoTitle]="convo[6]"
         [convoId]="convo[8]"
+        [socket]="socket"
         >
     </Convo>
     <br *ngIf="!isConvoDeletedByUser(i)"/>

@@ -9,7 +9,7 @@
     [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
     (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
     (notifyParentToSendNoteReply)="sendNoteReply($event)" (emitUserBlockingsToParent)="receiveUserBlockings($event)"
-    (emitUserFollowingsToParent)="receiveUserFollowings($event)"></NotesAndConvosSection>
+    (emitUserFollowingsToParent)="receiveUserFollowings($event)" [socket]="socket"></NotesAndConvosSection>
     
     <MessagesOfAChat [hasConvoBeenAdded]="hasSelectedConvoBeenAdded" *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
@@ -25,7 +25,7 @@
     [blockedUsernames]="userBlockings" [promotedUsernames]="selectedConvoPromotedUsernames"
     [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
     [selectedConvoInitator]="selectedConvoInitator" [authenticatedFullName]="authenticatedFullName"
-    (notifyParentToShowDeleteMessagePopup)="showDeleteMessagePopup($event)"
+    (notifyParentToShowDeleteMessagePopup)="showDeleteMessagePopup($event)" [socket]="socket"
     ></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
@@ -46,7 +46,8 @@
     (notifyParentToShowPromoteUserPopup)="showPromoteUserPopup()"
     (notifyParentToDemoteUser)="demoteNonGroupConvoUserFromConvoDetails()" [isRequestedConvosSectionDisplayed]="displayListOfMessageRequestsSection"
     [messagesAreMuted]="isSelectedConvoMuted" [selectedConvoInitator]="selectedConvoInitator"
-    [membersOfSelectedConvo]="membersOfSelectedConvo" [isRequestedOfSelectedConvo]="isRequestedOfSelectedConvo"></ConvoDetailsPanel>
+    [membersOfSelectedConvo]="membersOfSelectedConvo" [isRequestedOfSelectedConvo]="isRequestedOfSelectedConvo"
+    [socket]="socket"></ConvoDetailsPanel>
     
     <ListOfMessageRequestsSection [authenticatedUsername]="authenticatedUsername"
     (notifyExpansionToParent)="updateExpansionOfRequestedMessagesOfAChat($event)"

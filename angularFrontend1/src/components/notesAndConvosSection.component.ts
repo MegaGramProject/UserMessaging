@@ -37,6 +37,7 @@ export class NotesAndConvosSection {
     @Output() emitUserFollowingsToParent: EventEmitter<any[]> = new EventEmitter();
     usersThatYouFollow:string[] = [];
     latestUnexpiredNotesListOfUsersYouFollow:string[] = [];
+    @Input() socket!:WebSocket;
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;

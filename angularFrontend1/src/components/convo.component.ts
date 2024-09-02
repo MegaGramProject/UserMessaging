@@ -23,12 +23,34 @@ export class Convo {
     @Input() convoTitle:any = "";
     @Input() convoId:any = "";
     profilePhotoString:string = "profileIcon.png";
-    isActive:boolean = false;
-    isIdle:boolean = true;
-
+    isActive:boolean = true;
+    isIdle:boolean = false;
+    @Input() socket!:WebSocket;
     ngOnInit() {
         this.getProfilePhoto();
+        this.socket.send(JSON.stringify(['activity-status', this.username]));
+
+        this.socket.addEventListener('message', (event) => {
+            const messageArray = JSON.parse(event.data);
+            if( (messageArray[0]==='get-activity-status' || messageArray[0]==='update-activity-status') && messageArray[1]===this.username ) {
+                if(messageArray[2]==='active') {
+                    this.isActive = true;
+                    this.isIdle = false;
+                }
+                else if(messageArray[2]==='idle') {
+                    this.isActive = false;
+                    this.isIdle = true;
+                }
+                else {
+                    this.isActive = false;
+                    this.isIdle = false;
+                }
+            }
+        });
+
     }
+
+    
 
     async getProfilePhoto() {
         const response = await fetch('http://localhost:8003/getProfilePhoto/'+this.username);

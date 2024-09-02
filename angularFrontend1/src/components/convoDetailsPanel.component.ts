@@ -32,6 +32,8 @@ export class ConvoDetailsPanel {
     @Input() membersOfSelectedConvo!: string[][];
     @Input() isRequestedOfSelectedConvo!:any[];
     convoMemberActivityStatuses: { [username: string]: string } = {};
+    @Input() socket!:WebSocket;
+
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {

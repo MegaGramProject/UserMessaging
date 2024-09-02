@@ -28,6 +28,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle.length>0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
                 <p *ngIf="!isEditingConvoTitle && isActive" style="color: gray; font-size: 0.86em;">Active now</p>
                 <p *ngIf="!isEditingConvoTitle && isIdle" style="color: gray; font-size: 0.77em;">Idle (Megagram tab present but not focused)</p>
+                <p *ngIf="!isEditingConvoTitle && !isActive && !isIdle" style="color: gray; font-size: 0.77em;"></p>
             </div>
             <textarea [(ngModel)]="convoTitle" style="font-family: Arial;" *ngIf="isEditingConvoTitle"></textarea>
             <button (click)="toggleEditConvoTitle('Cancel')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: red; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Cancel</button>

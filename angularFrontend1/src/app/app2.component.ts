@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { VisibilityService } from '../app/visibility.service';
 import { BlockUserPopup } from '../components/blockUserPopup.component';
 import { ConvoDetailsPanel } from '../components/convoDetailsPanel.component';
 import { CreateNewNote } from '../components/createNewNote.component';
@@ -20,7 +21,6 @@ import { PromoteUserPopup } from '../components/promoteUserPopup.component';
 import { RequestedMessagesOfAChat } from '../components/requestedMessagesOfAChat.component';
 import { UserSettingsPopup } from '../components/userSettingsPopup.component';
 import { Note } from '../note.model';
-import { VisibilityService } from '../app/visibility.service';
 
 
     @Component({
@@ -87,6 +87,7 @@ import { VisibilityService } from '../app/visibility.service';
     deleteMessagePopupMessageId:string = "";
     deleteMessagePopupMessageIndex:number = -1;
     isActive:boolean = true;
+    socket!:WebSocket;
 
     constructor(private visibilityService: VisibilityService, private route: ActivatedRoute) { }
 
@@ -120,6 +121,15 @@ import { VisibilityService } from '../app/visibility.service';
         */
         this.authenticatedFullName = "Rishav Ray";
 
+        this.socket = new WebSocket('ws://localhost:8017');
+
+        this.socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+        }
+
+        this.socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        }
         
         await this.notifyBackendOfActivityStatus();
         setInterval(this.notifyBackendOfActivityStatus.bind(this), 5000);
@@ -1111,6 +1121,7 @@ import { VisibilityService } from '../app/visibility.service';
                         messageDataPart.splice(messageDataPart.length-1, 1);
                     }
                 }
+                this.socket.send(JSON.stringify(['is-typing', this.selectedConvoId]));
             }
             else {
                 this.isRequestingConvoWithRecipient = false;
@@ -1128,6 +1139,7 @@ import { VisibilityService } from '../app/visibility.service';
                     }
                 }
             }
+
 
             const response0 = await fetch('http://localhost:8014/getAllFilesThatWereRepliedToInConvo/'+this.selectedConvoId);
             if(!response0.ok) {

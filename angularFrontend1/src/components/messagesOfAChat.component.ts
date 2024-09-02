@@ -115,15 +115,91 @@ export class MessagesOfAChat {
     profilePhotoString!:string;
     @Output() notifyParentToShowDeleteMessagePopup: EventEmitter<any[]> = new EventEmitter();
     isActive:boolean = false;
-    isIdle:boolean = true;
+    isIdle:boolean = false;
     isTypingText:string = "";
     mostRecentTimeAuthUserTypedInThisSession:any = null;
+    @Input() socket!:WebSocket;
+    intervalId:any = null;
+
 
     constructor(private cdRef: ChangeDetectorRef) { }
 
     ngOnInit() {
         this.emitDataToParent.emit([this.messages, this.reactions, this.reactionUsernames, this.messageFiles,
         this.messageFileImages, this.fileReplies, this.messageFileReactions, this.messageFileReactionUsernames, [this.myScrollContainer, this.cdRef]]);
+
+        this.socket.addEventListener('message', (event) => {
+            const messageArray = JSON.parse(event.data);
+            let username;
+            if(this.messageRecipientInfo.length>0) {
+                username = this.messageRecipientInfo[0];
+            }
+            else if(this.groupMessageRecipientsInfo.length>0){
+                username = this.selectedConvoInitator[0];
+            }
+            else {
+                username = "";
+            }
+            let convoId = this.convoId;
+
+            if( (messageArray[0]==='get-activity-status' || messageArray[0]==='update-activity-status') && messageArray[1]===username ) {
+                if(messageArray[2]==='active') {
+                    this.isActive = true;
+                    this.isIdle = false;
+                }
+                else if(messageArray[2]==='idle') {
+                    this.isActive = false;
+                    this.isIdle = true;
+                }
+                else {
+                    this.isActive = false;
+                    this.isIdle = false;
+                }
+                this.cdRef.detectChanges();
+            }
+
+            else if( (messageArray[0]==='get-is-typing' || messageArray[0]==='update-is-typing') && messageArray[1]===convoId ) {
+                if(this.intervalId!==null) {
+                    clearInterval(this.intervalId);
+                }
+                let numUsernames = 0;
+                let isTypingText = "";
+                for(let username of messageArray[2]) {
+                    if(username!==this.authenticatedUsername) {
+                        numUsernames++;
+                        isTypingText += username + ", ";
+                    }
+                }
+                this.isTypingText = isTypingText.substring(0, isTypingText.length-2);
+                if(numUsernames==0) {
+                    this.isTypingText = "";
+                    return;
+                }
+                else if(numUsernames==1) {
+                    this.isTypingText = isTypingText.substring(0, isTypingText.length-2) + " is typing";
+                }
+                else {
+                    this.isTypingText = isTypingText.substring(0, isTypingText.length-2) + " are typing";
+                }
+                console.log(this.isTypingText.substring(0, this.isTypingText.length-7));
+                this.intervalId = setInterval(() => this.updateIsTypingText(this.isTypingText), 250);
+            }
+        });
+    }
+
+    updateIsTypingText(startOfIsTypingText:string) {
+        if(this.isTypingText.endsWith("...")) {
+            this.isTypingText = startOfIsTypingText + ""
+        }
+        else if(this.isTypingText.endsWith("..")) {
+            this.isTypingText = startOfIsTypingText + "...";
+        }
+        else if(this.isTypingText.endsWith(".")) {
+            this.isTypingText = startOfIsTypingText + ".."
+        }
+        else {
+            this.isTypingText = startOfIsTypingText + "."
+        }
     }
 
 
@@ -213,6 +289,7 @@ export class MessagesOfAChat {
             this.userProfileIcons = {};
             await this.getProfilePhoto(this.messageRecipientInfo[0]);
             this.profilePhotoString = this.userProfileIcons[this.messageRecipientInfo[0]];
+            this.socket.send(JSON.stringify(['activity-status', this.messageRecipientInfo[0]]));
         }
         else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
@@ -221,6 +298,7 @@ export class MessagesOfAChat {
                 await this.getProfilePhoto(member[0]);
             }
             this.profilePhotoString = this.userProfileIcons[this.selectedConvoInitator[0]];
+            this.socket.send(JSON.stringify(['activity-status', this.selectedConvoInitator[0]]));
         }
         
     }
@@ -820,28 +898,12 @@ export class MessagesOfAChat {
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }
-            this.isTypingText = this.authenticatedUsername + " is typing";
-            const intervalId:any = setInterval(this.updateIsTypingText.bind(this), 250);
-            const intervalId2:any = setInterval(async () => await this.haveYouTypedInLastPoint6s(intervalId, intervalId2), 800);
+
+            const intervalId:any = setInterval(async () => await this.haveYouTypedInLastPoint6s(intervalId), 800);
         }
     }
 
-    updateIsTypingText() {
-        if(this.isTypingText===this.authenticatedUsername + " is typing") {
-            this.isTypingText = this.authenticatedUsername + " is typing."
-        }
-        else if(this.isTypingText===this.authenticatedUsername + " is typing.") {
-            this.isTypingText = this.authenticatedUsername + " is typing.."
-        }
-        else if(this.isTypingText===this.authenticatedUsername + " is typing..") {
-            this.isTypingText = this.authenticatedUsername + " is typing..."
-        }
-        else if(this.isTypingText===this.authenticatedUsername + " is typing...") {
-            this.isTypingText = this.authenticatedUsername + " is typing"
-        }
-    }
-
-    async haveYouTypedInLastPoint6s(intervalId: any, intervalId2:any) {
+    async haveYouTypedInLastPoint6s(intervalId:any) {
         if(this.mostRecentTimeAuthUserTypedInThisSession==null) {
             return;
         }
@@ -855,8 +917,6 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
             clearInterval(intervalId);
-            clearInterval(intervalId2);
-            this.isTypingText = "";
         }
     }
     
