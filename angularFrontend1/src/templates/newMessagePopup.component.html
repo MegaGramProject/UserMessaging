@@ -1,4 +1,4 @@
-<div style="position: absolute; top: 15%; left: 34%; background-color: #f7f7f7;
+<div class="newMessagePopup" style="position: absolute; top: 15%; left: 34%; background-color: #f7f7f7;
 width: 35em; height: 37em; border-radius: 12px;">
 
     <div style="border-style:solid; border-color: lightgray; border-top: none; border-left: none; border-right: none;
@@ -6,7 +6,7 @@ width: 35em; height: 37em; border-radius: 12px;">
         <b *ngIf="!isForwarding && !isAddingNewMembers">New message</b>
         <b *ngIf="isForwarding">Forward</b>
         <b *ngIf="isAddingNewMembers">Add members</b>
-        <img (click)="closePopup()" src="exitIcon.png" style="height: 1.7em; width: 1.7em; object-fit: contain; cursor: pointer; position: absolute;
+        <img class="iconToBeAdjustedForDarkMode" (click)="closePopup()" src="exitIcon.png" style="height: 1.7em; width: 1.7em; object-fit: contain; cursor: pointer; position: absolute;
         left: 90%; top:15%;">
     </div>
 

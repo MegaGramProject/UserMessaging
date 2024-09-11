@@ -9,11 +9,11 @@ border-radius: 9px; padding-left: 1em; padding-top: 0.3em; position: relative;" 
 <div style="display: flex; flex-direction: column; align-items: start; margin-top:-0.4em; overflow-x: scroll;">
 <p *ngIf="convoTitle.length==0" style="font-size:0.77em; font-weight: semibold; margin-bottom: 0em;">{{getFullNamesOfAllConvoMembers()}}</p>
 <p *ngIf="convoTitle.length>0" style="font-size:0.77em; font-weight: semibold; margin-bottom: 0em;">{{convoTitle}}</p>
-<p *ngIf="!hasUnreadMessage"  style="color: gray; font-size: 0.67em;">{{lastMessageId}}</p>
-<p *ngIf="hasUnreadMessage"  style="color: black; font-size: 0.8em; font-weight: bold;">{{lastMessageId}}
+<p *ngIf="!hasUnreadMessage || isRequestedConvo"  style="color: gray; font-size: 0.67em;">{{lastMessage}}</p>
+<p *ngIf="hasUnreadMessage && !isRequestedConvo"  style="color: black; font-size: 0.8em; font-weight: bold;">{{lastMessage}}
 </p>
 </div>
-<img *ngIf="hasUnreadMessage" src="unreadMessageBlueDot.png" style="object-fit: contain; height: 1em; width: 1em;
+<img *ngIf="hasUnreadMessage && !isRequestedConvo" src="unreadMessageBlueDot.png" style="object-fit: contain; height: 1em; width: 1em;
 position: absolute; left: 80%; top: 50%;">
 <img *ngIf="isMuted" src="mutedMessageIcon.png" style="object-fit: contain; height: 2em; width: 2em;
 position: absolute; left: 90%; top: 20%;">

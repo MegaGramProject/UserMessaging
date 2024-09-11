@@ -1,11 +1,11 @@
-<div *ngIf="isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
+<div id="listOfMessageRequestsSection" *ngIf="isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:19%; height: 100%; overflow-y: scroll;
 border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
 flex-direction: column; padding-left: 2em; padding-right: 2em;">
 
     <div style="display: flex; align-items: center; padding-top: 1em; gap: 0.8em;">
-        <img (click)="closeSection()" src="backArrow.png" style="height: 2.4em; width: 2.4em; object-fit: contain; cursor: pointer;">
+        <img class="iconToBeAdjustedForDarkMode" (click)="closeSection()" src="backArrow.png" style="height: 2.4em; width: 2.4em; object-fit: contain; cursor: pointer;">
         <b style="font-size: 1.3em;">Message Requests</b>
-        <img (click)="toggleExpansion()" src="dropdownV.png" style="height: 1.4em; width: 1.4em; object-fit: contain; cursor: pointer;">
+        <img class="iconToBeAdjustedForDarkMode" (click)="toggleExpansion()" src="dropdownV.png" style="height: 1.4em; width: 1.4em; object-fit: contain; cursor: pointer;">
     </div>
 
     <p style="text-align: center; font-size: 0.75em; color: gray; margin-top: 2em;">
@@ -21,7 +21,8 @@ flex-direction: column; padding-left: 2em; padding-right: 2em;">
 
     <div *ngFor="let convo of listOfRequestedConvos; let i = index;">
         <Convo
-            [lastMessageId]="convo[0]"
+            [lastMessage]="convo[0]"
+            [authenticatedUsername]="authenticatedUsername"
             [username]="convo[1]"
             [fullName]="convo[2]"
             [hasUnreadMessage]="convo[3]"
@@ -34,6 +35,8 @@ flex-direction: column; padding-left: 2em; padding-right: 2em;">
             [convoTitle]="convo[6]"
             [convoId]="convo[8]"
             [convoIndex]="i"
+            [convoMembers]="convo[18]"
+            [isRequestedConvo]="true"
             >
         </Convo>
         <br/>
@@ -45,9 +48,9 @@ flex-direction: column; padding-left: 2em; padding-right: 2em;">
 
 </div>
 
-<div *ngIf="!isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:1em; height: 100%;
+<div id="listOfMessageRequestsSection" *ngIf="!isExpanded" style="border-style:solid; position: absolute; left: 4.5%; top: 0%; width:1em; height: 100%;
 border-left: none; border-top: none; border-bottom: none; border-color: lightgray; border-width: 1px; display: flex;
 justify-content: center; padding-top:1em;">
-    <img *ngIf="!isExpanded" (click)="toggleExpansion()" src="upArrow.webp" style="cursor: pointer; height: 1.4em; width: 1.4em; object-fit: contain;">
+    <img class="iconToBeAdjustedForDarkMode" *ngIf="!isExpanded" (click)="toggleExpansion()" src="upArrow.webp" style="cursor: pointer; height: 1.4em; width: 1.4em; object-fit: contain;">
 </div>
 

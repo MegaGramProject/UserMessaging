@@ -20,14 +20,14 @@ export class NotesAndConvosSection {
     @Output() notifyParentToShowNewMessagePopup: EventEmitter<string> = new EventEmitter();
     @Output() notifyParentToShowMessagesOfThisGroupConvo: EventEmitter<any> = new EventEmitter();
     @Output() notifyParentToSendNoteReply: EventEmitter<string[]> = new EventEmitter();
-
+    @Output() notifyParentToUpdateNumberOfAcceptedConvosWithUnreadMessage: EventEmitter<number> = new EventEmitter();
 
     //first boolean is true if there is an unread message; second boolean is true if convo is muted. then it is the list of the group-members besides the initiator.
     //then it is the convo-title if any, and finally it is the list of promoted usernames.
     listOfConvos:Array<Array<any>> = [
     ];
 
-    @Output() emitListOfConvosToParent: EventEmitter<Array<Array<any>>> = new EventEmitter();
+    @Output() emitListOfConvosToParent: EventEmitter<any[][]> = new EventEmitter();
     @Output() notifyExpansionToParent: EventEmitter<boolean> = new EventEmitter();
     isExpanded:boolean = true;
     @Output() notifyParentToShowListOfMessageRequestsSection: EventEmitter<string> = new EventEmitter();
@@ -38,6 +38,10 @@ export class NotesAndConvosSection {
     usersThatYouFollow:string[] = [];
     latestUnexpiredNotesListOfUsersYouFollow:string[] = [];
     @Input() socket!:WebSocket;
+    @Output() notifyParentToUpdateConvoInfo: EventEmitter<any[]> = new EventEmitter();
+    numberOfAcceptedConvosWithUnreadMessage:number = 0;
+    convoSessionKeys: { [convoId: string]: any[] } = {};
+    @Output() emitConvoSessionKeysToParent: EventEmitter<{ [convoId: string]: any }> = new EventEmitter();
 
     toggleExpansion() {
         this.isExpanded = !this.isExpanded;
@@ -75,7 +79,7 @@ export class NotesAndConvosSection {
                 }
             }
             
-
+            const listOfConvoIds = [];
             const response = await axios.get(`http://localhost:8012/getAllConvos/${this.authenticatedUsername}`);
             const fetchedConvosOfUser = response.data;
             for(let convo of fetchedConvosOfUser) {
@@ -93,6 +97,10 @@ export class NotesAndConvosSection {
                 for(let i=0; i< convo['members'].length; i++) {
                     if(convo['members'][i][0]===this.authenticatedUsername) {
                         if(convo['isRequested'][i]==0) {
+                            if(Boolean(convo['hasUnreadMessage'][i])) {
+                                this.numberOfAcceptedConvosWithUnreadMessage++;
+                            }
+                            listOfConvoIds.push(convo['convoId']);
                             if(convo['members'].length==2) {
                                 if(convo['members'][0][0]!==this.authenticatedUsername && !userBlockings.includes(convo['members'][0][0])) {
                                     this.listOfConvos.push([this.getLatestMessageOfConvo(convo['latestMessage']), convo['members'][0][0], convo['members'][0][1],
@@ -134,7 +142,7 @@ export class NotesAndConvosSection {
             
                 return dateB - dateA;
             });
-            this.emitListOfConvosToParent.emit(this.listOfConvos);
+            this.emitListOfConvosToParent.emit([this.listOfConvos, [this.numberOfAcceptedConvosWithUnreadMessage]]);
             this.emitUserBlockingsToParent.emit(userBlockings);
             const response2 = await fetch('http://localhost:8013/graphql', {
                 method: 'POST',
@@ -177,6 +185,20 @@ export class NotesAndConvosSection {
             const latestUnexpiredNotesList = await response3.json();
             this.usersThatYouFollow = usersThatYouFollow;
             this.latestUnexpiredNotesListOfUsersYouFollow = latestUnexpiredNotesList;
+
+            const response4 = await fetch('http://localhost:8017/getCurrentlyActiveSessionKeys/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(listOfConvoIds)
+            });
+            if(!response4.ok) {
+                throw new Error('network response not ok');
+            }
+            const getCurrentlyActiveSessionKeys = await response4.json();
+            for(let activeSessionKey of getCurrentlyActiveSessionKeys) {
+                this.convoSessionKeys[activeSessionKey['convoId']] = activeSessionKey['sessionId'];
+            }
+            this.emitConvoSessionKeysToParent.emit(this.convoSessionKeys);
 
         } catch (error) {
             console.error('Error fetching notes/convos:', error);
@@ -264,6 +286,14 @@ export class NotesAndConvosSection {
             return Math.floor(interval) + 'm';
         }
         return Math.floor(seconds) + 's';
+    }
+
+    notifyParentToUpdateConvo(convoUpdateInfo: any[]) {
+        this.notifyParentToUpdateConvoInfo.emit(convoUpdateInfo);
+    }
+
+    tellParentToUpdateNumberOfAcceptedConvosWithUnreadMessages(info: number) {
+        this.notifyParentToUpdateNumberOfAcceptedConvosWithUnreadMessage.emit(info);
     }
 
 }

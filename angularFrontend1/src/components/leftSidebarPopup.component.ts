@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
     styleUrl: '../styles.css'
 })
 export class LeftSidebarPopupComponent {
+
     takeUserToLogin() {
         window.location.href = "http://localhost:8000/login";
     }

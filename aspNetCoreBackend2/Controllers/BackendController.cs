@@ -2,9 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 using Megagram.Data;
 using Microsoft.EntityFrameworkCore;
 using Megagram.Models;
-namespace Megagram.Models.RequestBodies;
+using Amazon;
+using Amazon.KeyManagementService;
+using Amazon.KeyManagementService.Model;
+using Amazon.Runtime;
+using Megagram.Models.RequestBodies;
+using System.Text;
 
-
+namespace Megagram.Controllers;
 
 
 [ApiController]
@@ -13,10 +18,22 @@ public class BackendController : ControllerBase
 {
 
     private readonly MegaDbContext _megaDbContext;
+    private readonly IAmazonKeyManagementService _kmsClient;
 
     public BackendController(MegaDbContext megaDbContext)
     {
         _megaDbContext = megaDbContext;
+
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var awsOptions = configuration.GetSection("AWS");
+        var accessKey = awsOptions["AccessKey"];
+        var secretKey = awsOptions["SecretKey"];
+        var awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+        _kmsClient = new AmazonKeyManagementServiceClient(awsCredentials, RegionEndpoint.USEast1);
     }
 
 
@@ -24,6 +41,7 @@ public class BackendController : ControllerBase
     public async Task<IActionResult> getAllConvos()
     {
         var convos = await _megaDbContext.convos.ToListAsync();
+        //decrypt each convo with AWS session-keys
         return Ok(convos);
     }
 
@@ -31,6 +49,7 @@ public class BackendController : ControllerBase
     public async Task<IActionResult> getAllMessages()
     {
         var messages = await _megaDbContext.messages.ToListAsync();
+        //decrypt each message with AWS session-keys
         return Ok(messages);
     }
 
@@ -42,27 +61,124 @@ public class BackendController : ControllerBase
     }
 
     [HttpPost("addConvo")]
-    public IActionResult addNewConvo([FromBody] Convo newConvo) {
-        if (newConvo == null) {
+    public IActionResult addNewConvo([FromBody] AddConvo addConvo) {
+        if (addConvo == null) {
             return BadRequest("Invalid conversation data.");
         }
 
-        _megaDbContext.Add(newConvo);
+        //create AWS session-key with addConvo.sessionId and get it
+        
+        var encryptedConvoTitle = ""; //use sessionKey to encrypt
+        var encryptedLatestMessage = ""; //use sessionKey to encrypt
+        var encryptedMembers = ""; //use sessionKey to encrypt
+        var encryptedConvoInitiator = ""; //use sessionKey to encrypt
+        var encryptedPromotedUsers = ""; //use sessionKey to encrypt
+
+        Convo newConvo = new Convo
+        {
+            convoId = addConvo.convoId,
+            convoTitle = encryptedConvoTitle,
+            latestMessage = encryptedLatestMessage,
+            isRequested = addConvo.isRequested,
+            promotedUsers = encryptedPromotedUsers,
+            members = encryptedMembers,
+            convoInitiator = encryptedConvoInitiator,
+            isMuted = addConvo.isMuted,
+            hasUnreadMessage = addConvo.hasUnreadMessage,
+            isDeleted = addConvo.isDeleted
+        };
+
+        _megaDbContext.convos.Add(newConvo);
         _megaDbContext.SaveChanges();
 
         return Ok(newConvo);
     }
 
     [HttpPost("addMessage")]
-    public IActionResult addNewMessage([FromBody] Message newMessage) {
-        if (newMessage == null) {
+    public async Task<IActionResult> addNewMessage([FromBody] AddMessage addMessage) {
+        if (addMessage == null) {
             return BadRequest("Invalid message data.");
         }
 
-        _megaDbContext.Add(newMessage);
+        var encryptedMessage = "";
+        var encryptedSender = "";
+        string keyId = "";
+
+        if(addMessage.sessionKeyId.Length==0) {
+            var createKeyRequest = new CreateKeyRequest
+            {
+                KeyUsage = KeyUsageType.ENCRYPT_DECRYPT,
+            };
+            var createKeyResponse = await _kmsClient.CreateKeyAsync(createKeyRequest);
+            keyId = createKeyResponse.KeyMetadata.KeyId;
+            
+            using (var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.message))) {
+                var encryptMessageRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = messageStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptMessageRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var senderStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.sender))) {
+                var encryptSenderRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = senderStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptSenderRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedSender = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+        }
+        else {
+            keyId=addMessage.sessionKeyId;
+            using (var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.message))) {
+                var encryptMessageRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = messageStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptMessageRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var senderStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.sender))) {
+                var encryptSenderRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = senderStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptSenderRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedSender = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+            
+        }
+
+        Message newMessage = new Message
+        {
+            messageId = addMessage.messageId,
+            convoId = addMessage.convoId,
+            message = encryptedMessage,
+            sender = encryptedSender,
+            messageSentAt = addMessage.messageSentAt,
+            sessionKeyId = addMessage.sessionKeyId
+        };
+
+        _megaDbContext.messages.Add(newMessage);
+
         _megaDbContext.SaveChanges();
 
-        return Ok(newMessage);
+        return Ok(keyId);
     }
 
     [HttpPost("addMessageReaction")]
@@ -71,7 +187,7 @@ public class BackendController : ControllerBase
             return BadRequest("Invalid message-reaction data.");
         }
 
-        _megaDbContext.Add(newMessageReaction);
+        _megaDbContext.messageReactions.Add(newMessageReaction);
         _megaDbContext.SaveChanges();
 
         return Ok(newMessageReaction);
@@ -125,6 +241,7 @@ public class BackendController : ControllerBase
         {
             _megaDbContext.messages.Remove(message);
             await _megaDbContext.SaveChangesAsync();
+
             return Ok(true);
         }
 

@@ -1,6 +1,6 @@
 <div [ngStyle]="getStyleBasedOnPopups()">
 
-    <LeftSidebar></LeftSidebar>
+    <LeftSidebar [numberOfAcceptedConvosWithUnreadMessage]="numberOfAcceptedConvosWithUnreadMessage"></LeftSidebar>
     
     <NotesAndConvosSection [authenticatedUsername]="authenticatedUsername" (notifyParentToCreateNewNote)="handleShowCreateNewNoteNotification()" (notifyParentToShowNoteSection)="handleShowNoteSectionNotification($event)"
     (notifyParentToShowMessagesOfThisConvo)="showMessagesOfConvo($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
@@ -9,7 +9,10 @@
     [ngStyle]="messagesDynamicStyle()" (notifyParentToShowMessagesOfThisGroupConvo)="showMessagesOfThisGroupConvo($event)"
     (notifyParentOfSelectedConvo)="updateSelectedConvo($event)"
     (notifyParentToSendNoteReply)="sendNoteReply($event)" (emitUserBlockingsToParent)="receiveUserBlockings($event)"
-    (emitUserFollowingsToParent)="receiveUserFollowings($event)" [socket]="socket"></NotesAndConvosSection>
+    (emitUserFollowingsToParent)="receiveUserFollowings($event)" [socket]="socket"
+    (notifyParentToUpdateConvoInfo)="updateConvoInfo($event)"
+    (notifyParentToUpdateNumberOfAcceptedConvosWithUnreadMessage)="updateNumberOfAcceptedConvosWithUnreadMessage($event)"
+    (emitConvoSessionKeysToParent)="receiveConvoSessionKeys($event)"></NotesAndConvosSection>
     
     <MessagesOfAChat [hasConvoBeenAdded]="hasSelectedConvoBeenAdded" *ngIf="showMessagesOfAChat" [authenticatedUsername]="authenticatedUsername" [messageRecipientInfo]="messageRecipientInfo"
     (notifyParentToShowMessageReactions)="showMessageReactions($event)" (notifyParentToShowNewMessagePopup)="displayNewMessagePopup()"
@@ -26,6 +29,15 @@
     [convoId]="selectedConvoId" (notifyParentToAddConvoToDatabase)="addConvoToDatabase($event)"
     [selectedConvoInitator]="selectedConvoInitator" [authenticatedFullName]="authenticatedFullName"
     (notifyParentToShowDeleteMessagePopup)="showDeleteMessagePopup($event)" [socket]="socket"
+    (notifyParentToEditConvoHasUnreadMessage)="editConvoHasUnreadMessageAfterSendingMessage()"
+    [doesSelectedConvoHaveUnreadMessage]="doesSelectedConvoHaveUnreadMessage"
+    (notifyParentToUpdateUnreadMessageToRead)="editSelectedConvoHasUnreadMessageAfterSeeingMessage()"
+    [isAuthenticatedUserActive]="isActive" [selectedConvoMembers]="membersOfSelectedConvo"
+    [selectedConvoUnreadMessageList]="selectedConvoUnreadMessageList" [seenText]="latestMessageOfSelectedConvoHasBeenSeenText"
+    [messagesSectionHasBeenUpdated]="messagesSectionHasBeenUpdated"  [messagesSectionHasBeenUpdated2]="messagesSectionHasBeenUpdated2"
+    (notifyParentToSetMessageSectionHasBeenUpdatedToFalse)="setMessageSectionHasBeenUpdatedToFalse()"
+    (notifyParentToSetMessageSectionHasBeenUpdated2ToFalse)="setMessageSectionHasBeenUpdated2ToFalse()"
+    [convoSessionKeys]="convoSessionKeys"
     ></MessagesOfAChat>
     
     <CreateNewNote *ngIf="showCreateNewNote" (notifyParentOfExit)="handleExitCreateNewNoteNotification()"
@@ -103,3 +115,7 @@
 
     <DeleteMessagePopup *ngIf="displayDeleteMessagePopup" (notifyParentToCancelDeleteMessage)="cancelDeleteMessagePopup()"
     (notifyParentToDeleteMessage)="deleteMessageFromDeleteMessagePopup()"></DeleteMessagePopup>
+
+    <MessageNotification *ngIf="displayMessageNotification" (notifyParentToCloseMessageNotification)="closeMessageNotification()"
+    [messageSender]="messageNotificationSender" [message]="messageNotificationMessage" [convoId]="messageNotificationConvoId"
+    (notifyParentToGoToConvo)="goToConvo($event)"></MessageNotification>

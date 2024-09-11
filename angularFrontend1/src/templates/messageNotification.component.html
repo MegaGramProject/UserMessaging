@@ -1,0 +1,11 @@
+<div (click)="tellParentToGoToConvo()" style="position: absolute; width: 38%; height: 10%; top: 9%; left: 30%; overflow-y: scroll;
+display: flex; align-items: start; cursor: pointer; padding: 0.5em 1em; gap: 1em; border-radius: 1em;
+box-shadow: 0.2em 0.2em 0.6em rgba(0, 0, 0, 0.3); z-index:10; background-color: white;">
+    <div style="display: flex; gap: 1em; align-items: center;">
+        <img [src]="profilePhotoString" style="object-fit: contain; height: 3em; width: 3em;">
+        <b style="margin-top:-0.4em;">{{messageSender}}:</b>
+    </div>
+    <p style="margin-top:0.5em;">{{message}}</p>
+
+    <img (click)="closeMessageNotification($event)" src="closeMessageNotificationIcon.png" style="height: 1em; width: 1em; object-fit: contain; cursor: pointer; position: absolute; left: 96%; top: 2%;">
+</div>

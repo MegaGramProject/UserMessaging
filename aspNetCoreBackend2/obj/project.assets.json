@@ -2,6 +2,35 @@
   "version": 3,
   "targets": {
     "net8.0": {
+      "AWSSDK.Core/3.7.400.18": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "AWSSDK.KeyManagementService/3.7.400.18": {
+        "type": "package",
+        "dependencies": {
+          "AWSSDK.Core": "[3.7.400.18, 4.0.0)"
+        },
+        "compile": {
+          "lib/net8.0/AWSSDK.KeyManagementService.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.KeyManagementService.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -996,6 +1025,67 @@
     }
   },
   "libraries": {
+    "AWSSDK.Core/3.7.400.18": {
+      "sha512": "vZlO4v5srY/bb8kPIJFCIivSBrBULsklabqyrBM6XWqJYLCFJ74po6j0k0/P2EfgnkyamfTln2f6WjaNVhhARw==",
+      "type": "package",
+      "path": "awssdk.core/3.7.400.18",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "awssdk.core.3.7.400.18.nupkg.sha512",
+        "awssdk.core.nuspec",
+        "images/AWSLogo.png",
+        "lib/net35/AWSSDK.Core.dll",
+        "lib/net35/AWSSDK.Core.pdb",
+        "lib/net35/AWSSDK.Core.xml",
+        "lib/net45/AWSSDK.Core.dll",
+        "lib/net45/AWSSDK.Core.pdb",
+        "lib/net45/AWSSDK.Core.xml",
+        "lib/net8.0/AWSSDK.Core.dll",
+        "lib/net8.0/AWSSDK.Core.pdb",
+        "lib/net8.0/AWSSDK.Core.xml",
+        "lib/netcoreapp3.1/AWSSDK.Core.dll",
+        "lib/netcoreapp3.1/AWSSDK.Core.pdb",
+        "lib/netcoreapp3.1/AWSSDK.Core.xml",
+        "lib/netstandard2.0/AWSSDK.Core.dll",
+        "lib/netstandard2.0/AWSSDK.Core.pdb",
+        "lib/netstandard2.0/AWSSDK.Core.xml",
+        "tools/account-management.ps1"
+      ]
+    },
+    "AWSSDK.KeyManagementService/3.7.400.18": {
+      "sha512": "bO8NDlji7t2hPIM648fVEnIlJTh+kHIQGxsqeBeAUHS+26wOeLDgFQRBVFe4y/mYvQbTheATaD5ojni6C7XBOw==",
+      "type": "package",
+      "path": "awssdk.keymanagementservice/3.7.400.18",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "analyzers/dotnet/cs/AWSSDK.KeyManagementService.CodeAnalysis.dll",
+        "analyzers/dotnet/cs/SharedAnalysisCode.dll",
+        "awssdk.keymanagementservice.3.7.400.18.nupkg.sha512",
+        "awssdk.keymanagementservice.nuspec",
+        "images/AWSLogo.png",
+        "lib/net35/AWSSDK.KeyManagementService.dll",
+        "lib/net35/AWSSDK.KeyManagementService.pdb",
+        "lib/net35/AWSSDK.KeyManagementService.xml",
+        "lib/net45/AWSSDK.KeyManagementService.dll",
+        "lib/net45/AWSSDK.KeyManagementService.pdb",
+        "lib/net45/AWSSDK.KeyManagementService.xml",
+        "lib/net8.0/AWSSDK.KeyManagementService.dll",
+        "lib/net8.0/AWSSDK.KeyManagementService.pdb",
+        "lib/net8.0/AWSSDK.KeyManagementService.xml",
+        "lib/netcoreapp3.1/AWSSDK.KeyManagementService.dll",
+        "lib/netcoreapp3.1/AWSSDK.KeyManagementService.pdb",
+        "lib/netcoreapp3.1/AWSSDK.KeyManagementService.xml",
+        "lib/netstandard2.0/AWSSDK.KeyManagementService.dll",
+        "lib/netstandard2.0/AWSSDK.KeyManagementService.pdb",
+        "lib/netstandard2.0/AWSSDK.KeyManagementService.xml",
+        "tools/install.ps1",
+        "tools/uninstall.ps1"
+      ]
+    },
     "Humanizer.Core/2.14.1": {
       "sha512": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "type": "package",
@@ -2789,6 +2879,8 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "AWSSDK.Core >= 3.7.400.18",
+      "AWSSDK.KeyManagementService >= 3.7.400.18",
       "Microsoft.AspNetCore.OpenApi >= 8.0.6",
       "Microsoft.EntityFrameworkCore >= 8.0.7",
       "Microsoft.EntityFrameworkCore.Relational >= 8.0.7",
@@ -2840,6 +2932,14 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
+          "AWSSDK.Core": {
+            "target": "Package",
+            "version": "[3.7.400.18, )"
+          },
+          "AWSSDK.KeyManagementService": {
+            "target": "Package",
+            "version": "[3.7.400.18, )"
+          },
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[8.0.6, )"

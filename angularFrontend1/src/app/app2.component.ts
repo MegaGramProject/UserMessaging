@@ -12,6 +12,7 @@ import { DeleteMessagePopup } from '../components/deleteMessagePopup.component';
 import { LeaveGroupPopup } from '../components/leaveGroupPopup.component';
 import { LeftSidebarComponent } from '../components/leftSidebar.component';
 import { ListOfMessageRequestsSection } from '../components/listOfMessageRequestsSection.component';
+import { MessageNotification } from '../components/messageNotification.component';
 import { MessageReactionsPopup } from '../components/messageReactionsPopup.component';
 import { MessagesOfAChat } from '../components/messagesOfAChat.component';
 import { NewMessagePopup } from '../components/newMessagePopup.component';
@@ -29,7 +30,7 @@ import { Note } from '../note.model';
     imports: [RouterOutlet, LeftSidebarComponent, CommonModule, NotesAndConvosSection,
     MessagesOfAChat, CreateNewNote, NoteSection, MessageReactionsPopup, NewMessagePopup, ConvoDetailsPanel,
     DeleteChatPopup, BlockUserPopup, ListOfMessageRequestsSection, RequestedMessagesOfAChat, LeaveGroupPopup,
-    UserSettingsPopup, PromoteUserPopup, DeleteMessagePopup],
+    UserSettingsPopup, PromoteUserPopup, DeleteMessagePopup, MessageNotification],
     templateUrl: './app2.component.html',
     styleUrl: '../styles.css'
     })
@@ -88,6 +89,18 @@ import { Note } from '../note.model';
     deleteMessagePopupMessageIndex:number = -1;
     isActive:boolean = true;
     socket!:WebSocket;
+    doesSelectedConvoHaveUnreadMessage!:boolean;
+    selectedConvoUnreadMessageList!:any[];
+    latestMessageOfSelectedConvoHasBeenSeenText:string = "";
+    displayMessageNotification:boolean = false;
+    messagesSectionHasBeenUpdated:boolean = false;
+    messagesSectionHasBeenUpdated2:boolean = false;
+    messageNotificationSender!:string;
+    messageNotificationMessage!:any;
+    messageNotificationConvoId!:string;
+    timeoutId:any = null;
+    numberOfAcceptedConvosWithUnreadMessage!:number;
+    convoSessionKeys: { [convoId: string]: string } = {};
 
     constructor(private visibilityService: VisibilityService, private route: ActivatedRoute) { }
 
@@ -124,16 +137,91 @@ import { Note } from '../note.model';
         this.socket = new WebSocket('ws://localhost:8017');
 
         this.socket.onmessage = (event) => {
-            const message = JSON.parse(event.data);
+            const messageArray = JSON.parse(event.data);
+            
+            if(messageArray[0]==='update-convo-initator') {
+                for(let i=0; i<this.listOfConvos.length; i++) {
+                    if(this.listOfConvos[i][8]===messageArray[1]) {
+                        this.listOfConvos[i][17] = messageArray[2];
+                        if(this.listOfConvos[i][5].length>0) {
+                            this.listOfConvos[i][1] = messageArray[2][0];
+                            this.listOfConvos[i][2] = messageArray[2][1];
+                        }
+                        if(i===this.selectedConvo) {
+                            this.selectedConvoInitator = messageArray[2];
+                        }
+                        break;
+                    }
+                }
+            }
+            else if(messageArray[0]==='update-promoted-users') {
+                for(let i=0; i<this.listOfConvos.length; i++) {
+                    if(this.listOfConvos[i][8]===messageArray[1]) {
+                        this.listOfConvos[i][7] = messageArray[2];
+                        if(i===this.selectedConvo) {
+                            this.selectedConvoPromotedUsernames = messageArray[2];
+                        }
+                        break;
+                    }
+                }
+            }
+
+            else if(messageArray[0]==='update-messages') {
+                if(messageArray[1]===this.selectedConvoId) {
+                    this.updateMessagesOfSelectedConvo(messageArray[2]);
+                }
+            }
+    
+            else if(messageArray[0]==='update-chronologically-latest-message') {
+                if(messageArray[1]!==this.selectedConvoId) {
+                    this.messageNotificationConvoId = messageArray[1];
+                    this.messageNotificationSender = messageArray[2][0];
+                    if(messageArray[2][1][0]==='Regular-Message') {
+                        this.messageNotificationMessage = messageArray[2][1][1];
+                    }
+                    else if(messageArray[2][1][0]==='Reply') {
+                        this.messageNotificationMessage = "(in reply to " + messageArray[2][1][1] + ": " + messageArray[2][1][2] + ")->\n" + messageArray[2][1][3];
+                    }
+                    else if(messageArray[2][1][0]==='Forward') {
+                        this.messageNotificationMessage = "(forwarded a message from a conversation with " + messageArray[2][1][1] + ")->\n" + messageArray[2][1][2];
+                    }
+                    this.displayMessageNotification = true;
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = setTimeout(() => {
+                        this.displayMessageNotification = false;
+                    }, 7500);
+                }
+            }
         }
 
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
         }
         
+        //temporary until you program the logic for generating public/private key-pairs for users whenever they create an account.
+        //get the user's public key(if they do not have one, generate public/private-key pair)
+
+
         await this.notifyBackendOfActivityStatus();
         setInterval(this.notifyBackendOfActivityStatus.bind(this), 5000);
         
+
+    }
+
+    goToConvo(convoId: string) {
+        for(let i=0; i<this.listOfConvos.length; i++) {
+            if(this.listOfConvos[i][8]===convoId) {
+                this.updateSelectedConvo(i);
+                this.displayMessageNotification = false;
+                break;
+            }
+        }
+    }
+
+    updateNumberOfAcceptedConvosWithUnreadMessage(info: number) {
+        if(info==1) {
+            this.numberOfAcceptedConvosWithUnreadMessage++;
+        }
     }
 
     async notifyBackendOfActivityStatus() {
@@ -570,8 +658,13 @@ import { Note } from '../note.model';
     
 
 
-    receiveListOfConvos(listOfConvos: any[][]) {
-    this.listOfConvos = listOfConvos;
+    receiveListOfConvos(listOfConvosInfo: any[][]) {
+    this.listOfConvos = listOfConvosInfo[0];
+    this.numberOfAcceptedConvosWithUnreadMessage = listOfConvosInfo[1][0];
+    }
+
+    receiveConvoSessionKeys(convoSessionKeys: { [convoId: string]: string }) {
+        this.convoSessionKeys = convoSessionKeys;
     }
 
     receiveListOfRequestedConvos(listOfRequestedConvos: any[][]) {
@@ -627,6 +720,8 @@ import { Note } from '../note.model';
     }
 
     async updateLatestMessageInConvo(latestMessageInfo: any[]) {
+        this.listOfConvos[this.selectedConvo][16] = latestMessageInfo[0];
+        this.listOfConvos[this.selectedConvo][15] = latestMessageInfo[1];
         const data = {
             convoTitle: this.selectedConvoTitle,
             members: JSON.stringify(this.getMembersOfSelectedConvo()),
@@ -652,8 +747,6 @@ import { Note } from '../note.model';
         else {
             this.listOfConvos[this.selectedConvo][0] = latestMessageInfo[0].substring(latestMessageInfo[0].indexOf(":")+2) + " · " + this.formatTimeSinceSent(latestMessageInfo[1]);
         }
-        this.listOfConvos[this.selectedConvo][16] = latestMessageInfo[0];
-        this.listOfConvos[this.selectedConvo][15] = latestMessageInfo[1];
 
     }
 
@@ -1103,9 +1196,337 @@ import { Note } from '../note.model';
         return true;
     }
 
+    updateSeenText(newUnreadMessageList: any[]) {
+        if(this.messageData[0].length>0) {
+            let seenText = "Seen by ";
+            let membersWhoSawLastMessageOfConvo = [];
+            for(let i=0; i<this.membersOfSelectedConvo.length; i++) {
+                if(newUnreadMessageList[i]===0 && this.membersOfSelectedConvo[i][0]!==this.authenticatedUsername && this.membersOfSelectedConvo[i][0]!==this.messageData[0][this.messageData[0].length-1][0]) {
+                    membersWhoSawLastMessageOfConvo.push(this.membersOfSelectedConvo[i][0]);
+                }
+            }
+    
+            if(membersWhoSawLastMessageOfConvo.length==0) {
+                this.latestMessageOfSelectedConvoHasBeenSeenText = "";
+            }
+            else if(membersWhoSawLastMessageOfConvo.length==1) {
+                this.latestMessageOfSelectedConvoHasBeenSeenText =  seenText + membersWhoSawLastMessageOfConvo[0];
+            }
+            else {
+                let seenTextSuffix = "";
+                for(let i=0; i<membersWhoSawLastMessageOfConvo.length-1; i++) {
+                    seenTextSuffix+=membersWhoSawLastMessageOfConvo[i]+=", ";
+                }
+                seenTextSuffix+="& " + membersWhoSawLastMessageOfConvo[membersWhoSawLastMessageOfConvo.length-1];
+                
+                this.latestMessageOfSelectedConvoHasBeenSeenText =  seenText + seenTextSuffix;;
+            }
+        }
+        else {
+            this.latestMessageOfSelectedConvoHasBeenSeenText =  "";
+        }
+    }
+
+    async updateMessagesOfSelectedConvo(messages:any[]) {
+        const response0 = await fetch('http://localhost:8014/getAllFilesThatWereRepliedToInConvo/'+this.selectedConvoId);
+        if(!response0.ok) {
+            throw new Error('Network response not ok');
+        }
+        const repliedToFilesInConvo = await response0.json();
+
+        let newMessages = [];
+        let newReactions = [];
+        let newReactionUsernames = [];
+        let newMessageFiles = [];
+        let newMessageFileImages = [];
+        let newFileReplies = [];
+        let newMessageFileReactions:any[] = [];
+        let newMessageFileReactionUsernames:any[] = [];
+        this.messageIdsOfSelectedConvo = [];
+        for(let message of messages) {
+            message.message = JSON.parse(message.message);
+            this.messageIdsOfSelectedConvo.push(message.messageId);
+            if(message.message[0]==='Regular-Message') {
+                newMessages.push([message.sender, message.message[1], new Date(message.messageSentAt+"Z"), message.messageId]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+            else if(message.message[0]==='Reply') {
+                newMessages.push([ message.sender, [ "Reply", "replied to " + message.message[1],  message.message[2],
+                message.message[3], message.messageId] , new Date(message.messageSentAt+"Z") ]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+        else if(message.message[0]==='Forward') {
+                newMessages.push([message.sender, ["Forward", "forwarded a message from a conversation with " + message.message[1],  message.message[2], message.messageId],
+                new Date(message.messageSentAt+"Z") ]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+            else if(message.message[0]==='Convo-Title') {
+                newMessages.push([message.sender, ["Convo-Title", message.message[1], message.messageId],
+                new Date(message.messageSentAt+"Z") ]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+
+            }
+            else if(message.message[0]==='Video-Chat/Audio-Chat') {
+                newMessages.push([message.sender, ["Video-Chat/Audio-Chat", message.message[1], message.messageId],
+                new Date(message.messageSentAt+"Z") ]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+            else if(message.message[0]==='Member-Promotion/Member-Demotion') {
+                newMessages.push([message.sender, ['Member-Promotion/Member-Demotion', message.message[1], message.messageId],
+                new Date(message.messageSentAt+"Z") ]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+
+            else if(message.message[0]==='Add-Member/Remove-Member') {
+                newMessages.push([message.sender, ["Add-Member/Remove-Member", message.message[1], message.messageId],  new Date(message.messageSentAt+"Z")]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+            else if(message.message[0]==='File-Reply') {
+                let fileInConvo = repliedToFilesInConvo[message.message[2]];
+                let uint8Array = this.base64ToUint8Array(fileInConvo['content']);
+                let blob = new Blob([uint8Array], { type: fileInConvo['content_type'] });
+                let fileInConvoAsObject = new File([blob], fileInConvo['filename'], { type: fileInConvo['content_type'] });
+
+                newMessages.push([message.sender, message.message[3],  new Date(message.messageSentAt+"Z"), message.messageId]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([fileInConvoAsObject, message.message[1], message.message[2], this.getImageForFileReply(fileInConvoAsObject)]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+            else if(message.message[0]==='Note-Reply') {
+                newMessages.push([message.sender, ["Note-Reply", message.message[1], message.messageId], new Date()]);
+                newReactions.push([]);
+                newReactionUsernames.push([]);
+                newMessageFiles.push([]);
+                newMessageFileImages.push([]);
+                newFileReplies.push([null]);
+                newMessageFileReactions.push([]);
+                newMessageFileReactionUsernames.push([]);
+            }
+        
+        }
+
+        const response2 = await fetch('http://localhost:8013/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `
+                        query {
+                            getAllMessageReactions (
+                                filter: {
+                                    convoId: "${this.selectedConvoId}"
+                                }
+                            ) {
+                                convoId
+                                messageId
+                                username
+                                fullName
+                                reaction
+                            }
+                        }
+                    `
+                })
+            });
+
+        this.messageIdToReactionsMapping = {};
+        let messageReactionsForSelectedConvo = await response2.json();
+        messageReactionsForSelectedConvo = messageReactionsForSelectedConvo['data']['getAllMessageReactions'];
+
+        for (let messageReaction of messageReactionsForSelectedConvo) {
+            const messageId = messageReaction['messageId'];
+
+            if (!(messageId in this.messageIdToReactionsMapping)) {
+                this.messageIdToReactionsMapping[messageId] = [messageReaction];
+            } else {
+                this.messageIdToReactionsMapping[messageId].push(messageReaction);
+            }
+        }
+
+        let reactionsForMessage;
+        let reactionUsernamesForMessage;
+        let messageIdOfCurrentMessage;
+        
+
+        for(let i=0; i<newMessages.length; i++) {
+            reactionsForMessage = [];
+            reactionUsernamesForMessage = [];
+            messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+            if(messageIdOfCurrentMessage in this.messageIdToReactionsMapping) {
+                for(let messageReaction of this.messageIdToReactionsMapping[messageIdOfCurrentMessage]) {
+                    reactionsForMessage.push(messageReaction['reaction']);
+                    reactionUsernamesForMessage.push(messageReaction['username']);
+                }
+            }
+            newReactions[i] = reactionsForMessage;
+            newReactionUsernames[i] = reactionsForMessage;
+        }
+
+        const response3 = await fetch('http://localhost:8013/api/getAllFilesForConvo/'+this.selectedConvoId);
+        if(!response3.ok) {
+            throw new Error('Network response not ok');
+        }
+        const allFilesForConvo = await response3.json();
+        allFilesForConvo.sort((a:any, b:any) =>  a['position'] - b['position']);
+
+        let filesForMessage;
+        let fileImagesForMessage:string[];
+        let uint8Array;
+        let blob;
+        let fileObject;
+        let fileUrl;
+        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'];
+
+        for(let i=0; i<newMessages.length; i++) {
+            messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+            filesForMessage = [];
+            fileImagesForMessage = [];
+            for(let fileForConvo of allFilesForConvo) {
+                if(fileForConvo['messageId']===messageIdOfCurrentMessage) {
+                    uint8Array = this.base64ToUint8Array(fileForConvo['fileAsString']);
+                    blob = new Blob([uint8Array], { type: fileForConvo['mimeType'] });
+                    fileObject = new File([blob], fileForConvo['fileName'], { type: fileForConvo['mimeType'] });
+                    filesForMessage.push(fileObject);
+
+                    if(acceptedTypes.includes(fileForConvo['mimeType'])) {
+                        fileUrl = URL.createObjectURL(fileObject);
+                        fileImagesForMessage.push(fileUrl);
+                    }
+                    else {
+                        fileImagesForMessage.push("default file image");
+                    }
+                    newMessageFileReactions[i].push([]);
+                    newMessageFileReactionUsernames[i].push([]);
+                }
+            }
+            newMessageFiles[i] = filesForMessage;
+            newMessageFileImages[i] = fileImagesForMessage;
+        }
+
+        const response4 = await fetch('http://localhost:8014/getAllMessageFileReactionsForConvo/'+this.selectedConvoId);
+        if(!response4.ok) {
+            throw new Error('Network response not ok');
+        }
+        const allMessageFileReactionsForConvo = await response4.json();
+
+        type MessageFileReactionMappings = Record<string, Array<Record<string, string>>>;
+        const messageFileReactionMappings: MessageFileReactionMappings = {};
+        
+        let key;
+        let reactionsForFile;
+        filesForMessage = [];
+
+        for(let convoFileReaction of allMessageFileReactionsForConvo) {
+            key = [convoFileReaction['messageId'], convoFileReaction['position']].toString();
+            if (!(key in messageFileReactionMappings)) {
+                messageFileReactionMappings[key] = [{
+                    reaction: convoFileReaction['reaction'],
+                    reactionUsername: convoFileReaction['reactionUsername']
+                }];
+            } else {
+                messageFileReactionMappings[key].push({
+                    reaction: convoFileReaction['reaction'],
+                    reactionUsername: convoFileReaction['reactionUsername']
+                });
+            }
+        }
+
+        for(let i=0; i<newMessages.length; i++) {
+            messageIdOfCurrentMessage = this.messageIdsOfSelectedConvo[i];
+            filesForMessage = newMessageFiles[i];
+            for(let j=0; j<filesForMessage.length; j++) {
+                key = [messageIdOfCurrentMessage, j].toString();
+                reactionsForFile = messageFileReactionMappings[key];
+                if(reactionsForFile) {
+                    for(let reactionForFile of reactionsForFile) {
+                        newMessageFileReactions[i][j].push(reactionForFile['reaction']);
+                        newMessageFileReactionUsernames[i][j].push(reactionForFile['reactionUsername']);
+                    }
+                }
+            }
+        }
+
+        for(let messageDataPart of this.messageData) {
+            while(messageDataPart.length>0) {
+                messageDataPart.splice(messageDataPart.length-1, 1);
+            }
+        }
+
+        for(let elem of newMessages) {
+            this.messageData[0].push(elem);
+        }
+        for(let elem of newReactions) {
+            this.messageData[1].push(elem);
+        }
+        for(let elem of newReactionUsernames) {
+            this.messageData[2].push(elem);
+        }
+        for(let elem of newMessageFiles) {
+            this.messageData[3].push(elem);
+        }
+        for(let elem of newMessageFileImages) {
+            this.messageData[4].push(elem);
+        }
+        for(let elem of newFileReplies) {
+            this.messageData[5].push(elem);
+        }
+        for(let elem of newMessageFileReactions) {
+            this.messageData[6].push(elem);
+        }
+        for(let elem of newMessageFileReactionUsernames) {
+            this.messageData[7].push(elem);
+        }
+
+        this.messagesSectionHasBeenUpdated2 = true;
+    }
 
     async updateSelectedConvo(convoIndex:number) {
             this.selectedConvo = convoIndex;
+            this.latestMessageOfSelectedConvoHasBeenSeenText =  "";
             if(!this.displayListOfMessageRequestsSection) {
                 this.isRequestingConvoWithRecipient = this.areYouRequestingConvoWithRecipient();
                 this.selectedConvoTitle = this.listOfConvos[this.selectedConvo][6];
@@ -1116,12 +1537,16 @@ import { Note } from '../note.model';
                 this.selectedConvoInitator = this.listOfConvos[this.selectedConvo][17];
                 this.membersOfSelectedConvo = this.listOfConvos[this.selectedConvo][18];
                 this.isRequestedOfSelectedConvo = this.listOfConvos[this.selectedConvo][12];
+                this.doesSelectedConvoHaveUnreadMessage = this.listOfConvos[this.selectedConvo][3];
+                this.selectedConvoUnreadMessageList = this.listOfConvos[this.selectedConvo][10];
                 for(let messageDataPart of this.messageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
                     }
                 }
                 this.socket.send(JSON.stringify(['is-typing', this.selectedConvoId]));
+                this.socket.send(JSON.stringify(['promoted-members-of-convo', this.selectedConvoId]));
+                this.socket.send(JSON.stringify(['messages', this.selectedConvoId]));
             }
             else {
                 this.isRequestingConvoWithRecipient = false;
@@ -1133,6 +1558,8 @@ import { Note } from '../note.model';
                 this.selectedConvoInitator = this.listOfRequestedConvos[this.selectedConvo][17];
                 this.membersOfSelectedConvo = this.listOfRequestedConvos[this.selectedConvo][18];
                 this.isRequestedOfSelectedConvo = this.listOfRequestedConvos[this.selectedConvo][12];
+                this.doesSelectedConvoHaveUnreadMessage = this.listOfRequestedConvos[this.selectedConvo][3];
+                this.selectedConvoUnreadMessageList = this.listOfRequestedConvos[this.selectedConvo][10];
                 for(let messageDataPart of this.requestedMessageData) {
                     while(messageDataPart.length>0) {
                         messageDataPart.splice(messageDataPart.length-1, 1);
@@ -1357,7 +1784,7 @@ import { Note } from '../note.model';
                 }
                 else if(message['message'][0]==='Note-Reply') {
                     if(!this.displayListOfMessageRequestsSection) {
-                        this.messageData[0].push([message['sender'], ["Note-Reply", message['message'][1], message['messageId']], new Date()]);
+                        this.messageData[0].push([message['sender'], ["Note-Reply", message['message'][1], message['messageId']], new Date(message['messageSentAt']+"Z")]);
                         this.messageData[1].push([]);
                         this.messageData[2].push([]);
                         this.messageData[3].push([]);
@@ -1367,7 +1794,7 @@ import { Note } from '../note.model';
                         this.messageData[7].push([]);
                     }
                     else {
-                        this.requestedMessageData[0].push([message['sender'], ["Note-Reply", message['message'][1], message['messageId']], new Date()]);
+                        this.requestedMessageData[0].push([message['sender'], ["Note-Reply", message['message'][1], message['messageId']], new Date(message['messageSentAt']+"Z")]);
                         this.requestedMessageData[1].push([]);
                         this.requestedMessageData[2].push([]);
                         this.requestedMessageData[3].push([]);
@@ -1553,6 +1980,20 @@ import { Note } from '../note.model';
                     }
                 }
             }
+
+            if(!this.displayListOfMessageRequestsSection) {
+                this.updateSeenText(this.selectedConvoUnreadMessageList);
+            }
+
+            this.messagesSectionHasBeenUpdated = true;
+    }
+
+    setMessageSectionHasBeenUpdatedToFalse() {
+        this.messagesSectionHasBeenUpdated = false;
+    }
+
+    setMessageSectionHasBeenUpdated2ToFalse() {
+        this.messagesSectionHasBeenUpdated2 = false;
     }
 
     base64ToUint8Array(base64:string) {
@@ -2457,20 +2898,28 @@ import { Note } from '../note.model';
 
     async addConvoToDatabase(latestMessageOfConvoToAdd: any[]) {
         let convoToAdd = this.listOfConvos[this.selectedConvo];
+        let convoMembers = this.getMembersOfSelectedConvo();
+
+        if(convoMembers.length==2) {
+            const sessionKeyId = this.convoSessionKeys[this.selectedConvoId][0];
+            const sessionKey = this.convoSessionKeys[this.selectedConvoId][1];
+            //encrypt convoDetails with this sessionKey.
+        }
         const response = await fetch('http://localhost:8012/addConvo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 convoId: convoToAdd[8],
                 convoTitle: this.selectedConvoTitle,
-                members: JSON.stringify(this.getMembersOfSelectedConvo()),
+                members: JSON.stringify(convoMembers),
                 convoInitiator: JSON.stringify([this.authenticatedUsername, this.authenticatedFullName]),
                 latestMessage: JSON.stringify(latestMessageOfConvoToAdd),
                 promotedUsers: JSON.stringify(convoToAdd[7]),
                 isMuted: JSON.stringify(convoToAdd[9]),
                 hasUnreadMessage: JSON.stringify(convoToAdd[10]),
                 isRequested: JSON.stringify(convoToAdd[12]),
-                isDeleted: JSON.stringify(convoToAdd[13])
+                isDeleted: JSON.stringify(convoToAdd[13]),
+                sessionId:  this.convoSessionKeys[this.selectedConvoId][0]
             })
         });
         if(!response.ok) {
@@ -2527,6 +2976,98 @@ import { Note } from '../note.model';
             }
             this.groupMessageRecipientsInfo = [];
         }
+    }
+
+    async editConvoHasUnreadMessageAfterSendingMessage() {
+        let convoMembers = this.getMembersOfSelectedConvo();
+        for(let i=0; i<convoMembers.length; i++) {
+            if(convoMembers[i][0]!==this.authenticatedUsername) {
+                this.listOfConvos[this.selectedConvo][10][i] = 1;
+            }
+        }
+        let convo = this.listOfConvos[this.selectedConvo];
+        const response = await fetch('http://localhost:8012/editConvo/'+this.selectedConvoId, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                convoTitle: this.selectedConvoTitle,
+                members: JSON.stringify(convoMembers),
+                convoInitiator: JSON.stringify([convo[17][0], convo[17][1]]),
+                latestMessage: JSON.stringify([convo[16], convo[15]]),
+                promotedUsers: JSON.stringify(convo[7]),
+                isMuted: JSON.stringify(convo[9]),
+                hasUnreadMessage: JSON.stringify(convo[10]),
+                isRequested: JSON.stringify(convo[12]),
+                isDeleted: JSON.stringify(convo[13])
+                })
+            });
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+    }
+
+    async editSelectedConvoHasUnreadMessageAfterSeeingMessage() {
+        let convo;
+        this.doesSelectedConvoHaveUnreadMessage = false;
+        if(!this.displayListOfMessageRequestsSection) {
+            this.listOfConvos[this.selectedConvo][10][this.listOfConvos[this.selectedConvo][11]] = 0;
+            this.listOfConvos[this.selectedConvo][3] = false;
+    
+            convo = this.listOfConvos[this.selectedConvo];
+        }
+        else {
+            this.listOfRequestedConvos[this.selectedConvo][10][this.listOfRequestedConvos[this.selectedConvo][11]] = 0;
+            this.listOfRequestedConvos[this.selectedConvo][3] = false;
+            convo = this.listOfRequestedConvos[this.selectedConvo];
+        }
+
+        const response = await fetch('http://localhost:8012/editConvo/'+this.selectedConvoId, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                convoTitle: this.selectedConvoTitle,
+                members: JSON.stringify(this.getMembersOfSelectedConvo()),
+                convoInitiator: JSON.stringify([convo[17][0], convo[17][1]]),
+                latestMessage: JSON.stringify([convo[16], convo[15]]),
+                promotedUsers: JSON.stringify(convo[7]),
+                isMuted: JSON.stringify(convo[9]),
+                hasUnreadMessage: JSON.stringify(convo[10]),
+                isRequested: JSON.stringify(convo[12]),
+                isDeleted: JSON.stringify(convo[13])
+                })
+            });
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+            this.numberOfAcceptedConvosWithUnreadMessage--;
+    }
+
+    updateConvoInfo(convoUpdateInfo: any[]) {
+        if(convoUpdateInfo[1]==='last-message') {
+            this.listOfConvos[convoUpdateInfo[0]][16] = convoUpdateInfo[2][0];
+            this.listOfConvos[convoUpdateInfo[0]][15] = new Date(convoUpdateInfo[2][1]);
+        }
+        else if(convoUpdateInfo[1]==='unread-message') {
+            this.listOfConvos[convoUpdateInfo[0]][10] = convoUpdateInfo[2];
+            this.listOfConvos[convoUpdateInfo[0]][3] = convoUpdateInfo[3];
+            if(this.selectedConvo==convoUpdateInfo[0]) {
+                this.selectedConvoUnreadMessageList = convoUpdateInfo[2];
+                this.doesSelectedConvoHaveUnreadMessage = convoUpdateInfo[3];
+                this.updateSeenText(this.selectedConvoUnreadMessageList);
+            }
+        }
+
+        else if(convoUpdateInfo[1]==='convo-title') {
+            this.listOfConvos[convoUpdateInfo[0]][6] = convoUpdateInfo[2];
+            if(this.selectedConvo==convoUpdateInfo[0]) {
+                this.selectedConvoTitle = convoUpdateInfo[2];
+            }
+        }
+    }
+
+    closeMessageNotification() {
+        clearTimeout(this.timeoutId);
+        this.displayMessageNotification = false;
     }
 
 

@@ -1,23 +1,30 @@
 
-<div style="border-style:solid; border-left: none; border-top: none; border-color: #ededed; position:fixed; width:4%; height:100%;
+<div id="leftSidebar" style="border-style:solid; border-left: none; border-top: none; border-color: #ededed; position:fixed; width:4%; height:100%;
 display: flex; flex-direction: column; align-items: center; gap:1em; padding-top:1em; overflow-y: scroll;">
-<img (click)="takeUserToHomeScreen()" src="igLogo.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain; margin-bottom:3em;">
+<img class="iconToBeAdjustedForDarkMode" (click)="takeUserToHomeScreen()" src="igLogo.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain; margin-bottom:3em;">
 
-<img (click)="takeUserToHomeScreen()" src="homeIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="searchIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="exploreIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="reelsIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="messagesIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="blankHeartIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="createIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="shopIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="newsIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em;object-fit: contain;">
-<img src="gamesIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="aiIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="timeCapsuleIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="predictIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
-<img src="listenIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain; margin-bottom: 0em;">
-<img (click)="toggleShowLeftSidebarPopup()" src="moreIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" (click)="takeUserToHomeScreen()" src="homeIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="searchIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="exploreIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="reelsIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+
+<div style="position: relative;">
+    <img class="iconToBeAdjustedForDarkMode" src="messagesIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+    <img *ngIf="numberOfAcceptedConvosWithUnreadMessage<10 && numberOfAcceptedConvosWithUnreadMessage>0" class="iconToBeAdjustedForDarkMode" src="redDot.png" style="position: absolute; top: -25%; left: 60%; height:1.6em; width: 1.6em; object-fit: contain;">
+    <p *ngIf="numberOfAcceptedConvosWithUnreadMessage<10 && numberOfAcceptedConvosWithUnreadMessage>0" style="position: absolute; top: -52%; left: 80%; color: white; size: 0.2px;">{{numberOfAcceptedConvosWithUnreadMessage}}</p>
+    <img *ngIf="numberOfAcceptedConvosWithUnreadMessage>=10" class="iconToBeAdjustedForDarkMode" src="redDot.png" style="position: absolute; top: -25%; left: 60%; height:2em; width: 2em; object-fit: contain;">
+    <p *ngIf="numberOfAcceptedConvosWithUnreadMessage>=10" style="position: absolute; top: -48%; left: 80%; color: white; size: 0.2px;">9+</p>
+</div>
+<img class="iconToBeAdjustedForDarkMode" src="blankHeartIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="createIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="shopIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="newsIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em;object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="gamesIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="aiIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="timeCapsuleIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="predictIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
+<img class="iconToBeAdjustedForDarkMode" src="listenIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain; margin-bottom: 0em;">
+<img class="iconToBeAdjustedForDarkMode" (click)="toggleShowLeftSidebarPopup()" src="moreIcon.png" style="cursor: pointer; height:2.4em; width: 2.4em; object-fit: contain;">
 
 </div>
 

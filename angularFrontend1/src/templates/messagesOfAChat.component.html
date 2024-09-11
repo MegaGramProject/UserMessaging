@@ -1,7 +1,7 @@
 <div *ngIf="messageRecipientInfo.length==0 && groupMessageRecipientsInfo.length==0" style="position: absolute; top:0%; height: 100%; display: flex; flex-direction: column;
 justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalStartOfSection()">
 
-<img src="yourMessagesIcon.png" style="height: 8em; width: 8em; pointer-events: none; object-fit: contain; margin-bottom: -1em;">
+<img class="iconToBeAdjustedForDarkMode" src="yourMessagesIcon.png" style="height: 8em; width: 8em; pointer-events: none; object-fit: contain; margin-bottom: -1em;">
 <p style="font-size:1.3em; font-weight: semibold; margin-bottom:0em;">Your Messages</p>
 <p style="color: gray">Send a message to start a chat.</p>
 <button (click)="showNewMessagePopup()" type="button" class="blueButton">Send message</button>
@@ -13,10 +13,10 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
 <div style="position: relative; height:100%; width:100%; top: 0%; left: 0%;">
 
-    <div style="position:absolute; top:0%; height: 8%; display: flex; border-style: solid; border-color: lightgray; border-top: none;
+    <div id="messagesOfAChatTopSection" class="messagesOfAChat" style="position:absolute; top:0%; height: 8%; display: flex; border-style: solid; border-color: lightgray; border-top: none;
     border-left: none; border-right: none; width: 100%; align-items: center; justify-content: space-between;
-    padding-left: 1.5em; z-index: 10; background-color: white;">
-        <div style="display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
+    padding-left: 1.5em; z-index: 10;">
+        <div class="messagesOfAChat" style="display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
             <div style="position: relative">
                 <img [src]="profilePhotoString" style="height:2.5em; width:2.6em; object-fit: contain;">
                 <img *ngIf="isActive" src="activeGreenDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
@@ -27,7 +27,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{getFullNamesOfAllConvoMembers()}}</b>
                 <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle.length>0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
                 <p *ngIf="!isEditingConvoTitle && isActive" style="color: gray; font-size: 0.86em;">Active now</p>
-                <p *ngIf="!isEditingConvoTitle && isIdle" style="color: gray; font-size: 0.77em;">Idle (Megagram tab present but not focused)</p>
+                <p *ngIf="!isEditingConvoTitle && isIdle" style="color: gray; font-size: 0.77em;">Idle</p>
                 <p *ngIf="!isEditingConvoTitle && !isActive && !isIdle" style="color: gray; font-size: 0.77em;"></p>
             </div>
             <textarea [(ngModel)]="convoTitle" style="font-family: Arial;" *ngIf="isEditingConvoTitle"></textarea>
@@ -35,11 +35,11 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <button (click)="toggleEditConvoTitle('')" type="button" *ngIf="isEditingConvoTitle" style="cursor: pointer; background-color: darkgray; color: white; padding: 0.5em 1em; border: none; border-radius: 0.7em;">Save</button>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
-            <img *ngIf="!isRequestingConvoWithRecipient" (click)="startAudioCall()" src="audioCallIcon.png" style="height:2.5em; width:2.5em; object-fit: contain;">
-            <img *ngIf="!isRequestingConvoWithRecipient" (click)="startVideoCall()" src="videoCallIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
-            <img (click)="toggleConvoDetailsPanel()" *ngIf="!convoDetailsPanelIsExpanded" src="infoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
-            <img (click)="toggleConvoDetailsPanel()" *ngIf="convoDetailsPanelIsExpanded" src="solidBlackInfoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+        <div class="messagesOfAChat" style="display: flex; align-items: center; gap: 0.5em; margin-right:0em; cursor:pointer;">
+            <img class="iconToBeAdjustedForDarkMode" *ngIf="!isRequestingConvoWithRecipient" (click)="startAudioCall()" src="audioCallIcon.png" style="height:2.5em; width:2.5em; object-fit: contain;">
+            <img class="iconToBeAdjustedForDarkMode" *ngIf="!isRequestingConvoWithRecipient" (click)="startVideoCall()" src="videoCallIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="toggleConvoDetailsPanel()" *ngIf="!convoDetailsPanelIsExpanded" src="infoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="toggleConvoDetailsPanel()" *ngIf="convoDetailsPanelIsExpanded" src="solidBlackInfoIcon.png" style="height:2.2em; width:2.2em; object-fit: contain;">
         </div>
 
     </div>
@@ -99,9 +99,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <p style="background-color:white; border-style: solid; border-color: lightgray; border-radius: 2em; padding: 0.5em 1em;">{{ getNoteOriginalNoteText(i) }}</p>
             
             <div style="display: flex; align-items: center; gap: 0.5em; position: relative;">
-                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
                 <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
                     'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                     'color': message[0] === authenticatedUsername ? 'white' : 'black',
@@ -112,12 +112,12 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 }" style="max-width: 25em; font-size:1.2em !important;">
                 {{ getNoteReplyText(i) }}
                 </p>
-                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
-                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                 <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
                 cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
-                <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                <div class="messagesOfAChat" *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
                 z-index: 10;">
                     <p style="color:gray">Most Popular</p>
                     <p style="letter-spacing: 1em; font-size:1.4em">
@@ -140,7 +140,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     </p>
                 </div>
 
-                <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
+                <div class="messagesOfAChat" *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
                 z-index: 10;">
                     <p style="color:gray">Most Popular</p>
                     <p style="letter-spacing: 1em; font-size:1.4em">
@@ -163,7 +163,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     </p>
                 </div>
 
-                <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+                <div class="messagesOfAChat" *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
                     top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
                     display: flex; flex-direction: column; z-index: 10;">
         
@@ -175,19 +175,19 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Forward</p>
-                            <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                         <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Copy</p>
-                            <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                         <div (click)="deleteMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Unsend</p>
-                            <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                     </div>
@@ -218,6 +218,11 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </div>
             </div>
 
+            <div *ngIf="i==messages.length-1" style="width: 100%; position: relative; top: 120%;">
+                <p *ngIf="message[0]===authenticatedUsername" style="color: gray; font-size: 0.8em; max-width: 17em; position: absolute; left: 86%;">{{seenText}}</p>
+                <p *ngIf="message[0]!==authenticatedUsername" style="color: gray; font-size: 0.8em; max-width: 17em; position: absolute; left: 0%;">{{seenText}}</p>
+            </div>
+
             </div>
 
             
@@ -234,9 +239,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
                 <div style="position: relative;">
                     <div style="display: flex; align-items: center; gap: 0.5em;">
-                        <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
                         <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
                             'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                             'color': message[0] === authenticatedUsername ? 'white' : 'black',
@@ -247,13 +252,13 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         }" style="max-width: 25em;">
                         {{ getMessageReplyText(i) }}
                         </p>
-                        <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
-                        <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                     </div>
                     <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
                     cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
-                    <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                    <div class="messagesOfAChat" *ngIf="message[0]===this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
                     z-index: 10;">
                         <p style="color:gray">Most Popular</p>
                         <p style="letter-spacing: 1em; font-size:1.4em">
@@ -276,7 +281,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         </p>
                     </div>
 
-                    <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
+                    <div class="messagesOfAChat" *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
                     z-index: 10;">
                         <p style="color:gray">Most Popular</p>
                         <p style="letter-spacing: 1em; font-size:1.4em">
@@ -299,7 +304,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         </p>
                     </div>
         
-                    <div *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+                    <div class="messagesOfAChat"  *ngIf="message[0]===this.authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
                     top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
                     display: flex; flex-direction: column; z-index: 10;">
         
@@ -311,19 +316,19 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Forward</p>
-                            <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                         <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Copy</p>
-                            <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                         <div (click)="deleteMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                         align-items: center; justify-content: space-between;">
                             <p style="font-size: 0.9em;">Unsend</p>
-                            <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                            <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                         </div>
         
                     </div>
@@ -354,6 +359,12 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                     </div>
         
                 </div>
+
+                <div *ngIf="i==messages.length-1" style="width: 100%; position: relative; top: 120%;">
+                    <p *ngIf="message[0]===authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 86%;">{{seenText}}</p>
+                    <p *ngIf="message[0]!==authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 0%;">{{seenText}}</p>
+                </div>
+
             </div>
 
 
@@ -372,9 +383,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
                         <div style="position: relative;">
                             <div style="display: flex; align-items: center; gap: 0.5em;">
-                                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-right: 1.5em; object-fit: contain; cursor: pointer;">
                                 <p (dblclick)="onDoubleClickingMessage(i)" [ngStyle]="{
                                     'background-color': message[0] === authenticatedUsername ? '#348ceb' : '#f0f0f0',
                                     'color': message[0] === authenticatedUsername ? 'white' : 'black',
@@ -385,13 +396,13 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 }" style="max-width: 25em;">
                                 {{ getForwardedMessage(i) }}
                                 </p>
-                                <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
-                                <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                                <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; margin-left: 1.5em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                                <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
                             </div>
                             <p (click)="showMessageReactionsPopup(i)" *ngIf="reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
                             cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
-                            <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+                            <div class="messagesOfAChat" *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
                             z-index: 10;">
                                 <p style="color:gray">Most Popular</p>
                                 <p style="letter-spacing: 1em; font-size:1.4em">
@@ -414,7 +425,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 </p>
                             </div>
 
-                            <div *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
+                            <div class="messagesOfAChat" *ngIf="message[0]!==this.authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:100%; top:120%; background-color: white;
                     z-index: 10;">
                         <p style="color:gray">Most Popular</p>
                         <p style="letter-spacing: 1em; font-size:1.4em">
@@ -437,7 +448,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                         </p>
                     </div>
                 
-                            <div *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+                            <div class="messagesOfAChat" *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
                             top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
                             display: flex; flex-direction: column; z-index: 10;">
                 
@@ -449,19 +460,19 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Forward</p>
-                                    <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
                 
                                 <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Copy</p>
-                                    <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
                 
                                 <div (click)="deleteMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Unsend</p>
-                                    <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
                 
                             </div>
@@ -492,6 +503,11 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                             </div>
                 
                         </div>
+
+                <div *ngIf="i==messages.length-1" style="width: 100%; position: relative; top: 120%;">
+                    <p *ngIf="message[0]===authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 86%;">{{seenText}}</p>
+                    <p *ngIf="message[0]!==authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 0%;">{{seenText}}</p>
+                </div>
             </div>
 
 
@@ -512,20 +528,20 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <div *ngFor="let fileImage of messageFileImages[i]; let j = index;">
 
                     <div (mouseenter)="onFileImageMouseEnter(i, j)" (mouseleave)="onFileImageMouseLeave()" style="display: flex; align-items: center; gap: 0.3em; position: relative;">
-                        <img (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="replyToFile(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 1.4em;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="replyToFile(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="message[0]===authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer; margin-right: 1.4em;">
                         
                         <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage!=='default file image'" [src]="fileImage" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
                         <img (dblclick)="onDoubleClickingFile(i, j)" (click)="downloadFile([i, j])" *ngIf="fileImage==='default file image'" src="fileImage.png" style="height: 5em; width: 5em; object-fit: contain; cursor: pointer;">
                         <p (click)="showFileReactionsPopup(i, j)" *ngIf="messageFileReactions[i][j].length>0" style="position: absolute; left: 70%; top: 60%; border-radius: 2em; padding: 0.3em 0.6em;
                         cursor: pointer; background-color: #ebebeb;">{{messageFileReactions[i][j][0]}}</p>
                         
-                        <img (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; margin-left: 1.4em; object-fit: contain; cursor: pointer;">
-                        <img (click)="replyToFile(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-                        <img (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="!isRequestingConvoWithRecipient && message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="setCurrentlyShownOptionsPanel(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="verticalThreeDots.png" style="height:1em; width:1em; margin-left: 1.4em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="replyToFile(i, j)" *ngIf="message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+                        <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanelForMessageFiles(i, j)" *ngIf="!isRequestingConvoWithRecipient && message[0]!==authenticatedUsername && currentlyHoveredSentMessageAndFileIndices[0]==i && currentlyHoveredSentMessageAndFileIndices[1]==j" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
 
-                        <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[1]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-15em; top:120%; background-color: white;
+                        <div class="messagesOfAChat" *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[1]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-15em; top:120%; background-color: white;
                         z-index: 10;">
                             <p style="color:gray">Most Popular</p>
                             <p style="letter-spacing: 1em; font-size:1.4em">
@@ -548,7 +564,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                             </p>
                         </div>
 
-                        <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[0]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:15em; top:120%; background-color: white;
+                        <div class="messagesOfAChat" *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanelForMessageFiles[0]==i && currentlyShownReactionPanelForMessageFiles[0]==j" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:15em; top:120%; background-color: white;
                         z-index: 10;">
                             <p style="color:gray">Most Popular</p>
                             <p style="letter-spacing: 1em; font-size:1.4em">
@@ -571,7 +587,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                             </p>
                         </div>
 
-                        <div *ngIf="currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:-17em;
+                        <div class="messagesOfAChat" *ngIf="currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:-17em;
                         top:105%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:8.6em; border-radius:7px;
                         display: flex; flex-direction: column; z-index: 10;">
 
@@ -583,17 +599,17 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 <div (click)="forwardFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Forward</p>
-                                    <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
 
                                 <div (click)="deleteFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Unsend</p>
-                                    <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
                         </div>
 
-                        <div *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:17em;
+                        <div class="messagesOfAChat"  *ngIf="message[0]!==authenticatedUsername && currentlyShownOptionsPanelForMessageFiles[0]==i && currentlyShownOptionsPanelForMessageFiles[1]==j" style="position: absolute; left:17em;
                         top:105%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:8.6em; border-radius:7px;
                         display: flex; flex-direction: column; z-index: 10;">
 
@@ -605,13 +621,13 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                                 <div (click)="forwardFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Forward</p>
-                                    <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
 
                                 <div (click)="deleteFile(i, j)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                                 align-items: center; justify-content: space-between;">
                                     <p style="font-size: 0.9em;">Unsend</p>
-                                    <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                                    <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                                 </div>
 
                         </div>
@@ -626,10 +642,10 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             <div *ngIf="message.length>3" (mouseenter)="onMouseEnter(i)" (mouseleave)="onMouseLeave()" style="display: flex; align-items: center;
             width: 100%; margin-bottom: 1em; gap:0.6em;"
             [ngStyle]="{'justify-content': message[0] === authenticatedUsername ? 'flex-end' : 'flex-start'}">
-            
-            <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-            <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-            <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+
+            <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]===authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
             
             <img *ngIf="message[0]===authenticatedUsername && message[1]==='\u2764\ufe0f'" src="redHeartIcon.png"  style="height:6em; width:6em; object-fit: contain;">
             <div style="position: relative;">
@@ -645,7 +661,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             </p>
             <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]===authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
             cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
-            <div *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
+            <div class="messagesOfAChat" *ngIf="message[0]===authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute; left:-20%; top:120%; background-color: white;
             z-index: 10;">
                 <p style="color:gray">Most Popular</p>
                 <p style="letter-spacing: 1em; font-size:1.4em">
@@ -668,7 +684,7 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </p>
             </div>
 
-            <div *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
+            <div class="messagesOfAChat" *ngIf="message[0]===authenticatedUsername && currentlyShownOptionsPanel==i" style="position: absolute; left:-20%;
             top:120%; background-color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); width:12em; height:12em; border-radius:7px;
             display: flex; flex-direction: column; z-index: 10;">
 
@@ -680,19 +696,19 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <div (click)="forwardMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                 align-items: center; justify-content: space-between;">
                     <p style="font-size: 0.9em;">Forward</p>
-                    <img src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                    <img class="iconToBeAdjustedForDarkMode" src="forwardMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                 </div>
 
                 <div (click)="copyToClipboard(message[1])" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                 align-items: center; justify-content: space-between;">
                     <p style="font-size: 0.9em;">Copy</p>
-                    <img src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                    <img class="iconToBeAdjustedForDarkMode" src="copyMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                 </div>
 
                 <div (click)="deleteMessage(i)" class="hoverableElement" style="display: flex; width: 82%; cursor:pointer; margin-left:5%; padding-left:1em;
                 align-items: center; justify-content: space-between;">
                     <p style="font-size: 0.9em;">Unsend</p>
-                    <img src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
+                    <img class="iconToBeAdjustedForDarkMode" src="unsendMessageIcon.png" style="height:1.7em; width: 1.7em; object-fit: contain;">
                 </div>
 
             </div>
@@ -721,7 +737,8 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
             
             <p (click)="showMessageReactionsPopup(i)" *ngIf="message[0]!==authenticatedUsername && reactions[i].length>0" style="position: absolute; left: 89%; top: 40%; border-radius: 2em; padding: 0.3em 0.6em;
             cursor: pointer; background-color: #ebebeb;">{{reactions[i][reactions[i].length-1]}}</p>
-            <div *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute;
+
+            <div class="messagesOfAChat" *ngIf="message[0]!==authenticatedUsername && currentlyShownReactionPanel==i" style="padding-left:1em; width: 11.5em; border-style:solid; border-color: lightgray; position: absolute;
             left:50%; top:120%; background-color: white; z-index: 10;">
                 <p style="color:gray">Most Popular</p>
                 <p style="letter-spacing: 1em; font-size:1.4em">
@@ -767,10 +784,18 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 </div>
 
             </div>
+
             </div>
-            <img (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-            <img (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
-            <img (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="showReactionPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="reactSmiley.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="replyToMessage(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="replyArrow.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+            <img class="iconToBeAdjustedForDarkMode" (click)="showOptionsPanel(i)" *ngIf="hoveredIndex==i && message[0]!==authenticatedUsername" src="verticalThreeDots.png" style="height:1em; width:1em; object-fit: contain; cursor: pointer;">
+
+
+            </div>
+
+            <div *ngIf="i==messages.length-1 && message.length>3" style="width: 100%; position: relative; top: 120%;">
+                <p *ngIf="message[0]===authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 86%;">{{seenText}}</p>
+                <p *ngIf="message[0]!==authenticatedUsername" style="color: gray; font-size: 0.7em; max-width: 17em; position: absolute; left: 0%;">{{seenText}}</p>
             </div>
 
         </div>
@@ -778,8 +803,8 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
     </div>
 
     <div style="height: 4em; width: 4em; position: relative; top: 86%; width: 100%;">
-    <p style="color: gray; position: absolute; left: 10%;">{{isTypingText}}</p>
-    <img (click)="scrollToBottom()" src="scrollDownArrow.png" *ngIf="myScrollContainer?.nativeElement && myScrollContainer.nativeElement.scrollTop + myScrollContainer.nativeElement.clientHeight < myScrollContainer.nativeElement.scrollHeight" style="height: 2.5em; width: 2.5em; border-radius: 1.3em; object-fit: contain; cursor: pointer; position: absolute; left: 50%;">
+        <p style="color: gray; position: absolute; left: 10%;">{{isTypingText}}</p>
+        <img class="iconToBeAdjustedForDarkMode" (click)="scrollToBottom()" src="scrollDownArrow.png" *ngIf="myScrollContainer?.nativeElement && myScrollContainer.nativeElement.scrollTop + myScrollContainer.nativeElement.clientHeight < myScrollContainer.nativeElement.scrollHeight" style="height: 2.5em; width: 2.5em; border-radius: 1.3em; object-fit: contain; cursor: pointer; position: absolute; left: 50%;">
     </div>
 
     <div style="position: absolute;  top:92%; left:1.5%; width: 100%;">
@@ -811,17 +836,17 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
 
             <textarea *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" [(ngModel)]="messageToSend" [placeholder]="getTextareaPlaceholder()" style="font-family: Arial; width:96%;
             border-radius:2em; font-size: 1em; border-color:lightgray; padding-left:1em; padding-top:1em;" (input)="onTypingMessage()"></textarea>
-            <img (click)="toggleAudio()" *ngIf="audioContext!==null && !isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="pauseIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" (click)="toggleAudio()" *ngIf="audioContext!==null && !isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="pauseIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;">
-            <img (click)="toggleAudio()" *ngIf="audioContext!==null && isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="playIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" (click)="toggleAudio()" *ngIf="audioContext!==null && isPaused && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="playIcon.png" style="position: absolute; left: 81%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;">
-            <img (click)="stopRecordingAudioMessage()" *ngIf="audioContext!==null && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="stopRecordingIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" (click)="stopRecordingAudioMessage()" *ngIf="audioContext!==null && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="stopRecordingIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;">
-            <img (click)="startRecordingAudioMessage()" *ngIf="audioContext==null && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="microphoneIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" (click)="startRecordingAudioMessage()" *ngIf="audioContext==null && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" src="microphoneIcon.png" style="position: absolute; left: 85%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">
-            <img *ngIf="filesToSend.length<10 && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" (click)="triggerFileInput()" src="sendFileIcon.png" style="position: absolute; left: 89%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" *ngIf="filesToSend.length<10 && (!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3))" (click)="triggerFileInput()" src="sendFileIcon.png" style="position: absolute; left: 89%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">
-            <img *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" (click)="sendHeart()" src="blankHeartIcon.png" style="position: absolute; left: 93%; top: 5%; height: 3em; width:2em; object-fit: contain;
+            <img class="iconToBeAdjustedForDarkMode" *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" (click)="sendHeart()" src="blankHeartIcon.png" style="position: absolute; left: 93%; top: 5%; height: 3em; width:2em; object-fit: contain;
             cursor:pointer;" [ngStyle]="displayIconsOfTextarea()">
             <p *ngIf="!isRequestingConvoWithRecipient || (isRequestingConvoWithRecipient && messages.length<3)" (click)="sendMessage()" style="cursor:pointer; color:#348ceb; position: absolute; left: 90%; top: 5%;
             font-weight: bold;" [ngStyle]="displaySendMessageText()">Send</p>

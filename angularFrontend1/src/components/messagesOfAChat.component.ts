@@ -120,7 +120,21 @@ export class MessagesOfAChat {
     mostRecentTimeAuthUserTypedInThisSession:any = null;
     @Input() socket!:WebSocket;
     intervalId:any = null;
-
+    @Output() notifyParentToEditConvoHasUnreadMessage: EventEmitter<string> = new EventEmitter();
+    @Input() doesSelectedConvoHaveUnreadMessage:boolean = false;
+    @Output() notifyParentToUpdateUnreadMessageToRead: EventEmitter<string> = new EventEmitter();
+    hasNotificationToUpdateUnreadMessageToReadOccurred:boolean = false;
+    intervalId2: any = null;
+    @Input() isAuthenticatedUserActive!: boolean;
+    @Input() seenText:string = "";
+    @Input() selectedConvoMembers!: string[][];
+    @Input() selectedConvoUnreadMessageList!: any[];
+    @Input() messagesSectionHasBeenUpdated!: boolean;
+    @Output() notifyParentToSetMessageSectionHasBeenUpdatedToFalse: EventEmitter<string> = new EventEmitter();
+    @Input() messagesSectionHasBeenUpdated2!:boolean;
+    @Output() notifyParentToSetMessageSectionHasBeenUpdated2ToFalse: EventEmitter<string> = new EventEmitter();
+    convoMemberActivityStatuses: { [username: string]: string } = {};
+    @Input() convoSessionKeys: { [convoId: string]: string } = {};
 
     constructor(private cdRef: ChangeDetectorRef) { }
 
@@ -142,20 +156,37 @@ export class MessagesOfAChat {
             }
             let convoId = this.convoId;
 
-            if( (messageArray[0]==='get-activity-status' || messageArray[0]==='update-activity-status') && messageArray[1]===username ) {
-                if(messageArray[2]==='active') {
-                    this.isActive = true;
-                    this.isIdle = false;
+            if( (messageArray[0]==='get-activity-status' || messageArray[0]==='update-activity-status')) {
+                this.convoMemberActivityStatuses[messageArray[1]] = messageArray[2];
+                if(this.messageRecipientInfo.length>0 && messageArray[1]===this.messageRecipientInfo[0]) {
+                    if(this.convoMemberActivityStatuses[this.messageRecipientInfo[0]]==='active') {
+                        this.isActive = true;
+                        this.isIdle = false;
+                    }
+                    else if(this.convoMemberActivityStatuses[this.messageRecipientInfo[0]]==='idle') {
+                        this.isActive = false;
+                        this.isIdle = true;
+                    }
+                    else {
+                        this.isActive = false;
+                        this.isIdle = false;
+                    }
                 }
-                else if(messageArray[2]==='idle') {
-                    this.isActive = false;
-                    this.isIdle = true;
+                else if(this.groupMessageRecipientsInfo.length>0 && messageArray[1]===this.selectedConvoInitator[0]) {
+                    if(this.convoMemberActivityStatuses[this.selectedConvoInitator[0]]==='active') {
+                        this.isActive = true;
+                        this.isIdle = false;
+                    }
+                    else if(this.convoMemberActivityStatuses[this.selectedConvoInitator[0]]==='idle') {
+                        this.isActive = false;
+                        this.isIdle = true;
+                    }
+                    else {
+                        this.isActive = false;
+                        this.isIdle = false;
+                    }
                 }
-                else {
-                    this.isActive = false;
-                    this.isIdle = false;
-                }
-                this.cdRef.detectChanges();
+
             }
 
             else if( (messageArray[0]==='get-is-typing' || messageArray[0]==='update-is-typing') && messageArray[1]===convoId ) {
@@ -181,11 +212,28 @@ export class MessagesOfAChat {
                 else {
                     this.isTypingText = isTypingText.substring(0, isTypingText.length-2) + " are typing";
                 }
-                console.log(this.isTypingText.substring(0, this.isTypingText.length-7));
                 this.intervalId = setInterval(() => this.updateIsTypingText(this.isTypingText), 250);
             }
+
         });
     }
+
+
+    setUnreadMessageToRead() {
+        if(this.myScrollContainer.nativeElement) {
+            if(this.myScrollContainer.nativeElement.clientHeight == this.myScrollContainer.nativeElement.scrollHeight) {
+                if(!this.hasNotificationToUpdateUnreadMessageToReadOccurred && this.isAuthenticatedUserActive) {
+                    this.myScrollContainer.nativeElement.onscroll = null;
+                    this.notifyParentToUpdateUnreadMessageToRead.emit('set unread message to read');
+                    this.hasNotificationToUpdateUnreadMessageToReadOccurred = true;
+                }
+            }
+            else if(this.myScrollContainer.nativeElement.onscroll==null) {
+                this.myScrollContainer.nativeElement.onscroll = this.onScroll.bind(this);
+            }
+        }
+    }
+
 
     updateIsTypingText(startOfIsTypingText:string) {
         if(this.isTypingText.endsWith("...")) {
@@ -289,7 +337,25 @@ export class MessagesOfAChat {
             this.userProfileIcons = {};
             await this.getProfilePhoto(this.messageRecipientInfo[0]);
             this.profilePhotoString = this.userProfileIcons[this.messageRecipientInfo[0]];
-            this.socket.send(JSON.stringify(['activity-status', this.messageRecipientInfo[0]]));
+            this.hasNotificationToUpdateUnreadMessageToReadOccurred = false;
+            if(this.messageRecipientInfo[0] in this.convoMemberActivityStatuses) {
+                if(this.convoMemberActivityStatuses[this.messageRecipientInfo[0]]==='active') {
+                    this.isActive = true;
+                    this.isIdle = false;
+                }
+                else if(this.convoMemberActivityStatuses[this.messageRecipientInfo[0]]==='idle') {
+                    this.isActive = false;
+                    this.isIdle = true;
+                }
+                else {
+                    this.isActive = false;
+                    this.isIdle = false;
+                }
+            }
+            else {
+                this.isActive = false;
+                this.isIdle = false;
+            }
         }
         else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
             this.messageIndexToReplyTo = -1;
@@ -298,10 +364,68 @@ export class MessagesOfAChat {
                 await this.getProfilePhoto(member[0]);
             }
             this.profilePhotoString = this.userProfileIcons[this.selectedConvoInitator[0]];
-            this.socket.send(JSON.stringify(['activity-status', this.selectedConvoInitator[0]]));
+            this.hasNotificationToUpdateUnreadMessageToReadOccurred = false;
+            if(this.selectedConvoInitator[0] in this.convoMemberActivityStatuses) {
+                if(this.convoMemberActivityStatuses[this.selectedConvoInitator[0]]==='active') {
+                    this.isActive = true;
+                    this.isIdle = false;
+                }
+                else if(this.convoMemberActivityStatuses[this.selectedConvoInitator[0]]==='idle') {
+                    this.isActive = false;
+                    this.isIdle = true;
+                }
+                else {
+                    this.isActive = false;
+                    this.isIdle = false;
+                }
+            }
+            else {
+                this.isActive = false;
+                this.isIdle = false;
+            }
+        }
+        if(changes['doesSelectedConvoHaveUnreadMessage']) {
+            if(changes['doesSelectedConvoHaveUnreadMessage'].currentValue==true) {
+                this.hasNotificationToUpdateUnreadMessageToReadOccurred = false;
+                this.intervalId2 = setInterval(() => {
+                    this.setUnreadMessageToRead()
+                }, 2000);
+            }
+            else {
+                clearInterval(this.intervalId2);
+                this.intervalId2 = null;
+            }
+        }
+
+        if(changes['messagesSectionHasBeenUpdated'] && this.messagesSectionHasBeenUpdated) {
+            this.cdRef.detectChanges();
+            this.scrollToBottom();
+            this.notifyParentToSetMessageSectionHasBeenUpdatedToFalse.emit("change to false");
+        }
+
+        else if(changes['messagesSectionHasBeenUpdated2'] && this.messagesSectionHasBeenUpdated2) {
+            this.cdRef.detectChanges();
+            this.scrollToBottom();
+            this.notifyParentToSetMessageSectionHasBeenUpdated2ToFalse.emit("change to false");
         }
         
     }
+
+
+
+    onScroll(): void {
+        if(!this.hasNotificationToUpdateUnreadMessageToReadOccurred && this.isAuthenticatedUserActive) {
+            const scrollTop = this.myScrollContainer.nativeElement.scrollTop;
+            const scrollHeight = this.myScrollContainer.nativeElement.scrollHeight;
+            const clientHeight = this.myScrollContainer.nativeElement.clientHeight;
+
+            if (scrollTop + clientHeight == scrollHeight) {
+                this.notifyParentToUpdateUnreadMessageToRead.emit('set unread message to read');
+                this.hasNotificationToUpdateUnreadMessageToReadOccurred = true;
+            }
+        }
+    }
+
 
     async getProfilePhoto(username:string) {
         try {
@@ -331,6 +455,8 @@ export class MessagesOfAChat {
     }
 
 
+
+
     scrollToBottom(): void {
     try {
         this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
@@ -350,6 +476,8 @@ export class MessagesOfAChat {
             this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": " + this.messageToSend, new Date()]);
         }
         const newMessageId = uuidv4();
+        const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
+
         if(this.messageIndexToReplyTo!==-1) {
             let message:string[] = [];
             if(this.messages[this.messageIndexToReplyTo].length>3) {
@@ -377,14 +505,20 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(message),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
-                    
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                 })
             });
             
             if(!responseForSendingReplyMessage.ok) {
                 throw new Error('Network response not ok');
             }
+
+            if(!(doesThisConvoHaveAnActiveSessionId)) {
+                const newlyCreatedSessionKeyId = await responseForSendingReplyMessage.text();
+                this.convoSessionKeys[this.convoId] = newlyCreatedSessionKeyId;
+            }
+
             this.fileReplies.push([null]);
         }
         else if(this.fileIndexToReplyTo[0]!==-1) {
@@ -412,7 +546,8 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["File-Reply", this.messages[this.fileIndexToReplyTo[0]][0], fileToReplyToId, this.messageToSend]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                 })
             });
             
@@ -420,6 +555,11 @@ export class MessagesOfAChat {
                 throw new Error('Network response not ok');
             }
 
+            if(!(doesThisConvoHaveAnActiveSessionId)) {
+                const newlyCreatedSessionKeyId = await responseForSendingFileReplyMessage.text();
+                this.convoSessionKeys[this.convoId] = newlyCreatedSessionKeyId;
+            }
+    
             this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
             this.fileReplies.push([this.messageFiles[this.fileIndexToReplyTo[0]][this.fileIndexToReplyTo[1]], this.messages[this.fileIndexToReplyTo[0]][0], fileToReplyToId, this.getImageForFileReply(this.messageFiles[this.fileIndexToReplyTo[0]][this.fileIndexToReplyTo[1]])]);
         }
@@ -433,13 +573,20 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Regular-Message", this.messageToSend]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                 })
             });
             
             if(!responseForSendingRegularMessage.ok) {
                 throw new Error('Network response not ok');
             }
+
+            if(!(doesThisConvoHaveAnActiveSessionId)) {
+                const newlyCreatedSessionKeyId = await responseForSendingRegularMessage.text();
+                this.convoSessionKeys[this.convoId] = newlyCreatedSessionKeyId;
+            }
+
             this.messages.push([this.authenticatedUsername, this.messageToSend, new Date(), newMessageId]);
             this.fileReplies.push([null]);
         }
@@ -464,6 +611,23 @@ export class MessagesOfAChat {
             }
         }
 
+        if(!(doesThisConvoHaveAnActiveSessionId)) {
+            let newSessionKeyId = this.convoSessionKeys[this.convoId];
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json',
+                body: JSON.stringify({
+                    convoId: this.convoId,
+                    sessionKeyId: newSessionKeyId,
+                    listOfActiveOrIdleMembersOfConvo: JSON.stringify([[this.authenticatedUsername, this.authenticatedFullName]])
+                })}
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
+        this.notifyParentToEditConvoHasUnreadMessage.emit("edit convo");
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push(this.filesToSend);
@@ -484,13 +648,17 @@ export class MessagesOfAChat {
     }
 
     async sendHeart() {
+        
         if(!this.hasConvoBeenAdded) {
             this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": ❤️" , new Date()]);
         }
         else {
             this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": ❤️" , new Date()]);
         }
+
         const newMessageId = uuidv4();
+        const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
+
         this.messages.push([this.authenticatedUsername, "❤️", new Date(), newMessageId]);
         const responseForSendingHeart = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
@@ -500,13 +668,34 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Regular-Message", "❤️"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                 })
             });
             
         if(!responseForSendingHeart.ok) {
             throw new Error('Network response not ok');
         }
+
+        if(!(doesThisConvoHaveAnActiveSessionId)) {
+            const newSessionKeyId = await responseForSendingHeart.text();
+            this.convoSessionKeys[this.convoId] = newSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json',
+                body: JSON.stringify({
+                    convoId: this.convoId,
+                    sessionKeyId: newSessionKeyId,
+                    listOfActiveOrIdleMembersOfConvo: JSON.stringify([[this.authenticatedUsername, this.authenticatedFullName]])
+                })}
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
+
+        this.notifyParentToEditConvoHasUnreadMessage.emit("edit convo");
         this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -698,7 +887,7 @@ export class MessagesOfAChat {
             return Math.floor(interval) + 'm';
         }
         return Math.floor(seconds) + 's';
-    }
+    } 
     
 
     async deleteMessage(index: number) {

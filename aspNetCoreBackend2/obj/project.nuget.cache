@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "FsTDUGc8yug=",
+  "dgSpecHash": "2hqDx+9bj5w=",
   "success": true,
   "projectFilePath": "/Users/rishavr/UserMessaging/aspNetCoreBackend2/aspNetCoreBackend2.csproj",
   "expectedPackageFiles": [
+    "/Users/rishavr/.nuget/packages/awssdk.core/3.7.400.18/awssdk.core.3.7.400.18.nupkg.sha512",
+    "/Users/rishavr/.nuget/packages/awssdk.keymanagementservice/3.7.400.18/awssdk.keymanagementservice.3.7.400.18.nupkg.sha512",
     "/Users/rishavr/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/rishavr/.nuget/packages/microsoft.aspnetcore.openapi/8.0.6/microsoft.aspnetcore.openapi.8.0.6.nupkg.sha512",
     "/Users/rishavr/.nuget/packages/microsoft.bcl.asyncinterfaces/6.0.0/microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",

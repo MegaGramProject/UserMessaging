@@ -11,5 +11,6 @@ public class Message
     public string message { get; set; }
     public string sender { get; set; }
     public DateTime messageSentAt { get; set; }
+    public string sessionKeyId { get; set; }
 
 }

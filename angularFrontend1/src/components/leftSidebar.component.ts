@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { LeftSidebarPopupComponent } from './leftSidebarPopup.component';
 
 @Component({
@@ -11,6 +11,7 @@ import { LeftSidebarPopupComponent } from './leftSidebarPopup.component';
 })
 export class LeftSidebarComponent {
     showLeftSidebarPopup:boolean = false;
+    @Input() numberOfAcceptedConvosWithUnreadMessage!:number;
 
     toggleShowLeftSidebarPopup() {
         this.showLeftSidebarPopup = !this.showLeftSidebarPopup;

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 
 @Component({
     selector: 'ConvoDetailsPanel',
@@ -34,6 +34,20 @@ export class ConvoDetailsPanel {
     convoMemberActivityStatuses: { [username: string]: string } = {};
     @Input() socket!:WebSocket;
 
+    constructor(private cdRef: ChangeDetectorRef) { }
+
+    ngOnInit() {
+        this.socket.addEventListener('message', (event) => {
+            const messageArray = JSON.parse(event.data);
+            
+            if( (messageArray[0]==='get-activity-status' || messageArray[0]==='update-activity-status') ) {
+                this.convoMemberActivityStatuses[messageArray[1]] = messageArray[2];
+                this.cdRef.detectChanges();
+            }
+
+        });
+    }
+
 
     toggleMessagesAreMuted() {
         if(this.messagesAreMuted) {
@@ -50,13 +64,12 @@ export class ConvoDetailsPanel {
         if (changes['messageRecipientInfo'] && changes['messageRecipientInfo'].currentValue.length>0) {
             this.convoMemberProfileIcons = {};
             this.getProfilePhotoOfUser(this.messageRecipientInfo[0]);
-            this.getActivityStatusOfUser(this.messageRecipientInfo[0]);
         }
         else if (changes['groupMessageRecipientsInfo'] && changes['groupMessageRecipientsInfo'].currentValue.length>0) {
             this.convoMemberProfileIcons = {};
             for(let member of this.groupMessageRecipientsInfo) {
                 this.getProfilePhotoOfUser(member[0]);
-                this.getActivityStatusOfUser(member[0]);
+                this.socket.send(JSON.stringify(['activity-status', member[0]]));
             }
         }
     }
@@ -78,9 +91,6 @@ export class ConvoDetailsPanel {
         }
     }
 
-    async getActivityStatusOfUser(username: String) {
-        this.convoMemberActivityStatuses[<string>username] = Math.random() < 0.5 ? "active" : "idle";
-    }
 
     arrayBufferToBase64(buffer: ArrayBuffer) {
         let binary = '';
