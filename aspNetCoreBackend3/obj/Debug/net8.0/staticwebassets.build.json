@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "jwsG5TG9dtSFfARkhk37VwYMa+n87fcnmlYKU9iHZIA=",
+  "Source": "aspNetCoreBackend3",
+  "BasePath": "_content/aspNetCoreBackend3",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

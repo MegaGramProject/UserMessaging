@@ -12,14 +12,16 @@ public class MegaDbContext : DbContext
     
     public DbSet<MessageReaction> messageReactions { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<MessageReaction>()
-                .HasKey(cl => new { cl.messageId, cl.username, cl.reaction });
+            modelBuilder.Entity<MessageReaction>(entity =>
+            {
+                entity.HasNoKey();
+            });
         }
-
     
     public MegaDbContext(DbContextOptions<MegaDbContext> options) : base(options)
     {

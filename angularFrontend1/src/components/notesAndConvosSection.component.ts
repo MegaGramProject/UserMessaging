@@ -142,6 +142,7 @@ export class NotesAndConvosSection {
             
                 return dateB - dateA;
             });
+
             this.emitListOfConvosToParent.emit([this.listOfConvos, [this.numberOfAcceptedConvosWithUnreadMessage]]);
             this.emitUserBlockingsToParent.emit(userBlockings);
             const response2 = await fetch('http://localhost:8013/graphql', {
@@ -186,7 +187,7 @@ export class NotesAndConvosSection {
             this.usersThatYouFollow = usersThatYouFollow;
             this.latestUnexpiredNotesListOfUsersYouFollow = latestUnexpiredNotesList;
 
-            const response4 = await fetch('http://localhost:8017/getCurrentlyActiveSessionKeys/', {
+            const response4 = await fetch('http://localhost:8017/getCurrentlyActiveSessionKeysForSpecifiedConvoIds', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(listOfConvoIds)
@@ -194,9 +195,9 @@ export class NotesAndConvosSection {
             if(!response4.ok) {
                 throw new Error('network response not ok');
             }
-            const getCurrentlyActiveSessionKeys = await response4.json();
-            for(let activeSessionKey of getCurrentlyActiveSessionKeys) {
-                this.convoSessionKeys[activeSessionKey['convoId']] = activeSessionKey['sessionId'];
+            const currentlyActiveSessionKeysForGivenConvos = await response4.json();
+            for(let activeSessionKey of currentlyActiveSessionKeysForGivenConvos) {
+                this.convoSessionKeys[activeSessionKey.convoId] = activeSessionKey.sessionKeyId;
             }
             this.emitConvoSessionKeysToParent.emit(this.convoSessionKeys);
 

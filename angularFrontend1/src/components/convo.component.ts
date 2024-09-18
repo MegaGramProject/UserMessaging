@@ -36,6 +36,7 @@ export class Convo {
     ngOnInit() {
         this.getProfilePhoto();
         this.socket.send(JSON.stringify(['activity-status', this.username]));
+        this.socket.send(JSON.stringify(['convo-session-key', this.convoId]));
         if(!this.isMuted) {
             this.socket.send(JSON.stringify(['last-message-and-has-unread-message', this.convoId]));
             this.socket.send(JSON.stringify(['chronologically-latest-message', this.convoId]));

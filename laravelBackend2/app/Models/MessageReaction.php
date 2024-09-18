@@ -16,5 +16,7 @@ class MessageReaction extends Model
         'reaction'
     ];
 
+    protected $primaryKey = null;
+
     public $timestamps = false;
 }

@@ -8,6 +8,8 @@
     ".NETCoreApp,Version=v8.0": {
       "aspNetCoreBackend2/1.0.0": {
         "dependencies": {
+          "AWSSDK.Core": "3.7.400.18",
+          "AWSSDK.KeyManagementService": "3.7.400.18",
           "Microsoft.AspNetCore.OpenApi": "8.0.6",
           "Microsoft.EntityFrameworkCore": "8.0.7",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.7",
@@ -18,6 +20,25 @@
         },
         "runtime": {
           "aspNetCoreBackend2.dll": {}
+        }
+      },
+      "AWSSDK.Core/3.7.400.18": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.400.18"
+          }
+        }
+      },
+      "AWSSDK.KeyManagementService/3.7.400.18": {
+        "dependencies": {
+          "AWSSDK.Core": "3.7.400.18"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.KeyManagementService.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.400.18"
+          }
         }
       },
       "Humanizer.Core/2.14.1": {
@@ -573,6 +594,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/3.7.400.18": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vZlO4v5srY/bb8kPIJFCIivSBrBULsklabqyrBM6XWqJYLCFJ74po6j0k0/P2EfgnkyamfTln2f6WjaNVhhARw==",
+      "path": "awssdk.core/3.7.400.18",
+      "hashPath": "awssdk.core.3.7.400.18.nupkg.sha512"
+    },
+    "AWSSDK.KeyManagementService/3.7.400.18": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bO8NDlji7t2hPIM648fVEnIlJTh+kHIQGxsqeBeAUHS+26wOeLDgFQRBVFe4y/mYvQbTheATaD5ojni6C7XBOw==",
+      "path": "awssdk.keymanagementservice/3.7.400.18",
+      "hashPath": "awssdk.keymanagementservice.3.7.400.18.nupkg.sha512"
     },
     "Humanizer.Core/2.14.1": {
       "type": "package",

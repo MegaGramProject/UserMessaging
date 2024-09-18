@@ -8,6 +8,7 @@ using Amazon.KeyManagementService.Model;
 using Amazon.Runtime;
 using Megagram.Models.RequestBodies;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Megagram.Controllers;
 
@@ -37,42 +38,80 @@ public class BackendController : ControllerBase
     }
 
 
-    [HttpGet("getAllConvos")]
-    public async Task<IActionResult> getAllConvos()
-    {
-        var convos = await _megaDbContext.convos.ToListAsync();
-        //decrypt each convo with AWS session-keys
-        return Ok(convos);
-    }
-
-    [HttpGet("getAllMessages")]
-    public async Task<IActionResult> getAllMessages()
-    {
-        var messages = await _megaDbContext.messages.ToListAsync();
-        //decrypt each message with AWS session-keys
-        return Ok(messages);
-    }
-
-    [HttpGet("getAllMessageReactions")]
-    public async Task<IActionResult> getAllMessageReactions()
-    {
-        var messageReactions = await _megaDbContext.messageReactions.ToListAsync();
-        return Ok(messageReactions);
-    }
 
     [HttpPost("addConvo")]
-    public IActionResult addNewConvo([FromBody] AddConvo addConvo) {
+    public async Task<IActionResult> addNewConvo([FromBody] AddConvo addConvo) {
         if (addConvo == null) {
             return BadRequest("Invalid conversation data.");
         }
-
-        //create AWS session-key with addConvo.sessionId and get it
         
-        var encryptedConvoTitle = ""; //use sessionKey to encrypt
-        var encryptedLatestMessage = ""; //use sessionKey to encrypt
-        var encryptedMembers = ""; //use sessionKey to encrypt
-        var encryptedConvoInitiator = ""; //use sessionKey to encrypt
-        var encryptedPromotedUsers = ""; //use sessionKey to encrypt
+        var encryptedConvoTitle = "";
+        var encryptedLatestMessage = "";
+        var encryptedMembers = "";
+        var encryptedConvoInitiator = "";
+        var encryptedPromotedUsers = "";
+        string keyId=addConvo.sessionKeyId;
+
+        using (var convoTitleStream = new MemoryStream(Encoding.UTF8.GetBytes(addConvo.convoTitle))) {
+            var encryptConvoTitleRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = convoTitleStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptConvoTitleRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedConvoTitle = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
+        using (var latestMessageStream = new MemoryStream(Encoding.UTF8.GetBytes(addConvo.latestMessage))) {
+            var encryptLatestMessageRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = latestMessageStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptLatestMessageRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedLatestMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
+        using (var membersStream = new MemoryStream(Encoding.UTF8.GetBytes(addConvo.members))) {
+            var encryptMembersRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = membersStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptMembersRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedMembers = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
+        using (var convoInitiatorStream = new MemoryStream(Encoding.UTF8.GetBytes(addConvo.convoInitiator))) {
+            var encryptConvoInitiatorRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = convoInitiatorStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptConvoInitiatorRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedConvoInitiator = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
+        using (var promotedUserStream = new MemoryStream(Encoding.UTF8.GetBytes(addConvo.promotedUsers))) {
+            var encryptPromotedUsersRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = promotedUserStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptPromotedUsersRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedPromotedUsers = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
 
         Convo newConvo = new Convo
         {
@@ -111,57 +150,33 @@ public class BackendController : ControllerBase
             };
             var createKeyResponse = await _kmsClient.CreateKeyAsync(createKeyRequest);
             keyId = createKeyResponse.KeyMetadata.KeyId;
-            
-            using (var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.message))) {
-                var encryptMessageRequest = new EncryptRequest
-                {
-                    KeyId = keyId,
-                    Plaintext = messageStream
-                };
-
-                var encryptResponse = await _kmsClient.EncryptAsync(encryptMessageRequest);
-                var ciphertextBlob = encryptResponse.CiphertextBlob;
-                encryptedMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
-            }
-
-            using (var senderStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.sender))) {
-                var encryptSenderRequest = new EncryptRequest
-                {
-                    KeyId = keyId,
-                    Plaintext = senderStream
-                };
-
-                var encryptResponse = await _kmsClient.EncryptAsync(encryptSenderRequest);
-                var ciphertextBlob = encryptResponse.CiphertextBlob;
-                encryptedSender = Convert.ToBase64String(ciphertextBlob.ToArray());
-            }
         }
         else {
-            keyId=addMessage.sessionKeyId;
-            using (var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.message))) {
-                var encryptMessageRequest = new EncryptRequest
-                {
-                    KeyId = keyId,
-                    Plaintext = messageStream
-                };
-
-                var encryptResponse = await _kmsClient.EncryptAsync(encryptMessageRequest);
-                var ciphertextBlob = encryptResponse.CiphertextBlob;
-                encryptedMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
-            }
-
-            using (var senderStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.sender))) {
-                var encryptSenderRequest = new EncryptRequest
-                {
-                    KeyId = keyId,
-                    Plaintext = senderStream
-                };
-
-                var encryptResponse = await _kmsClient.EncryptAsync(encryptSenderRequest);
-                var ciphertextBlob = encryptResponse.CiphertextBlob;
-                encryptedSender = Convert.ToBase64String(ciphertextBlob.ToArray());
-            }
+            keyId = addMessage.sessionKeyId;
+        }
             
+        using (var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.message))) {
+            var encryptMessageRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = messageStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptMessageRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
+        }
+
+        using (var senderStream = new MemoryStream(Encoding.UTF8.GetBytes(addMessage.sender))) {
+            var encryptSenderRequest = new EncryptRequest
+            {
+                KeyId = keyId,
+                Plaintext = senderStream
+            };
+
+            var encryptResponse = await _kmsClient.EncryptAsync(encryptSenderRequest);
+            var ciphertextBlob = encryptResponse.CiphertextBlob;
+            encryptedSender = Convert.ToBase64String(ciphertextBlob.ToArray());
         }
 
         Message newMessage = new Message
@@ -171,7 +186,6 @@ public class BackendController : ControllerBase
             message = encryptedMessage,
             sender = encryptedSender,
             messageSentAt = addMessage.messageSentAt,
-            sessionKeyId = addMessage.sessionKeyId
         };
 
         _megaDbContext.messages.Add(newMessage);
@@ -181,17 +195,6 @@ public class BackendController : ControllerBase
         return Ok(keyId);
     }
 
-    [HttpPost("addMessageReaction")]
-    public IActionResult addNewMessageReaction([FromBody] MessageReaction newMessageReaction) {
-        if (newMessageReaction == null) {
-            return BadRequest("Invalid message-reaction data.");
-        }
-
-        _megaDbContext.messageReactions.Add(newMessageReaction);
-        _megaDbContext.SaveChanges();
-
-        return Ok(newMessageReaction);
-    }
 
     [HttpDelete("deleteConvo/{convoId}")]
     public async Task<IActionResult> deleteConvo (string convoId)
@@ -248,23 +251,6 @@ public class BackendController : ControllerBase
         return NotFound(false);
     }
 
-    [HttpDelete("deleteMessageReaction/{messageId}/{username}/{reaction}")]
-    public async Task<IActionResult> deleteMessageReaction (string messageId, string username, string reaction)
-    {
-
-        var messageReaction = await _megaDbContext.messageReactions
-        .FirstOrDefaultAsync(cl => cl.messageId == messageId && cl.username == username && cl.reaction == reaction);
-
-        if (messageReaction != null)
-        {
-            _megaDbContext.messageReactions.Remove(messageReaction);
-            await _megaDbContext.SaveChangesAsync();
-            return Ok(true);
-        }
-
-        return NotFound(false);
-    }
-
     [HttpPatch("editConvo/{convoId}")]
     public async Task<IActionResult> editConvo (string convoId, [FromBody] ConvoEditRequestBody editedConvo)
     {
@@ -278,11 +264,91 @@ public class BackendController : ControllerBase
 
         if (convo != null)
         {
-            convo.convoTitle = editedConvo.convoTitle;
-            convo.members = editedConvo.members;
-            convo.convoInitiator = editedConvo.convoInitiator;
-            convo.latestMessage = editedConvo.latestMessage;
-            convo.promotedUsers = editedConvo.promotedUsers;
+            var encryptedConvoTitle = "";
+            var encryptedLatestMessage = "";
+            var encryptedMembers = "";
+            var encryptedConvoInitiator = "";
+            var encryptedPromotedUsers = "";
+            var keyId = "";
+            
+
+            if(editedConvo.sessionKeyId.Length==0) {
+                var createKeyRequest = new CreateKeyRequest
+                {
+                    KeyUsage = KeyUsageType.ENCRYPT_DECRYPT,
+                };
+                var createKeyResponse = await _kmsClient.CreateKeyAsync(createKeyRequest);
+                keyId = createKeyResponse.KeyMetadata.KeyId;
+            }
+            else {
+                keyId = editedConvo.sessionKeyId;
+            }
+
+            using (var convoTitleStream = new MemoryStream(Encoding.UTF8.GetBytes(editedConvo.convoTitle))) {
+                var encryptConvoTitleRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = convoTitleStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptConvoTitleRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedConvoTitle = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var latestMessageStream = new MemoryStream(Encoding.UTF8.GetBytes(editedConvo.latestMessage))) {
+                var encryptLatestMessageRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = latestMessageStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptLatestMessageRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedLatestMessage = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var membersStream = new MemoryStream(Encoding.UTF8.GetBytes(editedConvo.members))) {
+                var encryptMembersRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = membersStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptMembersRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedMembers = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var convoInitiatorStream = new MemoryStream(Encoding.UTF8.GetBytes(editedConvo.convoInitiator))) {
+                var encryptConvoInitiatorRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = convoInitiatorStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptConvoInitiatorRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedConvoInitiator = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            using (var promotedUserStream = new MemoryStream(Encoding.UTF8.GetBytes(editedConvo.promotedUsers))) {
+                var encryptPromotedUsersRequest = new EncryptRequest
+                {
+                    KeyId = keyId,
+                    Plaintext = promotedUserStream
+                };
+
+                var encryptResponse = await _kmsClient.EncryptAsync(encryptPromotedUsersRequest);
+                var ciphertextBlob = encryptResponse.CiphertextBlob;
+                encryptedPromotedUsers = Convert.ToBase64String(ciphertextBlob.ToArray());
+            }
+
+            convo.convoTitle = encryptedConvoTitle;
+            convo.members = encryptedMembers;
+            convo.convoInitiator = encryptedConvoInitiator;
+            convo.latestMessage = encryptedLatestMessage;
+            convo.promotedUsers = encryptedPromotedUsers;
             convo.isMuted = editedConvo.isMuted;
             convo.hasUnreadMessage = editedConvo.hasUnreadMessage;
             convo.isRequested = editedConvo.isRequested;
@@ -290,100 +356,221 @@ public class BackendController : ControllerBase
 
             _megaDbContext.convos.Update(convo);
             await _megaDbContext.SaveChangesAsync();
-            return Ok(true);
+            return Ok(keyId);
         }
 
         return NotFound(false);
 
     }
 
-    [HttpPatch("editMessage/{messageId}")]
-    public async Task<IActionResult> editMessage (string messageId, [FromBody] MessageEditRequestBody editedMessage)
-    {
-        if (!Guid.TryParse(messageId, out Guid parsedMessageId))
-        {
-        return BadRequest(false);
-        }
-
-        var message = await _megaDbContext.messages
-        .FirstOrDefaultAsync(cl => cl.messageId == parsedMessageId);
-
-        if (message != null)
-        {
-            message.message = editedMessage.message;
-            _megaDbContext.messages.Update(message);
-            await _megaDbContext.SaveChangesAsync();
-            return Ok(true);
-        }
-
-        return NotFound(false);
-    }
 
 
     [HttpGet("getAllConvos/{username}")]
     public async Task<IActionResult> getAllConvosOfUsername(string username)
     {
-        var convos = await _megaDbContext.convos
-            .Where(cl => cl.members.Contains(username))
-            .ToListAsync();
-
-        return Ok(convos);
-    }
-
-    [HttpGet("getMessage/{messageId}")]
-    public async Task<IActionResult> getMessage(string messageId)
-    {
-        if (!Guid.TryParse(messageId, out Guid parsedMessageId))
+        var convos = await _megaDbContext.convos.ToListAsync();
+        var filteredConvos = new List<Convo>();
+        var decryptedMembers = "";
+        foreach (var convo in convos)
         {
-        return BadRequest(false);
+            var ciphertextBlob = Convert.FromBase64String(convo.members);
+
+            var decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            var decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedMembers = reader.ReadToEnd();
+            }
+
+            string[][] decryptedMembersArray = JsonConvert.DeserializeObject<string[][]>(decryptedMembers);
+            foreach(var decryptedMember in decryptedMembersArray)
+            {
+                if(decryptedMember[0] == username) {
+                    filteredConvos.Add(convo);
+                    break;
+                }
+            }
+            
+
+        }
+        
+
+        var decryptedConvos = new List<Convo>();
+        var decryptedConvoTitle = "";
+        var decryptedConvoInitiator = "";
+        var decryptedLatestMessage = "";
+        var decryptedPromotedUsers = "";
+        
+        foreach (var convo in filteredConvos)
+        {
+            var ciphertextBlob = Convert.FromBase64String(convo.convoTitle);
+
+            var decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            var decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedConvoTitle = reader.ReadToEnd();
+            }
+
+
+            ciphertextBlob = Convert.FromBase64String(convo.members);
+
+            decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedMembers = reader.ReadToEnd();
+            }
+
+            ciphertextBlob = Convert.FromBase64String(convo.convoInitiator);
+
+            decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedConvoInitiator = reader.ReadToEnd();
+            }
+
+            ciphertextBlob = Convert.FromBase64String(convo.latestMessage);
+
+            decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedLatestMessage = reader.ReadToEnd();
+            }
+
+            ciphertextBlob = Convert.FromBase64String(convo.promotedUsers);
+
+            decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+
+            decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedPromotedUsers = reader.ReadToEnd();
+            }
+
+
+            decryptedConvos.Add(
+                new Convo {
+                    convoId = convo.convoId,
+                    convoTitle = decryptedConvoTitle,
+                    latestMessage = decryptedLatestMessage,
+                    isRequested = convo.isRequested,
+                    promotedUsers = decryptedPromotedUsers,
+                    members = decryptedMembers,
+                    convoInitiator = decryptedConvoInitiator,
+                    isMuted = convo.isMuted,
+                    hasUnreadMessage = convo.hasUnreadMessage,
+                    isDeleted = convo.isDeleted
+                }
+            );
         }
 
-        var message = await _megaDbContext.messages
-            .FirstOrDefaultAsync(cl => cl.messageId == parsedMessageId);
-
-        if(message!=null) {
-            return Ok(message);
-        }
-
-        return NotFound();
-
+        return Ok(decryptedConvos);
     }
-
 
     [HttpGet("getMessagesForConvo/{convoId}")]
-    public async Task<IActionResult> getMessagesForConvo(string convoId)
+    public async Task<IActionResult> GetMessagesForConvo(string convoId)
     {
         var messages = await _megaDbContext.messages
-        .Where(cl => cl.convoId == convoId)
-        .OrderBy(cl => cl.messageSentAt)
-        .ToListAsync();
+            .Where(cl => cl.convoId == convoId)
+            .OrderBy(cl => cl.messageSentAt)
+            .ToListAsync();
+
+        var decryptedMessages = new List<Message>();
+
+        foreach (var message in messages)
+        {
+            var ciphertextBlob = Convert.FromBase64String(message.sender);
+            var decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+            var decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+            string decryptedSender;
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedSender = reader.ReadToEnd();
+            }
 
 
-        return Ok(messages);
+            ciphertextBlob = Convert.FromBase64String(message.message);
+            decryptRequest = new DecryptRequest
+            {
+                CiphertextBlob = new MemoryStream(ciphertextBlob)
+            };
+            decryptResponse = await _kmsClient.DecryptAsync(decryptRequest);
+            string decryptedMessage;
+            using (var reader = new StreamReader(decryptResponse.Plaintext, Encoding.UTF8))
+            {
+                decryptedMessage = reader.ReadToEnd();
+            }
+
+            decryptedMessages.Add(
+                new Message
+                {
+                    messageId = message.messageId,
+                    convoId = message.convoId,
+                    message = decryptedMessage,
+                    sender = decryptedSender,
+                    messageSentAt = message.messageSentAt,
+                }
+            );
+        }
+
+        return Ok(decryptedMessages);
     }
 
     [HttpDelete("deleteMessageReactionsOfMessage/{messageId}")]
-    public async Task<IActionResult> deleteMessageReactionsOfMessage (string messageId)
-    {
-
+    public async Task<IActionResult> deleteMessageReactionsOfMessage(string messageId) {
         var messageReactions = await _megaDbContext.messageReactions
-        .Where(cl => cl.messageId==messageId)
-        .ToListAsync();
+        .Where(cl => cl.messageId == messageId).ToListAsync();
 
-    
         foreach (var messageReaction in messageReactions)
         {
             _megaDbContext.messageReactions.Remove(messageReaction);
+            await _megaDbContext.SaveChangesAsync();
         }
 
-        await _megaDbContext.SaveChangesAsync();
-
         return Ok(true);
-
     }
 
+    [HttpGet("getAllMessageReactions")]
+    public async Task<IActionResult> getAllMessageReactions() {
+        var messageReactions = await _megaDbContext.messageReactions.ToListAsync();
 
-
+        return Ok(messageReactions);
+    }
 
 
 

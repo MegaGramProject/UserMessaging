@@ -100,7 +100,7 @@ export class MessagesOfAChat {
     @Output() notifyParentToShowForwardFilePopup: EventEmitter<Array<any>> = new EventEmitter();
     @Input() isRequestingConvoWithRecipient!:boolean;
     @Input() groupMessageRecipientsInfo: string[][] = [];
-    @Input() convoTitle:any = "";
+    @Input() convoTitle:any = " ";
     isEditingConvoTitle:boolean= false;
     convoTitleBeforeEditing = this.convoTitle;
     @Output() notifyParentToUpdateConvoTitle: EventEmitter<any[]> = new EventEmitter();
@@ -469,12 +469,7 @@ export class MessagesOfAChat {
         if(this.messageToSend.trimStart().toLowerCase().startsWith('file-forward from convo ft.')) {
             return;
         }
-        if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": " + this.messageToSend, new Date()]);
-        }
-        else {
-            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": " + this.messageToSend, new Date()]);
-        }
+
         const newMessageId = uuidv4();
         const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
 
@@ -615,19 +610,24 @@ export class MessagesOfAChat {
             let newSessionKeyId = this.convoSessionKeys[this.convoId];
             const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     convoId: this.convoId,
                     sessionKeyId: newSessionKeyId,
-                    listOfActiveOrIdleMembersOfConvo: JSON.stringify([[this.authenticatedUsername, this.authenticatedFullName]])
-                })}
+                    membersOfConvo: this.selectedConvoMembers
+                })
             });
             if(!responseForSettingConvoSessionKeys.ok) {
                 throw new Error('Network response not ok');
             }
         }
+        if(!this.hasConvoBeenAdded) {
+            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": " + this.messageToSend, new Date()]);
+        }
+        else {
+            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername + ": " + this.messageToSend, new Date()]);
+        }
 
-        this.notifyParentToEditConvoHasUnreadMessage.emit("edit convo");
         this.reactions.push([]);
         this.reactionUsernames.push([]);
         this.messageFiles.push(this.filesToSend);
@@ -648,14 +648,6 @@ export class MessagesOfAChat {
     }
 
     async sendHeart() {
-        
-        if(!this.hasConvoBeenAdded) {
-            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": ❤️" , new Date()]);
-        }
-        else {
-            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": ❤️" , new Date()]);
-        }
-
         const newMessageId = uuidv4();
         const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
 
@@ -682,20 +674,25 @@ export class MessagesOfAChat {
             this.convoSessionKeys[this.convoId] = newSessionKeyId;
             const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     convoId: this.convoId,
                     sessionKeyId: newSessionKeyId,
-                    listOfActiveOrIdleMembersOfConvo: JSON.stringify([[this.authenticatedUsername, this.authenticatedFullName]])
-                })}
+                    membersOfConvo: this.selectedConvoMembers
+                })
             });
             if(!responseForSettingConvoSessionKeys.ok) {
                 throw new Error('Network response not ok');
             }
         }
 
+        if(!this.hasConvoBeenAdded) {
+            this.notifyParentToAddConvoToDatabase.emit([this.authenticatedUsername + ": ❤️" , new Date()]);
+        }
+        else {
+            this.notifyParentToUpdateLatestMessageInConvo.emit([this.authenticatedUsername+ ": ❤️" , new Date()]);
+        }
 
-        this.notifyParentToEditConvoHasUnreadMessage.emit("edit convo");
         this.fileReplies.push([null]);
         this.reactions.push([]);
         this.reactionUsernames.push([]);
@@ -797,7 +794,8 @@ export class MessagesOfAChat {
                             messageId: "${messageId}"
                             reaction: "${reaction}",
                             username: "${this.authenticatedUsername}",
-                            fullName: "${this.authenticatedFullName}"
+                            fullName: "${this.authenticatedFullName}",
+                            sessionKeyId: "${this.convoId in this.convoSessionKeys ? this.convoSessionKeys[this.convoId] : ""}"
                         }
                     )
                 }
@@ -807,7 +805,24 @@ export class MessagesOfAChat {
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
-        const data = await response.json();
+        if(!(this.convoId in this.convoSessionKeys)) {
+            const result = await response.json();
+            const newSessionKeyId = result.data.addMessageReaction;
+            this.convoSessionKeys[this.convoId] = newSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.convoId,
+                    sessionKeyId: newSessionKeyId,
+                    membersOfConvo: this.selectedConvoMembers
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
         this.reactions[index].push(reaction);
         this.reactionUsernames[index].push(this.authenticatedUsername);
     }
@@ -1208,6 +1223,7 @@ export class MessagesOfAChat {
     async startAudioCall() {
         //code for starting audio call
         let newMessageId = uuidv4();
+        const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
         const responseForStartingAudioCallMessage = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1216,13 +1232,31 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Video-Chat/Audio-Chat", "Audio-Call Started"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                     
                 })
             });
             
         if(!responseForStartingAudioCallMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(doesThisConvoHaveAnActiveSessionId)) {
+            const newSessionKeyId = await responseForStartingAudioCallMessage.text();
+            this.convoSessionKeys[this.convoId] = newSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.convoId,
+                    sessionKeyId: newSessionKeyId,
+                    membersOfConvo: this.selectedConvoMembers
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
         }
 
         let currentDateTime = new Date();
@@ -1247,8 +1281,8 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Video-Chat/Audio-Chat", "Audio-Call Ended"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: newDateTime
-                    
+                    messageSentAt: newDateTime,
+                    sessionKeyId: this.convoSessionKeys[this.convoId]
                 })
             });
             
@@ -1276,6 +1310,7 @@ export class MessagesOfAChat {
     async startVideoCall() {
          //code for starting video call
         let newMessageId = uuidv4();
+        const doesThisConvoHaveAnActiveSessionId = this.convoId in this.convoSessionKeys;
         const responseForStartingVideoCallMessage = await fetch('http://localhost:8012/addMessage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1284,13 +1319,30 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Video-Chat/Audio-Chat", "Video-Chat Started"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
-                    
+                    messageSentAt: new Date(),
+                    sessionKeyId:  doesThisConvoHaveAnActiveSessionId ? this.convoSessionKeys[this.convoId] : "",
                 })
             });
             
         if(!responseForStartingVideoCallMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(doesThisConvoHaveAnActiveSessionId)) {
+            const newSessionKeyId = await responseForStartingVideoCallMessage.text();
+            this.convoSessionKeys[this.convoId] = newSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.convoId,
+                    sessionKeyId: newSessionKeyId,
+                    membersOfConvo: this.selectedConvoMembers
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
         }
 
         let currentDateTime = new Date();
@@ -1316,8 +1368,8 @@ export class MessagesOfAChat {
                     convoId: this.convoId,
                     message: JSON.stringify(["Video-Chat/Audio-Chat", "Video-Chat Ended"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: newDateTime
-                    
+                    messageSentAt: newDateTime,
+                    sessionKeyId: this.convoSessionKeys[this.convoId]
                 })
             });
             

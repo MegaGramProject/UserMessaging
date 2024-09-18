@@ -3,9 +3,15 @@ const http = require('http');
 const sql = require('mssql');
 const mysql = require('mysql');
 const util = require('util');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const { KMSClient, DecryptCommand } = require('@aws-sdk/client-kms');
+const config = require('./config');
+
+const { accessKey, secretKey } = config.AWS;
+const uri = "mongodb+srv://rishavry:WINwin1$$$@cluster0.xukeo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 const server = http.createServer();
-const port = 8017;
+const port = 8019;
 
 const wss = new WebSocket.Server({ server });
 
@@ -86,6 +92,12 @@ const chronologicallyLatestMessages = {};
 //key: convoId, value: set of connected-clients that have subscribed to updates of the CHRONOLOGICALLY latest messages of key convo
 const chronologicallyLatestMessageClients = {};
 
+//key: convoId, value: currently active session key id of convo, "" if there is none
+const convoSessionKeys = {};
+
+//key: convoId, value: set of connected-clients that have subscribed to updates of the currently active session key of key convo
+const convoSessionKeyClients = {};
+
 
 const updateActivityStatusToClients = async () => {
     try {
@@ -161,7 +173,21 @@ const updateLastMessageToClients = async () => {
             const results = await query('SELECT latestMessage FROM convos WHERE convoId = ?', [convoId]);
 
             if (results.length > 0) {
+                const kmsClient = new KMSClient({
+                    credentials: {
+                        accessKeyId: accessKey,
+                        secretAccessKey: secretKey,
+                    },
+                    region: 'us-east-1',
+                });
+
                 let latestMessage = results[0].latestMessage;
+
+                const ciphertextBlob = Buffer.from(latestMessage, 'base64');
+                let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                let decryptResponse = await kmsClient.send(decryptCommand);
+                latestMessage = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+        
                 latestMessage = JSON.parse(latestMessage);
 
                 if (latestMessage[1].charAt(latestMessage[1].length - 1) !== 'Z') {
@@ -190,6 +216,8 @@ const updateLastMessageToClients = async () => {
                 delete messages[convoId];
                 delete chronologicallyLatestMessageClients[convoId];
                 delete chronologicallyLatestMessages[convoId];
+                delete convoSessionKeyClients[convoId];
+                delete convoSessionKeys[convoId];
             }
         }
     } catch (error) {
@@ -228,6 +256,8 @@ const updateUnreadMessageToClients = async () => {
                 delete messages[convoId];
                 delete chronologicallyLatestMessageClients[convoId];
                 delete chronologicallyLatestMessages[convoId];
+                delete convoSessionKeyClients[convoId];
+                delete convoSessionKeys[convoId];
             }
         }
     } catch (error) {
@@ -241,7 +271,23 @@ const updateConvoTitleToClients = async () => {
             const results = await query('SELECT convoTitle FROM convos WHERE convoId = ?', [convoId]);
 
             if (results.length > 0) {
+                const kmsClient = new KMSClient({
+                    credentials: {
+                        accessKeyId: accessKey,
+                        secretAccessKey: secretKey,
+                    },
+                    region: 'us-east-1',
+                });
+
                 let convoTitle = results[0].convoTitle;
+                
+                const ciphertextBlob = Buffer.from(convoTitle, 'base64');
+
+                let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                let decryptResponse = await kmsClient.send(decryptCommand);
+
+                convoTitle = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+        
 
                 if ((convoId in convoTitles) && convoTitle!==convoTitles[convoId]) {
                     for (let client of hasUnreadMessageClients[convoId]) {
@@ -265,6 +311,8 @@ const updateConvoTitleToClients = async () => {
                 delete messages[convoId];
                 delete chronologicallyLatestMessageClients[convoId];
                 delete chronologicallyLatestMessages[convoId];
+                delete convoSessionKeyClients[convoId];
+                delete convoSessionKeys[convoId];
             }
         }
     } catch (error) {
@@ -278,15 +326,28 @@ const updateConvoInitiatorAndPromotedMembersToClients = async () => {
             const results = await query('SELECT convoInitiator, promotedUsers FROM convos WHERE convoId = ?', [convoId]);
 
             if (results.length > 0) {
+                const kmsClient = new KMSClient({
+                    credentials: {
+                        accessKeyId: accessKey,
+                        secretAccessKey: secretKey,
+                    },
+                    region: 'us-east-1',
+                });
                 let promotedUsersOfConvo = results[0].promotedUsers;
+                let ciphertextBlob = Buffer.from(promotedUsersOfConvo, 'base64');
+                let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                let decryptResponse = await kmsClient.send(decryptCommand);
+                promotedUsersOfConvo = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
                 promotedUsersOfConvo = JSON.parse(promotedUsersOfConvo);
+
                 let convoInitiator = results[0].convoInitiator;
+                ciphertextBlob = Buffer.from(convoInitiator, 'base64');
+                decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                decryptResponse = await kmsClient.send(decryptCommand);
+                convoInitiator = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
                 convoInitiator = JSON.parse(convoInitiator);
-                let setOfPromotedUsers = new Set();
-                setOfPromotedUsers.add(convoInitiator[0]);
-                for(let promotedUser of promotedUsersOfConvo) {
-                    setOfPromotedUsers.add(promotedUser);
-                }
+
+                promotedUsersOfConvo.push(convoInitiator[0]);
                 
                 if((convoId in convoInitiators) && (convoInitiators[convoId][0]!==convoInitiator[0] || convoInitiators[convoId][1]!==convoInitiator[1])) {
                     for(let client of promotedUserClients[convoId]) {
@@ -295,11 +356,11 @@ const updateConvoInitiatorAndPromotedMembersToClients = async () => {
                     convoInitiators[convoId] = convoInitiator;
                 }
 
-                if((convoId in promotedUsers) && !setsAreIdentical(promotedUsers[convoId], setOfPromotedUsers)) {
+                if((convoId in promotedUsers) && !listsAreIdentical(promotedUsers[convoId], promotedUsersOfConvo)) {
                     for(let client of promotedUserClients[convoId]) {
-                        client.send(JSON.stringify(['update-promoted-users', convoId, Array.from(setOfPromotedUsers)]));
+                        client.send(JSON.stringify(['update-promoted-users', convoId, promotedUsersOfConvo]));
                     }
-                    promotedUsers[convoId] = setOfPromotedUsers;
+                    promotedUsers[convoId] = promotedUsersOfConvo;
                 }
     
             } else {
@@ -318,6 +379,8 @@ const updateConvoInitiatorAndPromotedMembersToClients = async () => {
                 delete messages[convoId];
                 delete chronologicallyLatestMessageClients[convoId];
                 delete chronologicallyLatestMessages[convoId];
+                delete convoSessionKeyClients[convoId];
+                delete convoSessionKeys[convoId];
             }
 
         }
@@ -340,7 +403,24 @@ const updateMessagesToClients = async () => {
                 
                 if ((convoId in messages) && !listsAreIdentical(messageIds, messages[convoId])) {
                     let messagesOfConvo = [];
+                    const kmsClient = new KMSClient({
+                        credentials: {
+                            accessKeyId: accessKey,
+                            secretAccessKey: secretKey,
+                        },
+                        region: 'us-east-1',
+                    });
                     for(let result of results) {
+                        ciphertextBlob = Buffer.from(result.message, 'base64');
+                        let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        let decryptResponse = await kmsClient.send(decryptCommand);
+                        result.message = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
+                        ciphertextBlob = Buffer.from(result.sender, 'base64');
+                        decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        decryptResponse = await kmsClient.send(decryptCommand);
+                        result.sender = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+                    
                         messagesOfConvo.push(result);
                     }
                     for (let client of messageClients[convoId]) {
@@ -364,6 +444,8 @@ const updateMessagesToClients = async () => {
                 delete messages[convoId];
                 delete chronologicallyLatestMessageClients[convoId];
                 delete chronologicallyLatestMessages[convoId];
+                delete convoSessionKeyClients[convoId];
+                delete convoSessionKeys[convoId];
             }
         }
     } catch (error) {
@@ -378,10 +460,27 @@ const updateChronologicallyLatestMessageToClients = async() => {
             const results = await query('SELECT sender, message, messageSentAt FROM messages WHERE convoId = ? ORDER BY messageSentAt DESC LIMIT 1', [convoId]);
 
         if (results.length > 0) {
+            const kmsClient = new KMSClient({
+                credentials: {
+                    accessKeyId: accessKey,
+                    secretAccessKey: secretKey,
+                },
+                region: 'us-east-1',
+            });
             let chronologicallyLatestMessage = [];
-            chronologicallyLatestMessage.push(JSON.parse(results[0].message))
+            ciphertextBlob = Buffer.from(results[0].message, 'base64');
+            let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+            let decryptResponse = await kmsClient.send(decryptCommand);
+            const decryptedMessage = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
+            ciphertextBlob = Buffer.from(results[0].sender, 'base64');
+            decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+            decryptResponse = await kmsClient.send(decryptCommand);
+            const decryptedSender = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
+            chronologicallyLatestMessage.push(JSON.parse(decryptedMessage))
             chronologicallyLatestMessage.push(new Date(results[0].messageSentAt+"Z"));
-            chronologicallyLatestMessage.push(results[0].sender);
+            chronologicallyLatestMessage.push(decryptedSender);
             if((convoId in chronologicallyLatestMessages) && chronologicallyLatestMessages[convoId][1] < chronologicallyLatestMessage[1]) {
                 for (let client of chronologicallyLatestMessageClients[convoId]) {
                     client.send(JSON.stringify(['update-chronologically-latest-message', convoId, [chronologicallyLatestMessage[2], chronologicallyLatestMessage[0] ] ]));
@@ -405,12 +504,105 @@ const updateChronologicallyLatestMessageToClients = async() => {
             delete messages[convoId];
             delete chronologicallyLatestMessageClients[convoId];
             delete chronologicallyLatestMessages[convoId];
+            delete convoSessionKeyClients[convoId];
+            delete convoSessionKeys[convoId];
         }
 
     }
     }
     catch(error) {
         console.log(error);
+    }
+}
+
+const removeInactiveConvoSessionKeys = async () => {
+    const mongoDBClient = new MongoClient(uri, {
+        serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true,
+        }
+    });
+    try {
+        await sql.connect(configForMSSQL);
+        const query = 'SELECT * FROM userActivityStatuses';
+        const request = new sql.Request();
+        const userActivityStatusesResult = await request.query(query);
+        const userActivityStatuses = userActivityStatusesResult.recordset;
+
+        await mongoDBClient.connect();
+        const db = mongoDBClient.db('Megagram');
+        const collection = db.collection('currentlyActiveSessionKeys');
+        const allActiveSessionKeys = await collection.find({}).toArray();
+        let filteredUserActivityStatuses;
+
+        let inactiveSessionKeyConvoIds = [];
+
+        allActiveSessionKeys.forEach(activeSessionKey => {
+            let setOfMembers = new Set();
+            for (let member of activeSessionKey.membersOfConvo) {
+                setOfMembers.add(member[0]);
+            }
+            
+            filteredUserActivityStatuses = userActivityStatuses.filter(userActivityStatus =>
+                setOfMembers.has(userActivityStatus.username) && userActivityStatus.activityStatus !== 'inactive'
+            );
+
+
+            if (filteredUserActivityStatuses.length == 0) {
+                inactiveSessionKeyConvoIds.push(activeSessionKey.convoId);
+            }
+        });
+
+        if (inactiveSessionKeyConvoIds.length > 0) {
+            const filter = { convoId: { $in: inactiveSessionKeyConvoIds } };
+            await collection.deleteMany(filter);
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+    finally {
+        await mongoDBClient.close();
+    }
+};
+
+const updateConvoSessionKeysToClients = async () => {
+    const mongoDBClient = new MongoClient(uri, {
+        serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true,
+        }
+    });
+    try {
+        await mongoDBClient.connect();
+        const db = mongoDBClient.db('Megagram');
+        const collection = db.collection('currentlyActiveSessionKeys');
+        const allActiveSessionKeys = await collection.find({}).toArray();
+        let convoSessionKeyId;
+
+        for(let convoId of Object.keys(convoSessionKeyClients)) {
+            const activeSessionKeyOfConvo = allActiveSessionKeys.filter(activeSessionKey => activeSessionKey.convoId === convoId);
+            if(activeSessionKeyOfConvo.length>0) {
+                convoSessionKeyId = activeSessionKeyOfConvo[0].sessionKeyId;
+            }
+            else {
+                convoSessionKeyId = "";
+            }
+            if((convoId in convoSessionKeys) && convoSessionKeys[convoId] !== convoSessionKeyId) {
+                for (let client of convoSessionKeyClients[convoId]) {
+                    client.send(JSON.stringify(['update-convo-session-key', convoId, convoSessionKeyId]));
+                }
+                convoSessionKeys[convoId] = convoSessionKeyId;
+            }
+        }
+    }
+    catch (err) {
+        console.error(err);
+    }
+    finally {
+        await mongoDBClient.close();
     }
 }
 
@@ -426,17 +618,6 @@ function listsAreIdentical(list1, list2) {
     return true;
 }
 
-function setsAreIdentical(setA, setB) {
-    if (setA.size !== setB.size) {
-        return false;
-    }
-    for (let elem of setA) {
-        if (!setB.has(elem)) {
-            return false;
-        }
-    }
-    return true;
-}
 
 let intervalId = setInterval(updateActivityStatusToClients, 450);
 let intervalId2 = setInterval(updateIsTypingToClients, 350);
@@ -445,7 +626,10 @@ let intervalId4 = setInterval(updateUnreadMessageToClients, 450);
 let intervalId5 = setInterval(updateConvoTitleToClients, 450);
 let intervalId6 = setInterval(updateConvoInitiatorAndPromotedMembersToClients, 450);
 let intervalId7 = setInterval(updateMessagesToClients, 375);
-let intervalId8 = setInterval(updateChronologicallyLatestMessageToClients, 375)
+let intervalId8 = setInterval(updateChronologicallyLatestMessageToClients, 375);
+let intervalId9 = setInterval(removeInactiveConvoSessionKeys, 5000);
+let intervalId10 = setInterval(updateConvoSessionKeysToClients, 450);
+
 
 
 wss.on('connection', (ws) => {
@@ -547,7 +731,20 @@ wss.on('connection', (ws) => {
                     const results = await query('SELECT latestMessage FROM convos WHERE convoId = ?', [convoId]);
     
                     if (results.length > 0) {
+                        const kmsClient = new KMSClient({
+                            credentials: {
+                                accessKeyId: accessKey,
+                                secretAccessKey: secretKey,
+                            },
+                            region: 'us-east-1',
+                        });
                         let latestMessage = results[0].latestMessage;
+
+                        const ciphertextBlob = Buffer.from(latestMessage, 'base64');
+                        let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        let decryptResponse = await kmsClient.send(decryptCommand);
+                        latestMessage = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
                         latestMessage = JSON.parse(latestMessage);
         
                         if (latestMessage[1].charAt(latestMessage[1].length - 1) !== 'Z') {
@@ -571,6 +768,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -608,6 +807,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -631,7 +832,18 @@ wss.on('connection', (ws) => {
                     const results = await query('SELECT convoTitle FROM convos WHERE convoId = ?', [convoId]);
     
                     if (results.length > 0) {
+                        const kmsClient = new KMSClient({
+                            credentials: {
+                                accessKeyId: accessKey,
+                                secretAccessKey: secretKey,
+                            },
+                            region: 'us-east-1',
+                        });
                         let convoTitle = results[0].convoTitle;
+                        const ciphertextBlob = Buffer.from(convoTitle, 'base64');
+                        let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        let decryptResponse = await kmsClient.send(decryptCommand);
+                        convoTitle = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
                         convoTitles[convoId] = convoTitle;
                     } else {
                         delete isTypings[convoId];
@@ -649,6 +861,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -671,16 +885,29 @@ wss.on('connection', (ws) => {
                     const results = await query('SELECT convoInitiator, promotedUsers FROM convos WHERE convoId = ?', [convoId]);
     
                     if (results.length > 0) {
+                        const kmsClient = new KMSClient({
+                            credentials: {
+                                accessKeyId: accessKey,
+                                secretAccessKey: secretKey,
+                            },
+                            region: 'us-east-1',
+                        });
                         let promotedUsersOfConvo = results[0].promotedUsers;
+                        let ciphertextBlob = Buffer.from(promotedUsersOfConvo, 'base64');
+                        let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        let decryptResponse = await kmsClient.send(decryptCommand);
+                        promotedUsersOfConvo = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
                         promotedUsersOfConvo = JSON.parse(promotedUsersOfConvo);
+
                         let convoInitiator = results[0].convoInitiator;
+                        ciphertextBlob = Buffer.from(convoInitiator, 'base64');
+                        decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        decryptResponse = await kmsClient.send(decryptCommand);
+                        convoInitiator = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
                         convoInitiator = JSON.parse(convoInitiator);
-                        let setOfPromotedUsers = new Set();
-                        setOfPromotedUsers.add(convoInitiator[0]);
-                        for(let promotedUser of promotedUsersOfConvo) {
-                            setOfPromotedUsers.add(promotedUser);
-                        }
-                        promotedUsers[convoId] = setOfPromotedUsers;
+
+                        promotedUsersOfConvo.push(convoInitiator[0]);
+                        promotedUsers[convoId] = promotedUsersOfConvo;
                         convoInitiators[convoId] = convoInitiator;
                     } else {
                         delete isTypings[convoId];
@@ -698,6 +925,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -745,6 +974,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -769,10 +1000,27 @@ wss.on('connection', (ws) => {
                 try {
                     const results = await query('SELECT sender, message, messageSentAt FROM messages WHERE convoId = ? ORDER BY messageSentAt DESC LIMIT 1', [convoId]);
                     if (results.length > 0) {
+                        const kmsClient = new KMSClient({
+                            credentials: {
+                                accessKeyId: accessKey,
+                                secretAccessKey: secretKey,
+                            },
+                            region: 'us-east-1',
+                        });
+                        ciphertextBlob = Buffer.from(results[0].message, 'base64');
+                        let decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        let decryptResponse = await kmsClient.send(decryptCommand);
+                        const decryptedMessage = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
+                        ciphertextBlob = Buffer.from(results[0].sender, 'base64');
+                        decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+                        decryptResponse = await kmsClient.send(decryptCommand);
+                        const decryptedSender = Buffer.from(decryptResponse.Plaintext).toString('utf-8');
+
                         let chronologicallyLatestMessage = [];
-                        chronologicallyLatestMessage.push(JSON.parse(results[0].message))
+                        chronologicallyLatestMessage.push(JSON.parse(decryptedMessage))
                         chronologicallyLatestMessage.push(new Date(results[0].messageSentAt+"Z"));
-                        chronologicallyLatestMessage.push(results[0].sender);
+                        chronologicallyLatestMessage.push(decryptedSender);
         
                         chronologicallyLatestMessages[convoId] = chronologicallyLatestMessage;
                     } else {
@@ -791,6 +1039,8 @@ wss.on('connection', (ws) => {
                         delete messages[convoId];
                         delete chronologicallyLatestMessageClients[convoId];
                         delete chronologicallyLatestMessages[convoId];
+                        delete convoSessionKeyClients[convoId];
+                        delete convoSessionKeys[convoId];
                     }
                 }
                 catch(error) {
@@ -798,6 +1048,43 @@ wss.on('connection', (ws) => {
                 }
             }
 
+        }
+        else if(messageArray[0] === 'convo-session-key') {
+            const convoId = messageArray[1];
+            if (!(convoId in convoSessionKeyClients)) {
+                convoSessionKeyClients[convoId] = new Set();
+            }
+            convoSessionKeyClients[convoId].add(ws);
+            if(convoId in convoSessionKeys) {
+                //client need not be sent anything here
+            }
+            else {
+                const mongoDBClient = new MongoClient(uri, {
+                    serverApi: {
+                        version: ServerApiVersion.v1,
+                        strict: true,
+                        deprecationErrors: true,
+                    }
+                });
+                try {
+                    await mongoDBClient.connect();
+                    const db = mongoDBClient.db('Megagram');
+                    const collection = db.collection('currentlyActiveSessionKeys');
+                    const activeSessionKeyOfConvo = await collection.find({convoId: convoId}).toArray();
+                    if(activeSessionKeyOfConvo.length==0) {
+                        convoSessionKeys[convoId] = "";
+                    }
+                    else {
+                        convoSessionKeys[convoId] = activeSessionKeyOfConvo[0].sessionKeyId;
+                    }
+                }
+                catch(error) {
+                    console.log(error);
+                }
+                finally {
+                    await mongoDBClient.close();
+                }
+            }
         }
     });
 
@@ -878,6 +1165,16 @@ wss.on('connection', (ws) => {
                 if (chronologicallyLatestMessageClients[convoId].size === 0) {
                     delete chronologicallyLatestMessageClients[convoId];
                     delete chronologicallyLatestMessages[convoId];
+                }
+            }
+        }
+
+        for (let convoId of Object.keys(convoSessionKeyClients)) {
+            if (convoSessionKeyClients[convoId].has(ws)) {
+                convoSessionKeyClients[convoId].delete(ws);
+                if (convoSessionKeyClients[convoId].size === 0) {
+                    delete convoSessionKeyClients[convoId];
+                    delete convoSessionKeys[convoId];
                 }
             }
         }

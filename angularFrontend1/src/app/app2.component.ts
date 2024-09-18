@@ -1,4 +1,4 @@
-    import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import axios from 'axios';
@@ -134,7 +134,7 @@ import { Note } from '../note.model';
         */
         this.authenticatedFullName = "Rishav Ray";
 
-        this.socket = new WebSocket('ws://localhost:8017');
+        this.socket = new WebSocket('ws://localhost:8019');
 
         this.socket.onmessage = (event) => {
             const messageArray = JSON.parse(event.data);
@@ -192,14 +192,14 @@ import { Note } from '../note.model';
                     }, 7500);
                 }
             }
+            else if(messageArray[0]==='update-convo-session-key') {
+                this.convoSessionKeys[messageArray[1]] = messageArray[2];
+            }
         }
 
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
         }
-        
-        //temporary until you program the logic for generating public/private key-pairs for users whenever they create an account.
-        //get the user's public key(if they do not have one, generate public/private-key pair)
 
 
         await this.notifyBackendOfActivityStatus();
@@ -579,15 +579,33 @@ import { Note } from '../note.model';
                                 isMuted: JSON.stringify(convo[9]),
                                 hasUnreadMessage: JSON.stringify(convo[10]),
                                 isRequested: JSON.stringify(convo[12]),
-                                isDeleted: JSON.stringify(convo[13])
+                                isDeleted: JSON.stringify(convo[13]),
+                                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                                 })
                             });
                             if(!response.ok) {
                                 throw new Error('Network response not ok');
                             }
+                            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                                const newlyCreatedSessionKeyId = await response.text();
+                                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        convoId: this.selectedConvoId,
+                                        sessionKeyId: newlyCreatedSessionKeyId,
+                                        membersOfConvo: this.membersOfSelectedConvo
+                                    })
+                                });
+                                if(!responseForSettingConvoSessionKeys.ok) {
+                                    throw new Error('Network response not ok');
+                                }
+                
+                            }
                         }
                         return;
-                    }
+                    }0
                 }
         }
         }
@@ -645,11 +663,29 @@ import { Note } from '../note.model';
                         isMuted: JSON.stringify(convo[9]),
                         hasUnreadMessage: JSON.stringify(convo[10]),
                         isRequested: JSON.stringify(convo[12]),
-                        isDeleted: JSON.stringify(convo[13])
+                        isDeleted: JSON.stringify(convo[13]),
+                        sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                         })
                     });
                     if(!response.ok) {
                         throw new Error('Network response not ok');
+                    }
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = await response.text();
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+        
                     }
                 }
             }
@@ -731,7 +767,8 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
             isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
-            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
         };
         const response = await fetch("http://localhost:8012/editConvo/" + this.selectedConvoId, {
             method: 'PATCH',
@@ -741,12 +778,30 @@ import { Note } from '../note.model';
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
+        }
         if(latestMessageInfo[0].startsWith(this.authenticatedUsername+":")) {
             this.listOfConvos[this.selectedConvo][0] =  "You: " + latestMessageInfo[0].substring(this.authenticatedUsername.length+2) + " · " + this.formatTimeSinceSent(latestMessageInfo[1]);
         }
         else {
             this.listOfConvos[this.selectedConvo][0] = latestMessageInfo[0].substring(latestMessageInfo[0].indexOf(":")+2) + " · " + this.formatTimeSinceSent(latestMessageInfo[1]);
         }
+        await this.editConvoHasUnreadMessageAfterSendingMessage();
 
     }
 
@@ -818,7 +873,8 @@ import { Note } from '../note.model';
                 isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
                 hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
                 isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
-                isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+                isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13]),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             };
             const response = await fetch('http://localhost:8012/editConvo/'+this.selectedConvoId, {
                 method: 'PATCH',
@@ -827,6 +883,23 @@ import { Note } from '../note.model';
             });
             if(!response.ok) {
                 throw new Error('Network response not ok');
+            }
+            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                const newlyCreatedSessionKeyId = await response.text();
+                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: this.selectedConvoId,
+                        sessionKeyId: newlyCreatedSessionKeyId,
+                        membersOfConvo: this.membersOfSelectedConvo
+                    })
+                });
+                if(!responseForSettingConvoSessionKeys.ok) {
+                    throw new Error('Network response not ok');
+                }
+
             }
             this.listOfConvos.splice(this.selectedConvo,1);
             this.messageRecipientInfo = [];
@@ -895,11 +968,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
             isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
-            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
         };
         try {
             const response = await axios.patch(url, data);
             if(response.data) {
+                if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                    const newlyCreatedSessionKeyId = await response.data;
+                    this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                    const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            convoId: this.selectedConvoId,
+                            sessionKeyId: newlyCreatedSessionKeyId,
+                            membersOfConvo: this.membersOfSelectedConvo
+                        })
+                    });
+                    if(!responseForSettingConvoSessionKeys.ok) {
+                        throw new Error('Network response not ok');
+                    }
+    
+                }
                 this.listOfConvos[this.selectedConvo][4] = !this.listOfConvos[this.selectedConvo][4];
             }
         } catch (error) {
@@ -958,6 +1049,7 @@ import { Note } from '../note.model';
         this.messageData[5].push([null]);
         this.messageData[6].push([]);
         this.messageData[7].push([]);
+
         const responseForSendingForwardedMessage = await fetch('http://localhost:8012/addMessage', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -966,13 +1058,33 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(message),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingForwardedMessage.ok) {
             throw new Error('Network response not ok');
         }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingForwardedMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+        }
+
+
         
     }
 
@@ -993,12 +1105,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(['Regular-Message', "File-Forward from Convo ft. " + forwardMessageInfo[2][0][0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingForwardedFileMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingForwardedFileMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         const formData = new FormData();
@@ -1094,9 +1225,26 @@ import { Note } from '../note.model';
             convoId: this.selectedConvoId,
             message: JSON.stringify(["Add-Member/Remove-Member", "declined the request to join this group"]),
             sender: this.authenticatedUsername,
-            messageSentAt: new Date()
+            messageSentAt: new Date(),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
         });
         if(response2.data) {
+            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                const newlyCreatedSessionKeyId = response2.data;
+                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: this.selectedConvoId,
+                        sessionKeyId: newlyCreatedSessionKeyId,
+                        membersOfConvo: this.membersOfSelectedConvo
+                    })
+                });
+                if(!responseForSettingConvoSessionKeys.ok) {
+                    throw new Error('Network response not ok');
+                }
+            }
             this.listOfRequestedConvos.splice(this.selectedConvo, 1);
             this.selectedConvo = -1;
             this.messageRecipientInfo = [];
@@ -1117,19 +1265,55 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][10]),
             isRequested: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][12]),
-            isDeleted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][13])
+            isDeleted: JSON.stringify(this.listOfRequestedConvos[this.selectedConvo][13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
         };
         try {
             const response = await axios.patch(url, data);
             if(response.data) {
+                if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                    const newlyCreatedSessionKeyId = await response.data;
+                    this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                    const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            convoId: this.selectedConvoId,
+                            sessionKeyId: newlyCreatedSessionKeyId,
+                            membersOfConvo: this.membersOfSelectedConvo
+                        })
+                    });
+                    if(!responseForSettingConvoSessionKeys.ok) {
+                        throw new Error('Network response not ok');
+                    }
+    
+                }
                 const response2 = await axios.post('http://localhost:8012/addMessage', {
                     messageId: uuidv4(),
                     convoId: this.selectedConvoId,
                     message: JSON.stringify(["Add-Member/Remove-Member", "accepted the request to join this group"]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: new Date()
+                    messageSentAt: new Date(),
+                    sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                 });
                 if(response2.data) {
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = response2.data;
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
+                    }
                     this.listOfConvos.push(this.listOfRequestedConvos[this.selectedConvo]);
                     this.listOfRequestedConvos.splice(this.selectedConvo,1);
                     this.messageRecipientInfo = [];
@@ -2028,11 +2212,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(this.listOfConvos[this.selectedConvo][9]),
             hasUnreadMessage: JSON.stringify(this.listOfConvos[this.selectedConvo][10]),
             isRequested: JSON.stringify(this.listOfConvos[this.selectedConvo][12]),
-            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13])
+            isDeleted: JSON.stringify(this.listOfConvos[this.selectedConvo][13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
         };
         try {
             const response = await axios.patch(url, data);
             if(response.data) {
+                if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                    const newlyCreatedSessionKeyId = await response.data;
+                    this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                    const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            convoId: this.selectedConvoId,
+                            sessionKeyId: newlyCreatedSessionKeyId,
+                            membersOfConvo: this.membersOfSelectedConvo
+                        })
+                    });
+                    if(!responseForSettingConvoSessionKeys.ok) {
+                        throw new Error('Network response not ok');
+                    }
+    
+                }
                 this.selectedConvoTitle = newConvoTitle;
                 this.listOfConvos[this.selectedConvo][6] = newConvoTitle;
             }
@@ -2047,10 +2249,27 @@ import { Note } from '../note.model';
                     convoId: this.selectedConvoId,
                     message: JSON.stringify(["Convo-Title", this.authenticatedUsername + " changed the title of this conversation from " + <string>convoTitleUpdateInfo[1][1]]),
                     sender: this.authenticatedUsername,
-                    messageSentAt: convoTitleUpdateInfo[2]
+                    messageSentAt: convoTitleUpdateInfo[2],
+                    sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                 });
                 if(response.data) {
-                    return;
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = response.data;
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
+                    }
                 }
             }
             catch (error) {
@@ -2143,12 +2362,31 @@ import { Note } from '../note.model';
                 isMuted: JSON.stringify(convo[9]),
                 hasUnreadMessage: JSON.stringify(convo[10]),
                 isRequested: JSON.stringify(convo[12]),
-                isDeleted: JSON.stringify(convo[13])
+                isDeleted: JSON.stringify(convo[13]),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
 
         if(!response.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         if(!this.displayListOfMessageRequestsSection) {
@@ -2210,12 +2448,31 @@ import { Note } from '../note.model';
                             convoId: this.selectedConvoId,
                             message: JSON.stringify(["Add-Member/Remove-Member", "added " + user[0]]),
                             sender: this.authenticatedUsername,
-                            messageSentAt: new Date()
+                            messageSentAt: new Date(),
+                            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                         })
                     });
                     
                     if(!responseForSendingMessage.ok) {
                         throw new Error('Network response not ok');
+                    }
+
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0], newMessageId], new Date()]);
@@ -2250,12 +2507,31 @@ import { Note } from '../note.model';
                             convoId: this.selectedConvoId,
                             message: JSON.stringify(["Add-Member/Remove-Member", "requested " + user[0]]),
                             sender: this.authenticatedUsername,
-                            messageSentAt: new Date()
+                            messageSentAt: new Date(),
+                            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                         })
                     });
                     
                     if(!responseForSendingMessage.ok) {
                         throw new Error('Network response not ok');
+                    }
+
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
@@ -2296,12 +2572,31 @@ import { Note } from '../note.model';
                             convoId: this.selectedConvoId,
                             message: JSON.stringify(["Add-Member/Remove-Member", "added " + user[0]]),
                             sender: this.authenticatedUsername,
-                            messageSentAt: new Date()
+                            messageSentAt: new Date(),
+                            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                         })
                     });
                     
                     if(!responseForSendingMessage.ok) {
                         throw new Error('Network response not ok');
+                    }
+
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "added " + user[0], newMessageId], new Date()]);
@@ -2347,12 +2642,31 @@ import { Note } from '../note.model';
                             convoId: this.selectedConvoId,
                             message: JSON.stringify(["Add-Member/Remove-Member", "requested " + user[0]]),
                             sender: this.authenticatedUsername,
-                            messageSentAt: new Date()
+                            messageSentAt: new Date(),
+                            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                         })
                     });
                     
                     if(!responseForSendingMessage.ok) {
                         throw new Error('Network response not ok');
+                    }
+
+                    if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                        const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+                        this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                        const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                convoId: this.selectedConvoId,
+                                sessionKeyId: newlyCreatedSessionKeyId,
+                                membersOfConvo: this.membersOfSelectedConvo
+                            })
+                        });
+                        if(!responseForSettingConvoSessionKeys.ok) {
+                            throw new Error('Network response not ok');
+                        }
+            
                     }
 
                     this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "requested " + user[0], newMessageId], new Date()]);
@@ -2392,12 +2706,33 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!responseForAddingNewMember.ok) {
             throw new Error('Network response not ok');
         }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForAddingNewMember.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
+        }
+
+        
 
     }
 
@@ -2501,11 +2836,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!responseForAddingNewMember.ok) {
             throw new Error('Network response not ok');
+        }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForAddingNewMember.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         
@@ -2518,12 +2871,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Add-Member/Remove-Member", "removed " + this.userSettingsPopupGroupMessageMember[0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Add-Member/Remove-Member", "removed " + this.userSettingsPopupGroupMessageMember[0], newMessageId], new Date()]);
@@ -2592,11 +2964,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
+        }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         const newMessageId = uuidv4();
@@ -2608,12 +2998,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Member-Promotion/Member-Demotion", "promoted " + this.userSettingsPopupGroupMessageMember[0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         this.displayUserSettingsPopup = false;
@@ -2650,11 +3059,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
+        }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         const newMessageId = uuidv4();
@@ -2666,12 +3093,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Member-Promotion/Member-Demotion", "demoted " + this.userSettingsPopupGroupMessageMember[0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.userSettingsPopupGroupMessageMember[0]], new Date()]);
@@ -2711,11 +3157,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
+        }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         const newMessageId = uuidv4();
@@ -2727,12 +3191,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Member-Promotion/Member-Demotion", "promoted " + this.messageRecipientInfo[0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
 
@@ -2771,11 +3254,29 @@ import { Note } from '../note.model';
             isMuted: JSON.stringify(convo[9]),
             hasUnreadMessage: JSON.stringify(convo[10]),
             isRequested: JSON.stringify(convo[12]),
-            isDeleted: JSON.stringify(convo[13])
+            isDeleted: JSON.stringify(convo[13]),
+            sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
+        }
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await response.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         const newMessageId = uuidv4();
@@ -2787,12 +3288,31 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Member-Promotion/Member-Demotion", "demoted " + this.messageRecipientInfo[0]]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingMessage.ok) {
             throw new Error('Network response not ok');
+        }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
         }
 
         this.messageData[0].push([this.authenticatedUsername, ["Member-Promotion/Member-Demotion", "demoted " + this.messageRecipientInfo[0]], new Date()]);
@@ -2826,13 +3346,34 @@ import { Note } from '../note.model';
                         convoId: this.selectedConvoId,
                         message: JSON.stringify(["Note-Reply", noteReplyInfo]),
                         sender: this.authenticatedUsername,
-                        messageSentAt: new Date()
+                        messageSentAt: new Date(),
+                        sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                     })
                 });
                 
                 if(!responseForSendingNoteReplyMessage.ok) {
                     throw new Error('Network response not ok');
                 }
+
+                if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                    const newlyCreatedSessionKeyId = await responseForSendingNoteReplyMessage.text();
+                    this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                    const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            convoId: this.selectedConvoId,
+                            sessionKeyId: newlyCreatedSessionKeyId,
+                            membersOfConvo: this.membersOfSelectedConvo
+                        })
+                    });
+                    if(!responseForSettingConvoSessionKeys.ok) {
+                        throw new Error('Network response not ok');
+                    }
+        
+                }
+
+
                 if(!this.displayListOfMessageRequestsSection) {
                     this.messageData[0].push([this.authenticatedUsername, ["Note-Reply", noteReplyInfo, newMessageId], new Date()]);
                     this.messageData[1].push([]);
@@ -2866,13 +3407,33 @@ import { Note } from '../note.model';
                 convoId: this.selectedConvoId,
                 message: JSON.stringify(["Note-Reply", noteReplyInfo]),
                 sender: this.authenticatedUsername,
-                messageSentAt: new Date()
+                messageSentAt: new Date(),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
             })
         });
         
         if(!responseForSendingNoteReplyMessage.ok) {
             throw new Error('Network response not ok');
         }
+
+        if(!(this.selectedConvoId in this.convoSessionKeys)) {
+            const newlyCreatedSessionKeyId = await responseForSendingNoteReplyMessage.text();
+            this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+            const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    convoId: this.selectedConvoId,
+                    sessionKeyId: newlyCreatedSessionKeyId,
+                    membersOfConvo: this.membersOfSelectedConvo
+                })
+            });
+            if(!responseForSettingConvoSessionKeys.ok) {
+                throw new Error('Network response not ok');
+            }
+
+        }
+
         this.addConvoToDatabase([this.authenticatedUsername+ ": " + noteReplyInfo[0], new Date()]);
         if(!this.displayListOfMessageRequestsSection) {
             this.messageData[0].push([this.authenticatedUsername, ["Note-Reply", noteReplyInfo, newMessageId], new Date()]);
@@ -2900,17 +3461,12 @@ import { Note } from '../note.model';
         let convoToAdd = this.listOfConvos[this.selectedConvo];
         let convoMembers = this.getMembersOfSelectedConvo();
 
-        if(convoMembers.length==2) {
-            const sessionKeyId = this.convoSessionKeys[this.selectedConvoId][0];
-            const sessionKey = this.convoSessionKeys[this.selectedConvoId][1];
-            //encrypt convoDetails with this sessionKey.
-        }
         const response = await fetch('http://localhost:8012/addConvo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 convoId: convoToAdd[8],
-                convoTitle: this.selectedConvoTitle,
+                convoTitle: this.selectedConvoTitle + " ",
                 members: JSON.stringify(convoMembers),
                 convoInitiator: JSON.stringify([this.authenticatedUsername, this.authenticatedFullName]),
                 latestMessage: JSON.stringify(latestMessageOfConvoToAdd),
@@ -2919,20 +3475,23 @@ import { Note } from '../note.model';
                 hasUnreadMessage: JSON.stringify(convoToAdd[10]),
                 isRequested: JSON.stringify(convoToAdd[12]),
                 isDeleted: JSON.stringify(convoToAdd[13]),
-                sessionId:  this.convoSessionKeys[this.selectedConvoId][0]
+                sessionKeyId:  this.convoSessionKeys[this.selectedConvoId]
             })
         });
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
+
         this.listOfConvos[this.selectedConvo][14] = true;
         this.hasSelectedConvoBeenAdded = true;
-        if(latestMessageOfConvoToAdd[0].startsWith(this.authenticatedUsername+":")) {
+        this.listOfConvos[this.selectedConvo][0] =  "You: " + latestMessageOfConvoToAdd[0].substring(this.authenticatedUsername.length+2) + " • 1m";
+        /*if(latestMessageOfConvoToAdd[0].startsWith(this.authenticatedUsername+":")) {
             this.listOfConvos[this.selectedConvo][0] =  "You: " + latestMessageOfConvoToAdd[0].substring(this.authenticatedUsername.length+2) + " • 1m";
         }
         else {
             this.listOfConvos[this.selectedConvo][0] = latestMessageOfConvoToAdd[0] + " • 1m";
-        }
+        }*/
+        await this.editConvoHasUnreadMessageAfterSendingMessage();
         
     }
 
@@ -2998,11 +3557,46 @@ import { Note } from '../note.model';
                 isMuted: JSON.stringify(convo[9]),
                 hasUnreadMessage: JSON.stringify(convo[10]),
                 isRequested: JSON.stringify(convo[12]),
-                isDeleted: JSON.stringify(convo[13])
+                isDeleted: JSON.stringify(convo[13]),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                 })
             });
             if(!response.ok) {
                 throw new Error('Network response not ok');
+            }
+            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                const newlyCreatedSessionKeyId = await response.text();
+                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: this.selectedConvoId,
+                        sessionKeyId: newlyCreatedSessionKeyId,
+                        membersOfConvo: this.membersOfSelectedConvo
+                    })
+                });
+                if(!responseForSettingConvoSessionKeys.ok) {
+                    throw new Error('Network response not ok');
+                }
+
+            }
+            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                const newlyCreatedSessionKeyId = await response.text();
+                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: this.selectedConvoId,
+                        sessionKeyId: newlyCreatedSessionKeyId,
+                        membersOfConvo: this.membersOfSelectedConvo
+                    })
+                });
+                if(!responseForSettingConvoSessionKeys.ok) {
+                    throw new Error('Network response not ok');
+                }
+
             }
     }
 
@@ -3033,11 +3627,29 @@ import { Note } from '../note.model';
                 isMuted: JSON.stringify(convo[9]),
                 hasUnreadMessage: JSON.stringify(convo[10]),
                 isRequested: JSON.stringify(convo[12]),
-                isDeleted: JSON.stringify(convo[13])
+                isDeleted: JSON.stringify(convo[13]),
+                sessionKeyId:  this.selectedConvoId in this.convoSessionKeys ? this.convoSessionKeys[this.selectedConvoId] : "",
                 })
             });
             if(!response.ok) {
                 throw new Error('Network response not ok');
+            }
+            if(!(this.selectedConvoId in this.convoSessionKeys)) {
+                const newlyCreatedSessionKeyId = await response.text();
+                this.convoSessionKeys[this.selectedConvoId] = newlyCreatedSessionKeyId;
+                const responseForSettingConvoSessionKeys = await fetch('http://localhost:8017/addActiveSessionKey', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        convoId: this.selectedConvoId,
+                        sessionKeyId: newlyCreatedSessionKeyId,
+                        membersOfConvo: this.membersOfSelectedConvo
+                    })
+                });
+                if(!responseForSettingConvoSessionKeys.ok) {
+                    throw new Error('Network response not ok');
+                }
+
             }
             this.numberOfAcceptedConvosWithUnreadMessage--;
     }

@@ -16,7 +16,7 @@ public class AddConvo
     public string isMuted { get; set; }
     public string hasUnreadMessage { get; set; }
     public string isDeleted { get; set; }
-    public string sessionId { get; set; }
+    public string sessionKeyId { get; set; }
 
 
 }

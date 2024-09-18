@@ -23,9 +23,9 @@ justify-content: center; align-items: center;" [ngStyle]="getWidthAndHorizontalS
                 <img *ngIf="isIdle" src="idleGrayDot.png" style="position: absolute; top: 75%; left: 75%; height: 1em; width: 1em; object-fit: contain;">
             </div>
             <div style="display: flex; flex-direction: column; align-items: start; justify-content: center; margin-top:1.5em; margin-left: 1em;">
-                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length==0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{messageRecipientInfo[1]}}</b>
-                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle.length==0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{getFullNamesOfAllConvoMembers()}}</b>
-                <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle.length>0 && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
+                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length==0 && convoTitle===' ' && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{messageRecipientInfo[1]}}</b>
+                <b (click)="toggleEditConvoTitle('')" *ngIf="groupMessageRecipientsInfo.length>0 && convoTitle===' ' && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{getFullNamesOfAllConvoMembers()}}</b>
+                <b (click)="toggleEditConvoTitle('')" *ngIf="convoTitle!==' ' && !isEditingConvoTitle" [ngStyle]="getConvoTitleCursorStyle()">{{convoTitle}}</b>
                 <p *ngIf="!isEditingConvoTitle && isActive" style="color: gray; font-size: 0.86em;">Active now</p>
                 <p *ngIf="!isEditingConvoTitle && isIdle" style="color: gray; font-size: 0.77em;">Idle</p>
                 <p *ngIf="!isEditingConvoTitle && !isActive && !isIdle" style="color: gray; font-size: 0.77em;"></p>
